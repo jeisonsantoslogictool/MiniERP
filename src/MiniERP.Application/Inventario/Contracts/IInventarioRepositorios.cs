@@ -1,3 +1,4 @@
+using MiniERP.Application.Common;
 using MiniERP.Application.Inventario.Dtos;
 using MiniERP.Domain.Inventario;
 

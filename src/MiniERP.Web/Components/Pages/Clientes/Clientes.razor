@@ -1,12 +1,211 @@
 @page "/clientes"
 @attribute [Authorize]
+@rendermode InteractiveServer
+@inject IClienteService ServicioClientes
 
 <PageTitle>Clientes</PageTitle>
 
-<h1>Clientes</h1>
-
-<p class="lead">Cartera de clientes, RNC o cedula y tipo de comprobante.</p>
-
-<div class="alert alert-secondary" role="alert">
-    Modulo pendiente. Se construye en la fase <strong>F1</strong> del plan.
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Clientes</h1>
+    <a class="btn btn-primary" href="/clientes/nuevo">Nuevo cliente</a>
 </div>
+
+@if (resumen is not null && resumen.TotalClientes > 0)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="p-3 bg-body-secondary rounded">
+                <small class="text-muted d-block">Clientes activos</small>
+                <span class="fs-4">@resumen.TotalClientes</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 bg-body-secondary rounded">
+                <small class="text-muted d-block">Con crédito</small>
+                <span class="fs-4">@resumen.ConCredito</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 bg-body-secondary rounded">
+                <small class="text-muted d-block">Deuda de la cartera</small>
+                <span class="fs-4">@Formato.Dinero(resumen.DeudaTotal)</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 rounded @(resumen.ExcedenLimite > 0 ? "bg-danger-subtle" : "bg-body-secondary")">
+                <small class="text-muted d-block">Exceden su límite</small>
+                <span class="fs-4">@resumen.ExcedenLimite</span>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input class="form-control" placeholder="Buscar por código, nombre, documento o teléfono"
+               value="@texto" @oninput="OnTextoChanged" />
+    </div>
+    <div class="col-md-3 d-flex align-items-center">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chkCred"
+                   checked="@soloConCredito" @onchange="OnCreditoChanged" />
+            <label class="form-check-label" for="chkCred">Solo con crédito</label>
+        </div>
+    </div>
+    <div class="col-md-3 d-flex align-items-center">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chkDeuda"
+                   checked="@soloConDeuda" @onchange="OnDeudaChanged" />
+            <label class="form-check-label" for="chkDeuda">Solo con deuda</label>
+        </div>
+    </div>
+</div>
+
+@if (pagina is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (pagina.Total == 0)
+{
+    <div class="alert alert-secondary">No hay clientes que coincidan con la búsqueda.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre</th>
+                    <th>Documento</th>
+                    <th>Comprobante</th>
+                    <th class="text-end">Límite</th>
+                    <th class="text-end">Debe</th>
+                    <th class="text-end">Disponible</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in pagina.Items)
+                {
+                    <tr class="@(c.Activo ? "" : "opacity-50")">
+                        <td><code>@c.Codigo</code></td>
+                        <td>
+                            @c.Nombre
+                            @if (!c.Activo)
+                            {
+                                <span class="badge text-bg-secondary ms-1">Inactivo</span>
+                            }
+                        </td>
+                        <td class="small">
+                            @if (c.TipoDocumento == TipoDocumento.Ninguno)
+                            {
+                                <span class="text-muted">Sin documento</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">@Formato.Documento(c.TipoDocumento)</span>
+                                <br />
+                                <span>@c.NumeroDocumento</span>
+                            }
+                        </td>
+                        <td class="small">@Formato.Comprobante(c.TipoComprobante)</td>
+                        <td class="text-end">
+                            @if (c.TieneCredito)
+                            {
+                                @Formato.Dinero(c.LimiteCredito)
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-secondary">Contado</span>
+                            }
+                        </td>
+                        <td class="text-end @(c.BalanceActual > 0 ? "fw-semibold" : "text-muted")">
+                            @Formato.Dinero(c.BalanceActual)
+                        </td>
+                        <td class="text-end">
+                            @if (c.ExcedeLimite)
+                            {
+                                <span class="badge text-bg-danger">Excedido</span>
+                            }
+                            else if (c.TieneCredito)
+                            {
+                                <span>@Formato.Dinero(c.CreditoDisponible)</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-secondary" href="/clientes/@c.Id">Editar</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+            @pagina.Total cliente(s) · página @pagina.Pagina de @Math.Max(1, pagina.TotalPaginas)
+        </small>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(!pagina.HayAnterior)"
+                    @onclick="() => IrAPagina(pagina.Pagina - 1)">Anterior</button>
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(!pagina.HaySiguiente)"
+                    @onclick="() => IrAPagina(pagina.Pagina + 1)">Siguiente</button>
+        </div>
+    </div>
+}
+
+@code {
+    private PaginaDe<ClienteListaDto>? pagina;
+    private ResumenCarteraDto? resumen;
+
+    private string? texto;
+    private bool soloConCredito;
+    private bool soloConDeuda;
+    private int paginaActual = 1;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar()
+    {
+        pagina = await ServicioClientes.BuscarAsync(new FiltroClientes(
+            Texto: texto,
+            SoloConCredito: soloConCredito,
+            SoloConDeuda: soloConDeuda,
+            SoloActivos: false,
+            Pagina: paginaActual));
+
+        resumen = await ServicioClientes.ObtenerResumenAsync();
+    }
+
+    private async Task OnTextoChanged(ChangeEventArgs e)
+    {
+        texto = e.Value?.ToString();
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task OnCreditoChanged(ChangeEventArgs e)
+    {
+        soloConCredito = (bool?)e.Value ?? false;
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task OnDeudaChanged(ChangeEventArgs e)
+    {
+        soloConDeuda = (bool?)e.Value ?? false;
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task IrAPagina(int numero)
+    {
+        paginaActual = numero;
+        await Cargar();
+    }
+}

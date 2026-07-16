@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MiniERP.Application.Clientes.Contracts;
+using MiniERP.Application.Clientes.Services;
 using MiniERP.Application.Inventario.Contracts;
 using MiniERP.Application.Inventario.Services;
 using MiniERP.Infrastructure.Persistence;
@@ -45,6 +47,10 @@ public static class DependencyInjection
         services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
         services.AddScoped<IProductoService, ProductoService>();
         services.AddScoped<ICategoriaService, CategoriaService>();
+
+        // Clientes
+        services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
+        services.AddScoped<IClienteService, ClienteService>();
 
         return services;
     }

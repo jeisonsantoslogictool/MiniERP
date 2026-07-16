@@ -1,0 +1,243 @@
+@page "/clientes/nuevo"
+@page "/clientes/{Id:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IClienteService ServicioClientes
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider Auth
+
+<PageTitle>@(EsNuevo ? "Nuevo cliente" : "Editar cliente")</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@(EsNuevo ? "Nuevo cliente" : form.Nombre)</h1>
+    <a class="btn btn-outline-secondary" href="/clientes">Volver</a>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+@if (aviso is not null)
+{
+    <div class="alert alert-success" role="alert">@aviso</div>
+}
+
+@if (cargando)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (noEncontrado)
+{
+    <div class="alert alert-warning">El cliente no existe.</div>
+}
+else
+{
+    <EditForm Model="form" OnValidSubmit="Guardar">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Código</label>
+                <input class="form-control text-uppercase" @bind="form.Codigo" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Nombre o razón social</label>
+                <input class="form-control" @bind="form.Nombre" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Teléfono</label>
+                <input class="form-control" @bind="form.Telefono" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Tipo de documento</label>
+                <select class="form-select" @bind="form.TipoDocumento">
+                    <option value="@TipoDocumento.Ninguno">Sin documento</option>
+                    <option value="@TipoDocumento.Cedula">Cédula</option>
+                    <option value="@TipoDocumento.Rnc">RNC</option>
+                    <option value="@TipoDocumento.Pasaporte">Pasaporte</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Número</label>
+                <input class="form-control" @bind="form.NumeroDocumento"
+                       disabled="@(form.TipoDocumento == TipoDocumento.Ninguno)"
+                       placeholder="@PlaceholderDocumento" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Comprobante fiscal</label>
+                <select class="form-select" @bind="form.TipoComprobante">
+                    <option value="@TipoComprobante.Consumo">02 — Consumo</option>
+                    <option value="@TipoComprobante.CreditoFiscal">01 — Crédito fiscal</option>
+                    <option value="@TipoComprobante.RegimenEspecial">14 — Régimen especial</option>
+                    <option value="@TipoComprobante.Gubernamental">15 — Gubernamental</option>
+                </select>
+                @if (form.TipoComprobante == TipoComprobante.CreditoFiscal && !RncPresente)
+                {
+                    <div class="form-text text-danger">
+                        El crédito fiscal exige un RNC: sin él, la DGII no acepta el comprobante.
+                    </div>
+                }
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Dirección</label>
+                <input class="form-control" @bind="form.Direccion" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Correo</label>
+                <input class="form-control" type="email" @bind="form.Email" />
+            </div>
+        </div>
+
+        <hr class="my-4" />
+
+        <h2 class="h5">Crédito</h2>
+        <p class="text-muted small">
+            Con el límite en cero, el cliente es solo de contado.
+        </p>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Límite de crédito</label>
+                <input class="form-control" type="number" step="0.01" @bind="form.LimiteCredito" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Días de crédito</label>
+                <input class="form-control" type="number" @bind="form.DiasCredito" />
+            </div>
+
+            @if (!EsNuevo)
+            {
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="w-100 p-2 rounded @(Excedido ? "bg-danger-subtle" : "bg-body-secondary")">
+                        <div class="d-flex justify-content-between">
+                            <span>
+                                <small class="text-muted d-block">Debe hoy</small>
+                                <strong>@Formato.Dinero(form.BalanceActual)</strong>
+                            </span>
+                            <span class="text-end">
+                                <small class="text-muted d-block">Disponible</small>
+                                <strong>@Formato.Dinero(Disponible)</strong>
+                            </span>
+                        </div>
+                        @if (Excedido)
+                        {
+                            <small class="text-danger d-block mt-1">
+                                El balance supera el límite. Bajar el límite no borra la deuda.
+                            </small>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkAct" @bind="form.Activo" />
+                    <label class="form-check-label" for="chkAct">Activo</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" type="submit" disabled="@guardando">
+                @(guardando ? "Guardando..." : "Guardar")
+            </button>
+            <a class="btn btn-outline-secondary" href="/clientes">Cancelar</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private ClienteFormDto form = new();
+    private string? error;
+    private string? aviso;
+    private bool cargando = true;
+    private bool guardando;
+    private bool noEncontrado;
+    private string? usuarioId;
+
+    private bool EsNuevo => Id is null;
+
+    private bool RncPresente =>
+        form.TipoDocumento == TipoDocumento.Rnc && !string.IsNullOrWhiteSpace(form.NumeroDocumento);
+
+    private decimal Disponible => Math.Max(0, form.LimiteCredito - form.BalanceActual);
+
+    private bool Excedido => form.BalanceActual > form.LimiteCredito;
+
+    private string PlaceholderDocumento => form.TipoDocumento switch
+    {
+        TipoDocumento.Cedula => "11 dígitos",
+        TipoDocumento.Rnc => "9 dígitos",
+        TipoDocumento.Pasaporte => "Número de pasaporte",
+        _ => ""
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+
+        if (Id is { } id)
+        {
+            var existente = await ServicioClientes.ObtenerParaEditarAsync(id);
+
+            if (existente is null)
+            {
+                noEncontrado = true;
+                cargando = false;
+                return;
+            }
+
+            form = existente;
+        }
+        else
+        {
+            form = await ServicioClientes.NuevoAsync();
+        }
+
+        cargando = false;
+    }
+
+    private async Task Guardar()
+    {
+        error = aviso = null;
+        guardando = true;
+
+        try
+        {
+            if (EsNuevo)
+            {
+                var resultado = await ServicioClientes.CrearAsync(form, usuarioId);
+
+                if (resultado.Fallo)
+                {
+                    error = resultado.Error;
+                    return;
+                }
+
+                Nav.NavigateTo($"/clientes/{resultado.Valor}");
+            }
+            else
+            {
+                var resultado = await ServicioClientes.ActualizarAsync(form, usuarioId);
+
+                if (resultado.Fallo)
+                {
+                    error = resultado.Error;
+                    return;
+                }
+
+                aviso = "Cliente guardado.";
+            }
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+}
