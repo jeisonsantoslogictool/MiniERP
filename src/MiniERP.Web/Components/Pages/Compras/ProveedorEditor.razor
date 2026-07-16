@@ -1,0 +1,189 @@
+@page "/compras/proveedores/nuevo"
+@page "/compras/proveedores/{Id:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IProveedorService ServicioProveedores
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider Auth
+
+<PageTitle>@(EsNuevo ? "Nuevo proveedor" : "Editar proveedor")</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@(EsNuevo ? "Nuevo proveedor" : form.Nombre)</h1>
+    <a class="btn btn-outline-secondary" href="/compras/proveedores">Volver</a>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+@if (aviso is not null)
+{
+    <div class="alert alert-success" role="alert">@aviso</div>
+}
+
+@if (cargando)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (noEncontrado)
+{
+    <div class="alert alert-warning">El proveedor no existe.</div>
+}
+else
+{
+    <EditForm Model="form" OnValidSubmit="Guardar">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Código</label>
+                <input class="form-control text-uppercase" @bind="form.Codigo" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Nombre o razón social</label>
+                <input class="form-control" @bind="form.Nombre" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Teléfono</label>
+                <input class="form-control" @bind="form.Telefono" />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Tipo de documento</label>
+                <select class="form-select" @bind="form.TipoDocumento">
+                    <option value="@TipoDocumento.Rnc">RNC</option>
+                    <option value="@TipoDocumento.Cedula">Cédula</option>
+                    <option value="@TipoDocumento.Pasaporte">Pasaporte</option>
+                    <option value="@TipoDocumento.Ninguno">Sin documento</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Número</label>
+                <input class="form-control" @bind="form.NumeroDocumento"
+                       disabled="@(form.TipoDocumento == TipoDocumento.Ninguno)" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Contacto</label>
+                <input class="form-control" @bind="form.Contacto" placeholder="Persona con quien se trata" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Días de crédito</label>
+                <input class="form-control" type="number" @bind="form.DiasCredito" />
+                <div class="form-text">Cero = se le paga de contado.</div>
+            </div>
+
+            <div class="col-md-6">
+                <label class="form-label">Dirección</label>
+                <input class="form-control" @bind="form.Direccion" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Correo</label>
+                <input class="form-control" type="email" @bind="form.Email" />
+            </div>
+
+            @if (!EsNuevo && form.BalanceActual > 0)
+            {
+                <div class="col-12">
+                    <div class="alert alert-warning mb-0">
+                        <strong>Le debemos @Formato.Dinero(form.BalanceActual).</strong>
+                        Lo mueven las compras a crédito y los pagos, no la edición de esta ficha.
+                    </div>
+                </div>
+            }
+
+            <div class="col-12">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkAct" @bind="form.Activo" />
+                    <label class="form-check-label" for="chkAct">Activo</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" type="submit" disabled="@guardando">
+                @(guardando ? "Guardando..." : "Guardar")
+            </button>
+            <a class="btn btn-outline-secondary" href="/compras/proveedores">Cancelar</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private ProveedorFormDto form = new();
+    private string? error;
+    private string? aviso;
+    private bool cargando = true;
+    private bool guardando;
+    private bool noEncontrado;
+    private string? usuarioId;
+
+    private bool EsNuevo => Id is null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+
+        if (Id is { } id)
+        {
+            var existente = await ServicioProveedores.ObtenerParaEditarAsync(id);
+
+            if (existente is null)
+            {
+                noEncontrado = true;
+                cargando = false;
+                return;
+            }
+
+            form = existente;
+        }
+        else
+        {
+            form = await ServicioProveedores.NuevoAsync();
+        }
+
+        cargando = false;
+    }
+
+    private async Task Guardar()
+    {
+        error = aviso = null;
+        guardando = true;
+
+        try
+        {
+            if (EsNuevo)
+            {
+                var resultado = await ServicioProveedores.CrearAsync(form, usuarioId);
+
+                if (resultado.Fallo)
+                {
+                    error = resultado.Error;
+                    return;
+                }
+
+                Nav.NavigateTo($"/compras/proveedores/{resultado.Valor}");
+            }
+            else
+            {
+                var resultado = await ServicioProveedores.ActualizarAsync(form, usuarioId);
+
+                if (resultado.Fallo)
+                {
+                    error = resultado.Error;
+                    return;
+                }
+
+                aviso = "Proveedor guardado.";
+            }
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+}

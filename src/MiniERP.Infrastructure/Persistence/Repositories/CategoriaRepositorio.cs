@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using MiniERP.Application.Common;
 using MiniERP.Application.Inventario.Contracts;
 using MiniERP.Application.Inventario.Dtos;
 using MiniERP.Domain.Inventario;

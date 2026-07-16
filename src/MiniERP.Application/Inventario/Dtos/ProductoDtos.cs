@@ -73,8 +73,5 @@ public record MovimientoDto(
     string? Motivo,
     string? Usuario);
 
-/// <summary>Opcion de un desplegable.</summary>
-public record OpcionDto(int Id, string Texto);
-
 /// <summary>Unidad de medida, con lo que la pantalla necesita para validar la cantidad.</summary>
 public record UnidadMedidaDto(int Id, string Codigo, string Nombre, bool PermiteDecimales, int CantidadDecimales);

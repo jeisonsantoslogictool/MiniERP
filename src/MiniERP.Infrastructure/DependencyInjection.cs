@@ -4,6 +4,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MiniERP.Application.Clientes.Contracts;
 using MiniERP.Application.Clientes.Services;
+using MiniERP.Application.Compras.Contracts;
+using MiniERP.Application.Compras.Services;
 using MiniERP.Application.Inventario.Contracts;
 using MiniERP.Application.Inventario.Services;
 using MiniERP.Infrastructure.Persistence;
@@ -51,6 +53,12 @@ public static class DependencyInjection
         // Clientes
         services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
         services.AddScoped<IClienteService, ClienteService>();
+
+        // Compras
+        services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
+        services.AddScoped<ICompraRepositorio, CompraRepositorio>();
+        services.AddScoped<IProveedorService, ProveedorService>();
+        services.AddScoped<ICompraService, CompraService>();
 
         return services;
     }

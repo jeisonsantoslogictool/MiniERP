@@ -1,12 +1,130 @@
 @page "/compras"
 @attribute [Authorize]
+@rendermode InteractiveServer
+@inject ICompraService ServicioCompras
 
 <PageTitle>Compras</PageTitle>
 
-<h1>Compras</h1>
-
-<p class="lead">Proveedores, ordenes de compra y recepcion de mercancia.</p>
-
-<div class="alert alert-secondary" role="alert">
-    Modulo pendiente. Se construye en la fase <strong>F2</strong> del plan.
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Compras</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="/compras/proveedores">Proveedores</a>
+        <a class="btn btn-primary" href="/compras/nueva">Nueva compra</a>
+    </div>
 </div>
+
+<div class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input class="form-control" placeholder="Buscar por número, proveedor o NCF"
+               value="@texto" @oninput="OnTextoChanged" />
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" value="@(estado?.ToString() ?? "")" @onchange="OnEstadoChanged">
+            <option value="">Todos los estados</option>
+            <option value="@EstadoCompra.Borrador">Borrador</option>
+            <option value="@EstadoCompra.Recibida">Recibida</option>
+            <option value="@EstadoCompra.Anulada">Anulada</option>
+        </select>
+    </div>
+</div>
+
+@if (pagina is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (pagina.Total == 0)
+{
+    <div class="alert alert-secondary">No hay compras que coincidan con la búsqueda.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Proveedor</th>
+                    <th>Fecha</th>
+                    <th>NCF</th>
+                    <th>Estado</th>
+                    <th>Condición</th>
+                    <th class="text-end">Subtotal</th>
+                    <th class="text-end">ITBIS</th>
+                    <th class="text-end">Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in pagina.Items)
+                {
+                    <tr class="@(c.Estado == EstadoCompra.Anulada ? "opacity-50" : "")">
+                        <td><code>@c.Numero</code></td>
+                        <td>@c.Proveedor</td>
+                        <td class="small text-nowrap">@Formato.FechaHora(c.Fecha)</td>
+                        <td class="small text-muted">@c.NcfProveedor</td>
+                        <td>
+                            <span class="badge @Formato.ClaseEstadoCompra(c.Estado)">
+                                @Formato.EstadoCompra(c.Estado)
+                            </span>
+                        </td>
+                        <td class="small">@(c.Condicion == CondicionPago.Contado ? "Contado" : "Crédito")</td>
+                        <td class="text-end">@Formato.Dinero(c.Subtotal)</td>
+                        <td class="text-end text-muted">@Formato.Dinero(c.Itbis)</td>
+                        <td class="text-end fw-semibold">@Formato.Dinero(c.Total)</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-secondary" href="/compras/@c.Id">
+                                @(c.Estado == EstadoCompra.Borrador ? "Editar" : "Ver")
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+            @pagina.Total compra(s) · página @pagina.Pagina de @Math.Max(1, pagina.TotalPaginas)
+        </small>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(!pagina.HayAnterior)"
+                    @onclick="() => IrAPagina(pagina.Pagina - 1)">Anterior</button>
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(!pagina.HaySiguiente)"
+                    @onclick="() => IrAPagina(pagina.Pagina + 1)">Siguiente</button>
+        </div>
+    </div>
+}
+
+@code {
+    private PaginaDe<CompraListaDto>? pagina;
+    private string? texto;
+    private EstadoCompra? estado;
+    private int paginaActual = 1;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar() =>
+        pagina = await ServicioCompras.BuscarAsync(new FiltroCompras(
+            Texto: texto, Estado: estado, Pagina: paginaActual));
+
+    private async Task OnTextoChanged(ChangeEventArgs e)
+    {
+        texto = e.Value?.ToString();
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task OnEstadoChanged(ChangeEventArgs e)
+    {
+        var valor = e.Value?.ToString();
+        estado = string.IsNullOrEmpty(valor) ? null : Enum.Parse<EstadoCompra>(valor);
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task IrAPagina(int numero)
+    {
+        paginaActual = numero;
+        await Cargar();
+    }
+}

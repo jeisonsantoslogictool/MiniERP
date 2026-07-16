@@ -1,5 +1,6 @@
 using System.Globalization;
 using MiniERP.Domain.Clientes;
+using MiniERP.Domain.Compras;
 using MiniERP.Domain.Inventario;
 
 namespace MiniERP.Web;
@@ -46,6 +47,23 @@ public static class Formato
         TipoComprobante.RegimenEspecial => "14 — Régimen especial",
         TipoComprobante.Gubernamental => "15 — Gubernamental",
         _ => tipo.ToString()
+    };
+
+    public static string EstadoCompra(EstadoCompra estado) => estado switch
+    {
+        Domain.Compras.EstadoCompra.Borrador => "Borrador",
+        Domain.Compras.EstadoCompra.Recibida => "Recibida",
+        Domain.Compras.EstadoCompra.Anulada => "Anulada",
+        _ => estado.ToString()
+    };
+
+    /// <summary>Color del estado: el borrador es una promesa, la recibida ya movió el inventario.</summary>
+    public static string ClaseEstadoCompra(EstadoCompra estado) => estado switch
+    {
+        Domain.Compras.EstadoCompra.Borrador => "text-bg-warning",
+        Domain.Compras.EstadoCompra.Recibida => "text-bg-success",
+        Domain.Compras.EstadoCompra.Anulada => "text-bg-secondary",
+        _ => "text-bg-light"
     };
 
     public static string Movimiento(TipoMovimiento tipo) => tipo switch
