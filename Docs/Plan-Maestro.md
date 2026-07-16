@@ -23,24 +23,29 @@ descubrirlo en la ocho.
 
 ## Reparto del grupo
 
-Son cuatro personas y solo dos escriben código. Ese es el mayor acelerador del proyecto:
-mientras los devs construyen, los otros dos llevan el informe y el trabajo de campo.
+Son cuatro personas y **tres escriben código**. Eso acelera la construcción, pero deja el
+informe en manos de una sola persona.
 
 ### Track de código
 
 | Quién | Responsabilidad |
 |-------|-----------------|
-| **Dev A — Jeison** | Arquitectura, inventario, POS y comprobantes. La cadena crítica. |
-| **Dev B** | Clientes, compras y finanzas. Tres módulos, más sencillos que el POS. |
+| **Jeison** | Arquitectura, inventario, POS y comprobantes fiscales. La cadena crítica. |
+| **Samuel** | Compras y finanzas: el camino del costo, desde que entra la mercancía hasta el reporte de rentabilidad. |
+| **Dionis** | Clientes, cobros y pagos: el ciclo del dinero a crédito. |
 
-La **semana 1 se hace en conjunto**: la base compartida se construye una sola vez y de
-común acuerdo, o se paga después en fricción.
+**Regla que compensa el desbalance:** quien construye un módulo escribe la sección del
+Capítulo IV que le corresponde, en la misma semana y con sus capturas. Es también quien
+mejor lo puede defender.
 
-### Track de documento
+### Track de documento — Rangelis
 
-Los otros dos integrantes llevan el Capítulo II completo, las entrevistas y el
-levantamiento en el comercio piloto, las pruebas de usuario sobre cada módulo que cierra,
-y el armado final del informe.
+Capítulo II completo, entrevistas y levantamiento en el comercio piloto, y el armado y la
+coherencia del informe: recibe las secciones del Capítulo IV que escriben los devs y las
+integra.
+
+**Va solo.** Si se atrasa, se atrasa el trabajo completo. Su avance se revisa cada semana,
+no en la ocho.
 
 ---
 
@@ -138,6 +143,7 @@ el XML e-CF de una factura real.
 
 | Riesgo | Mitigación |
 |--------|------------|
+| **Rangelis solo con el informe.** Al pasar Samuel y Dionis a código, el track de documento perdió la mitad de su gente. El informe es la mitad de la nota. | Cada dev escribe la sección del Capítulo IV del módulo que construyó, en la misma semana. Rangelis integra en vez de escribirlo todo. Revisar su avance cada semana. |
 | **Dejar el Capítulo IV para el final.** El asesino clásico: el código termina y quedan ochenta páginas por escribir sin memoria de cómo se hizo. | Escribirlo por módulo, y hacerlo parte del gate. Un módulo no está cerrado hasta que su sección del informe existe. |
 | **El alcance creciendo por los bordes.** Analítica, e-commerce, app móvil, offline. | El anteproyecto ya los excluye por escrito. Citarlo y decir que no, sin culpa. |
 | **Perseguir la certificación de la DGII.** Proceso largo, externo y fuera de su control. | Está fuera de alcance por escrito. Se genera el XML e-CF y el QR, y ahí se para. |
