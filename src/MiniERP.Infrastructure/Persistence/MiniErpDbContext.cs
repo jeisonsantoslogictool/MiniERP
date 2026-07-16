@@ -26,6 +26,8 @@ public class MiniErpDbContext(DbContextOptions<MiniErpDbContext> options)
 
     // Ventas
     public DbSet<SecuenciaNcf> SecuenciasNcf => Set<SecuenciaNcf>();
+    public DbSet<Factura> Facturas => Set<Factura>();
+    public DbSet<LineaFactura> LineasFactura => Set<LineaFactura>();
 
     // Compras
     public DbSet<Proveedor> Proveedores => Set<Proveedor>();
