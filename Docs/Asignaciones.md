@@ -6,11 +6,14 @@ Cada quien trabaja en **su rama**, no en `main`. Nadie commitea directo a `main`
 integra por pull request, y quien revisa es otro del grupo. Así todos ven el código de
 todos, que es lo que hace falta para poder defenderlo en septiembre.
 
+La rama lleva el nombre de su dueño: `<nombre>/<módulo>`. Así el historial dice quién hizo
+qué sin que nadie tenga que preguntarlo, que es justo lo que un asesor va a querer ver.
+
 | Rama | Quién | Módulo |
 |------|-------|--------|
-| `feature/pos` | **Jeison** | Punto de venta y comprobantes fiscales |
-| `feature/finanzas` | **Samuel** | Finanzas y compras |
-| `feature/cobros-pagos` | **Dionis** | Cobros, pagos y clientes |
+| `jeison/pos` | **Jeison** | Punto de venta y comprobantes fiscales |
+| `samuel/finanzas` | **Samuel** | Finanzas y compras |
+| `dionis/cobros-pagos` | **Dionis** | Cobros, pagos y clientes |
 | — | **Rangelis** | Capítulo II, entrevistas y armado del informe |
 
 ---
@@ -26,7 +29,7 @@ Cada dev entrega **dos cosas** por módulo: el código y su sección del informe
 
 ---
 
-## Jeison — `feature/pos`
+## Jeison — `jeison/pos`
 
 Ya construido: inventario, POS con carrito y cobro, secuencias de NCF con asignación
 atómica, modelo de facturación con costo congelado.
@@ -49,7 +52,7 @@ debe entrar al plan de pruebas del 5.1.
 
 ---
 
-## Samuel — `feature/finanzas`
+## Samuel — `samuel/finanzas`
 
 ### Primero: adoptar compras
 
@@ -86,7 +89,7 @@ El reporte de rentabilidad cuadra contra las ventas reales: si vendiste 3 LB con
 
 ---
 
-## Dionis — `feature/cobros-pagos`
+## Dionis — `dionis/cobros-pagos`
 
 ### Primero: adoptar clientes
 
@@ -138,7 +141,7 @@ El estado de cuenta muestra las tres líneas.
 git clone https://github.com/jeisonsantoslogictool/MiniERP.git
 cd MiniERP
 
-git checkout feature/finanzas      # o la que te toque
+git checkout samuel/finanzas       # o la que te toque
 dotnet run --project src/MiniERP.Web
 ```
 
