@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Domain.Clientes;
+using MiniERP.Domain.Compras;
 using MiniERP.Domain.Inventario;
 
 namespace MiniERP.Infrastructure.Persistence;
@@ -21,6 +22,11 @@ public class MiniErpDbContext(DbContextOptions<MiniErpDbContext> options)
 
     // Clientes
     public DbSet<Cliente> Clientes => Set<Cliente>();
+
+    // Compras
+    public DbSet<Proveedor> Proveedores => Set<Proveedor>();
+    public DbSet<Compra> Compras => Set<Compra>();
+    public DbSet<LineaCompra> LineasCompra => Set<LineaCompra>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
