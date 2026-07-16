@@ -1,0 +1,17 @@
+@page "/"
+
+<PageTitle>Inicio</PageTitle>
+
+<h1>Mini ERP</h1>
+
+<p class="lead">Sistema de gestion para microcomercios minoristas.</p>
+
+<AuthorizeView>
+    <Authorized>
+        <p>Sesion iniciada como <strong>@context.User.Identity?.Name</strong>. Elige un modulo en el menu lateral.</p>
+    </Authorized>
+    <NotAuthorized>
+        <p>Inicia sesion para acceder a los modulos del sistema.</p>
+        <a class="btn btn-primary" href="Account/Login">Iniciar sesion</a>
+    </NotAuthorized>
+</AuthorizeView>

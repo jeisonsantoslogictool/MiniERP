@@ -1,0 +1,23 @@
+# Normaliza los fines de linea. Sin esto, dos maquinas distintas producen diffs
+# falsos donde cada archivo aparece como "modificado" sin haber cambiado nada.
+* text=auto
+
+*.cs        text diff=csharp
+*.razor     text
+*.csproj    text
+*.slnx      text
+*.props     text
+*.json      text
+*.md        text
+*.sql       text
+*.css       text
+*.js        text
+
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.ico       binary
+*.pdf       binary
+*.docx      binary
+*.xlsx      binary
