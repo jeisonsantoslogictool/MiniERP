@@ -9,6 +9,7 @@ using MiniERP.Application.Compras.Services;
 using MiniERP.Application.Inventario.Contracts;
 using MiniERP.Application.Inventario.Services;
 using MiniERP.Application.Ventas.Contracts;
+using MiniERP.Application.Ventas.Services;
 using MiniERP.Infrastructure.Persistence;
 using MiniERP.Infrastructure.Persistence.Repositories;
 using MiniERP.Infrastructure.Settings;
@@ -57,6 +58,8 @@ public static class DependencyInjection
 
         // Ventas
         services.AddScoped<ISecuenciaNcfRepositorio, SecuenciaNcfRepositorio>();
+        services.AddScoped<IVentaRepositorio, VentaRepositorio>();
+        services.AddScoped<IVentaService, VentaService>();
 
         // Compras
         services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
