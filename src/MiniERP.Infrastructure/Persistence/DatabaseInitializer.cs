@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MiniERP.Domain.Clientes;
 using MiniERP.Domain.Core;
 using MiniERP.Domain.Inventario;
+using MiniERP.Domain.Ventas;
 using MiniERP.Infrastructure.Settings;
 
 namespace MiniERP.Infrastructure.Persistence;
@@ -37,6 +39,52 @@ public class DatabaseInitializer(
         await SembrarRolesAsync();
         await SembrarAdministradorAsync();
         await SembrarCategoriasAsync(ct);
+        await SembrarSecuenciasNcfAsync(ct);
+    }
+
+    /// <summary>
+    /// Siembra rangos de comprobantes para que el sistema pueda facturar el primer dia.
+    /// </summary>
+    /// <remarks>
+    /// Son rangos de arranque, NO autorizaciones de la DGII. El comercio debe reemplazar
+    /// estos rangos por los que la DGII le autorice antes de facturar de verdad; emitir
+    /// con un rango inventado es una infraccion. Se siembran para que el sistema sea
+    /// usable de inmediato en desarrollo y en las pruebas del piloto.
+    /// </remarks>
+    private async Task SembrarSecuenciasNcfAsync(CancellationToken ct)
+    {
+        if (await contexto.SecuenciasNcf.AnyAsync(ct))
+            return;
+
+        var vence = DateTime.UtcNow.Date.AddYears(1);
+
+        (TipoComprobante Tipo, string Prefijo)[] rangos =
+        [
+            (TipoComprobante.Consumo, "B02"),
+            (TipoComprobante.CreditoFiscal, "B01"),
+            (TipoComprobante.RegimenEspecial, "B14"),
+            (TipoComprobante.Gubernamental, "B15")
+        ];
+
+        contexto.SecuenciasNcf.AddRange(rangos.Select(r => new SecuenciaNcf
+        {
+            TipoComprobante = r.Tipo,
+            Prefijo = r.Prefijo,
+            Desde = 1,
+            Hasta = 5000,
+            Actual = 0,
+            FechaVencimiento = vence,
+            Activa = true,
+            CreadoPor = "sistema"
+        }));
+
+        await contexto.SaveChangesAsync(ct);
+
+        log.LogWarning(
+            "Se sembraron {Cantidad} secuencias de NCF de arranque (B01, B02, B14, B15), " +
+            "validas hasta {Vence:dd/MM/yyyy}. NO son rangos autorizados por la DGII: " +
+            "reemplazalos por los tuyos antes de facturar de verdad.",
+            rangos.Length, vence);
     }
 
     /// <summary>

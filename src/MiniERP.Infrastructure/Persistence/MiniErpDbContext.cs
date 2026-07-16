@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MiniERP.Domain.Clientes;
 using MiniERP.Domain.Compras;
 using MiniERP.Domain.Inventario;
+using MiniERP.Domain.Ventas;
 
 namespace MiniERP.Infrastructure.Persistence;
 
@@ -22,6 +23,9 @@ public class MiniErpDbContext(DbContextOptions<MiniErpDbContext> options)
 
     // Clientes
     public DbSet<Cliente> Clientes => Set<Cliente>();
+
+    // Ventas
+    public DbSet<SecuenciaNcf> SecuenciasNcf => Set<SecuenciaNcf>();
 
     // Compras
     public DbSet<Proveedor> Proveedores => Set<Proveedor>();
