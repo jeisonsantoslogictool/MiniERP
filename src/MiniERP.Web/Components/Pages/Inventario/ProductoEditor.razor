@@ -1,0 +1,370 @@
+@page "/inventario/productos/nuevo"
+@page "/inventario/productos/{Id:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IProductoService ServicioProductos
+@inject ICategoriaService ServicioCategorias
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider Auth
+
+<PageTitle>@(EsNuevo ? "Nuevo producto" : "Editar producto")</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@(EsNuevo ? "Nuevo producto" : form.Descripcion)</h1>
+    <a class="btn btn-outline-secondary" href="/inventario/productos">Volver</a>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+@if (aviso is not null)
+{
+    <div class="alert alert-success" role="alert">@aviso</div>
+}
+
+@if (cargando)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (noEncontrado)
+{
+    <div class="alert alert-warning">El producto no existe.</div>
+}
+else
+{
+    <EditForm Model="form" OnValidSubmit="Guardar" FormName="producto">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Código</label>
+                <input class="form-control text-uppercase" @bind="form.Codigo" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Código de barras</label>
+                <input class="form-control" @bind="form.CodigoBarras" placeholder="Opcional" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Descripción</label>
+                <input class="form-control" @bind="form.Descripcion" />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Categoría</label>
+                <select class="form-select" @bind="form.CategoriaId">
+                    <option value="0">Selecciona...</option>
+                    @foreach (var c in categorias)
+                    {
+                        <option value="@c.Id">@c.Texto</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Unidad de medida</label>
+                <select class="form-select" @bind="form.UnidadMedidaId">
+                    <option value="0">Selecciona...</option>
+                    @foreach (var u in unidades)
+                    {
+                        <option value="@u.Id">@u.Codigo — @u.Nombre</option>
+                    }
+                </select>
+                @if (UnidadElegida is { } unidad)
+                {
+                    <div class="form-text">
+                        @(unidad.PermiteDecimales
+                            ? $"Se vende por peso: admite hasta {unidad.CantidadDecimales} decimales."
+                            : "Se vende por unidad: solo cantidades enteras.")
+                    </div>
+                }
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">ITBIS</label>
+                <select class="form-select" @bind="form.TasaItbis">
+                    <option value="0.18">18 % — general</option>
+                    <option value="0.16">16 % — reducida</option>
+                    <option value="0">Exento — canasta básica</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Costo</label>
+                <input class="form-control" type="number" step="0.0001" @bind="form.Costo" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Precio de venta</label>
+                <input class="form-control" type="number" step="0.0001" @bind="form.PrecioVenta" />
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+                <div class="w-100 p-2 bg-body-secondary rounded">
+                    <small class="text-muted d-block">Al público con ITBIS</small>
+                    <strong>@Formato.Dinero(form.PrecioVenta * (1 + form.TasaItbis))</strong>
+                    <span class="ms-3 @(Margen <= 0 ? "text-danger" : "text-success")">
+                        Margen @Formato.Porcentaje(Margen)
+                    </span>
+                    @if (Margen <= 0 && form.PrecioVenta > 0)
+                    {
+                        <span class="badge text-bg-danger ms-2">Vendes al costo o por debajo</span>
+                    }
+                </div>
+            </div>
+
+            @if (EsNuevo)
+            {
+                <div class="col-md-3">
+                    <label class="form-label">Existencia inicial</label>
+                    <input class="form-control" type="number" step="0.001" @bind="form.ExistenciaInicial" />
+                    <div class="form-text">Entra como movimiento de apertura.</div>
+                </div>
+            }
+            <div class="col-md-3">
+                <label class="form-label">Existencia mínima</label>
+                <input class="form-control" type="number" step="0.001" @bind="form.ExistenciaMinima" />
+                <div class="form-text">Dispara la alerta de reabastecimiento.</div>
+            </div>
+
+            <div class="col-md-6 d-flex align-items-end gap-4">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkInv" @bind="form.ManejaInventario" />
+                    <label class="form-check-label" for="chkInv">Maneja inventario</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="chkAct" @bind="form.Activo" />
+                    <label class="form-check-label" for="chkAct">Activo</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" type="submit" disabled="@guardando">
+                @(guardando ? "Guardando..." : "Guardar")
+            </button>
+            <a class="btn btn-outline-secondary" href="/inventario/productos">Cancelar</a>
+        </div>
+    </EditForm>
+
+    @if (!EsNuevo)
+    {
+        <hr class="my-4" />
+
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <h2 class="h5">Ajustar existencia</h2>
+                <p class="text-muted small">
+                    La existencia solo cambia por movimiento, nunca editándola directamente.
+                    Así ningún saldo queda sin explicación.
+                </p>
+
+                <div class="row g-2">
+                    <div class="col-12">
+                        <label class="form-label">Tipo</label>
+                        <select class="form-select" @bind="tipoAjuste">
+                            <option value="@TipoMovimiento.Entrada">Entrada</option>
+                            <option value="@TipoMovimiento.AjustePositivo">Ajuste (+) — sobró en el conteo</option>
+                            <option value="@TipoMovimiento.AjusteNegativo">Ajuste (−) — faltó en el conteo</option>
+                            <option value="@TipoMovimiento.Merma">Merma — vencido, dañado o robo</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Cantidad</label>
+                        <input class="form-control" type="number" step="0.001" @bind="cantidadAjuste" />
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">
+                            Motivo
+                            @if (tipoAjuste != TipoMovimiento.Entrada)
+                            {
+                                <span class="text-danger">*</span>
+                            }
+                        </label>
+                        <input class="form-control" @bind="motivoAjuste" placeholder="Por qué se hace este movimiento" />
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-warning" @onclick="Ajustar" disabled="@ajustando">
+                            @(ajustando ? "Aplicando..." : "Aplicar movimiento")
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7">
+                <h2 class="h5">Últimos movimientos</h2>
+                @if (kardex is { Count: 0 })
+                {
+                    <p class="text-muted">Todavía no hay movimientos.</p>
+                }
+                else if (kardex is not null)
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th class="text-end">Cantidad</th>
+                                    <th class="text-end">Saldo</th>
+                                    <th>Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var m in kardex)
+                                {
+                                    <tr>
+                                        <td class="text-nowrap small">@Formato.FechaHora(m.Fecha)</td>
+                                        <td>@Formato.Movimiento(m.Tipo)</td>
+                                        <td class="text-end @(m.EsEntrada ? "text-success" : "text-danger")">
+                                            @(m.EsEntrada ? "+" : "−")@Formato.Cantidad(m.Cantidad, PermiteDecimales)
+                                        </td>
+                                        <td class="text-end text-muted small">
+                                            @Formato.Cantidad(m.ExistenciaAnterior, PermiteDecimales)
+                                            →
+                                            <strong>@Formato.Cantidad(m.ExistenciaResultante, PermiteDecimales)</strong>
+                                        </td>
+                                        <td class="small text-muted">@m.Motivo</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private ProductoFormDto form = new();
+    private IReadOnlyList<OpcionDto> categorias = [];
+    private IReadOnlyList<UnidadMedidaDto> unidades = [];
+    private IReadOnlyList<MovimientoDto>? kardex;
+
+    private TipoMovimiento tipoAjuste = TipoMovimiento.Entrada;
+    private decimal cantidadAjuste;
+    private string? motivoAjuste;
+
+    private string? error;
+    private string? aviso;
+    private bool cargando = true;
+    private bool guardando;
+    private bool ajustando;
+    private bool noEncontrado;
+    private string? usuarioId;
+
+    private bool EsNuevo => Id is null;
+
+    private UnidadMedidaDto? UnidadElegida =>
+        unidades.FirstOrDefault(u => u.Id == form.UnidadMedidaId);
+
+    private bool PermiteDecimales => UnidadElegida?.PermiteDecimales ?? true;
+
+    private decimal Margen =>
+        form.PrecioVenta == 0 ? 0 : (form.PrecioVenta - form.Costo) / form.PrecioVenta;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+
+        categorias = await ServicioCategorias.ObtenerOpcionesAsync();
+        unidades = await ServicioProductos.ObtenerUnidadesAsync();
+
+        if (Id is { } id)
+        {
+            var existente = await ServicioProductos.ObtenerParaEditarAsync(id);
+
+            if (existente is null)
+            {
+                noEncontrado = true;
+                cargando = false;
+                return;
+            }
+
+            form = existente;
+            await CargarKardex();
+        }
+        else
+        {
+            form = new ProductoFormDto();
+        }
+
+        cargando = false;
+    }
+
+    private async Task CargarKardex()
+    {
+        if (Id is { } id)
+            kardex = await ServicioProductos.ObtenerKardexAsync(id, 25);
+    }
+
+    private async Task Guardar()
+    {
+        error = aviso = null;
+        guardando = true;
+
+        try
+        {
+            if (EsNuevo)
+            {
+                var resultado = await ServicioProductos.CrearAsync(form, usuarioId);
+
+                if (resultado.Fallo)
+                {
+                    error = resultado.Error;
+                    return;
+                }
+
+                Nav.NavigateTo($"/inventario/productos/{resultado.Valor}");
+            }
+            else
+            {
+                var resultado = await ServicioProductos.ActualizarAsync(form, usuarioId);
+
+                if (resultado.Fallo)
+                {
+                    error = resultado.Error;
+                    return;
+                }
+
+                aviso = "Producto guardado.";
+            }
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    private async Task Ajustar()
+    {
+        error = aviso = null;
+        ajustando = true;
+
+        try
+        {
+            var resultado = await ServicioProductos.AjustarExistenciaAsync(
+                new AjusteExistenciaDto(Id!.Value, tipoAjuste, cantidadAjuste, motivoAjuste),
+                usuarioId);
+
+            if (resultado.Fallo)
+            {
+                error = resultado.Error;
+                return;
+            }
+
+            aviso = "Movimiento aplicado.";
+            cantidadAjuste = 0;
+            motivoAjuste = null;
+
+            // El saldo cambió: hay que releer el producto y su kardex.
+            form = (await ServicioProductos.ObtenerParaEditarAsync(Id.Value))!;
+            await CargarKardex();
+        }
+        finally
+        {
+            ajustando = false;
+        }
+    }
+}

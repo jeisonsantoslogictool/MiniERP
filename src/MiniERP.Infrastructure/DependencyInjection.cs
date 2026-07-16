@@ -2,7 +2,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MiniERP.Application.Inventario.Contracts;
+using MiniERP.Application.Inventario.Services;
 using MiniERP.Infrastructure.Persistence;
+using MiniERP.Infrastructure.Persistence.Repositories;
 using MiniERP.Infrastructure.Settings;
 
 namespace MiniERP.Infrastructure;
@@ -36,6 +39,12 @@ public static class DependencyInjection
 
         services.Configure<SeedSettings>(configuration.GetSection(SeedSettings.SectionName));
         services.AddScoped<DatabaseInitializer>();
+
+        // Inventario
+        services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
+        services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
+        services.AddScoped<IProductoService, ProductoService>();
+        services.AddScoped<ICategoriaService, CategoriaService>();
 
         return services;
     }

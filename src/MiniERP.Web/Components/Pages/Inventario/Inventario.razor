@@ -1,12 +1,81 @@
 @page "/inventario"
 @attribute [Authorize]
+@rendermode InteractiveServer
+@inject IProductoService ServicioProductos
 
 <PageTitle>Inventario</PageTitle>
 
-<h1>Inventario</h1>
-
-<p class="lead">Productos, categorias, existencias, movimientos y alertas de reabastecimiento.</p>
-
-<div class="alert alert-secondary" role="alert">
-    Modulo pendiente. Se construye en la fase <strong>F1</strong> del plan.
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Inventario</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="/inventario/categorias">Categorías</a>
+        <a class="btn btn-primary" href="/inventario/productos">Ver productos</a>
+    </div>
 </div>
+
+@if (porReabastecer is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (porReabastecer.Count == 0)
+{
+    <div class="alert alert-success" role="alert">
+        <strong>Todo en orden.</strong> Ningún producto llegó a su nivel mínimo.
+    </div>
+}
+else
+{
+    <div class="alert alert-warning d-flex justify-content-between align-items-center flex-wrap gap-2" role="alert">
+        <div>
+            <strong>@porReabastecer.Count producto(s) por reabastecer.</strong>
+            Llegaron a su nivel mínimo o se agotaron.
+        </div>
+        <a class="btn btn-sm btn-warning" href="/inventario/productos?reabastecer=true">Ver en el listado</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-sm align-middle">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th class="text-end">Existencia</th>
+                    <th class="text-end">Mínimo</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in porReabastecer)
+                {
+                    <tr>
+                        <td><code>@p.Codigo</code></td>
+                        <td>@p.Descripcion</td>
+                        <td class="text-end">@Formato.Cantidad(p.Existencia, p.PermiteDecimales) @p.UnidadMedida</td>
+                        <td class="text-end text-muted">@Formato.Cantidad(p.ExistenciaMinima, p.PermiteDecimales)</td>
+                        <td>
+                            @if (p.Agotado)
+                            {
+                                <span class="badge text-bg-danger">Agotado</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-warning">Bajo mínimo</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" href="/inventario/productos/@p.Id">Abrir</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<ProductoListaDto>? porReabastecer;
+
+    protected override async Task OnInitializedAsync() =>
+        porReabastecer = await ServicioProductos.ObtenerParaReabastecerAsync();
+}

@@ -1,0 +1,173 @@
+@page "/inventario/categorias"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject ICategoriaService ServicioCategorias
+@inject AuthenticationStateProvider Auth
+
+<PageTitle>Categorías</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Categorías</h1>
+    <a class="btn btn-outline-secondary" href="/inventario">Volver</a>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+
+<div class="row g-2 mb-4 align-items-end">
+    <div class="col-md-4">
+        <label class="form-label">Nombre</label>
+        <input class="form-control" @bind="nombreNueva" placeholder="Ej. Lácteos" />
+    </div>
+    <div class="col-md-5">
+        <label class="form-label">Descripción</label>
+        <input class="form-control" @bind="descripcionNueva" placeholder="Opcional" />
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-primary w-100" @onclick="Crear">Agregar categoría</button>
+    </div>
+</div>
+
+@if (lista is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in lista)
+                {
+                    <tr>
+                        @if (editandoId == c.Id)
+                        {
+                            <td><input class="form-control form-control-sm" @bind="nombreEdicion" /></td>
+                            <td><input class="form-control form-control-sm" @bind="descripcionEdicion" /></td>
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" @bind="activoEdicion" />
+                                    <label class="form-check-label small">Activa</label>
+                                </div>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-primary" @onclick="Guardar">Guardar</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => editandoId = null">Cancelar</button>
+                            </td>
+                        }
+                        else
+                        {
+                            <td class="@(c.Activo ? "" : "opacity-50")">@c.Nombre</td>
+                            <td class="text-muted small">@c.Descripcion</td>
+                            <td>
+                                @if (c.Activo)
+                                {
+                                    <span class="badge text-bg-success">Activa</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">Inactiva</span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => Editar(c)">Editar</button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => Eliminar(c.Id)">Eliminar</button>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<Categoria>? lista;
+    private string? error;
+    private string? usuarioId;
+
+    private string nombreNueva = string.Empty;
+    private string? descripcionNueva;
+
+    private int? editandoId;
+    private string nombreEdicion = string.Empty;
+    private string? descripcionEdicion;
+    private bool activoEdicion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+        await Cargar();
+    }
+
+    private async Task Cargar() => lista = await ServicioCategorias.ObtenerTodasAsync();
+
+    private async Task Crear()
+    {
+        error = null;
+
+        var resultado = await ServicioCategorias.CrearAsync(nombreNueva, descripcionNueva, usuarioId);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+            return;
+        }
+
+        nombreNueva = string.Empty;
+        descripcionNueva = null;
+        await Cargar();
+    }
+
+    private void Editar(Categoria c)
+    {
+        editandoId = c.Id;
+        nombreEdicion = c.Nombre;
+        descripcionEdicion = c.Descripcion;
+        activoEdicion = c.Activo;
+        error = null;
+    }
+
+    private async Task Guardar()
+    {
+        error = null;
+
+        var resultado = await ServicioCategorias.ActualizarAsync(
+            editandoId!.Value, nombreEdicion, descripcionEdicion, activoEdicion, usuarioId);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+            return;
+        }
+
+        editandoId = null;
+        await Cargar();
+    }
+
+    private async Task Eliminar(int id)
+    {
+        error = null;
+
+        var resultado = await ServicioCategorias.EliminarAsync(id);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+            return;
+        }
+
+        await Cargar();
+    }
+}
