@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MiniERP.Infrastructure.Persistence;
+using MiniERP.Infrastructure.Settings;
 
 namespace MiniERP.Infrastructure;
 
@@ -28,9 +29,13 @@ public static class DependencyInjection
                 options.SignIn.RequireConfirmedAccount = true;
                 options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
             })
+            .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<MiniErpDbContext>()
             .AddSignInManager()
             .AddDefaultTokenProviders();
+
+        services.Configure<SeedSettings>(configuration.GetSection(SeedSettings.SectionName));
+        services.AddScoped<DatabaseInitializer>();
 
         return services;
     }

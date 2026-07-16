@@ -65,14 +65,46 @@ tests/
 ```bash
 git clone https://github.com/jeisonsantoslogictool/MiniERP.git
 cd MiniERP
-
-dotnet restore MiniERP.slnx
-dotnet tool install --global dotnet-ef      # solo la primera vez
-dotnet ef database update --project src/MiniERP.Infrastructure --startup-project src/MiniERP.Web
 dotnet run --project src/MiniERP.Web
 ```
 
-La primera cuenta se crea desde la propia pantalla de registro de la aplicación.
+Eso es todo. **Arrancar la aplicación es el único paso de instalación.** Al iniciar, el
+sistema crea la base de datos si no existe, aplica las migraciones pendientes y siembra
+lo indispensable para operar:
+
+| Se siembra | Contenido |
+|---|---|
+| Roles | Administrador, Cajero, Almacen, Supervisor |
+| Usuario administrador | `admin@minierp.local` |
+| Unidades de medida | UND, LB, KG, GAL, LT, CAJ, PAQ |
+| Categorías | Catálogo típico de minimarket (10) |
+
+Todo el proceso es idempotente: correrlo mil veces produce el mismo resultado que
+correrlo una.
+
+### La contraseña del administrador
+
+No hay ninguna contraseña escrita en este repositorio. La primera vez que arranca, el
+sistema **genera una al azar y la escribe en la consola dentro de un recuadro**:
+
+```
+===============================================================
+ ADMINISTRADOR INICIAL CREADO
+   Usuario:    admin@minierp.local
+   Contrasena: ................
+===============================================================
+```
+
+Solo se muestra esa vez. Guárdala y cámbiala al entrar.
+
+Para fijar una propia sin que llegue al repositorio:
+
+```bash
+dotnet user-secrets set "Seed:AdminPassword" "TuClave" --project src/MiniERP.Web
+```
+
+Si pierdes la contraseña, borra el usuario de `AspNetUsers` y vuelve a arrancar: se
+genera una nueva.
 
 ### Notas de entorno
 

@@ -29,6 +29,10 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 
 var app = builder.Build();
 
+// Crea la base si no existe, aplica lo pendiente y siembra lo indispensable.
+// Arrancar la aplicación es el único paso de despliegue.
+await app.InicializarBaseDatosAsync();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
