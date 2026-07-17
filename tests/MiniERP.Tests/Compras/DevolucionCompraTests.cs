@@ -111,4 +111,94 @@ public class DevolucionCompraTests
 
         Assert.Equal(30, Assert.Single(movimientos).CostoUnitario);
     }
+
+    [Fact]
+    public void No_se_devuelve_mas_de_lo_comprado()
+    {
+        var producto = Producto(existencia: 20);
+        var dev = Devolucion(cantidad: 6);
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => dev.Confirmar(Catalogo(producto), Devolvible(5), "tester"));
+
+        Assert.Contains("quedan 5", ex.Message);
+        Assert.Equal(20, producto.Existencia); // no toco nada
+    }
+
+    [Fact]
+    public void Se_puede_devolver_exactamente_lo_que_queda_por_devolver()
+    {
+        // Compre 10, ya devolvi 7 -> quedan 3. Devuelvo 3: pasa justo en el borde.
+        var producto = Producto(existencia: 20);
+        var dev = Devolucion(cantidad: 3);
+
+        dev.Confirmar(Catalogo(producto), Devolvible(3), "tester");
+
+        Assert.Equal(17, producto.Existencia);
+        Assert.Equal(EstadoDevolucion.Confirmada, dev.Estado);
+    }
+
+    [Fact]
+    public void No_se_devuelve_mas_de_lo_que_hay_en_existencia()
+    {
+        // El proveedor deja devolver 10, pero ya se vendieron y solo quedan 2 en el estante.
+        var producto = Producto(existencia: 2);
+        var dev = Devolucion(cantidad: 5);
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => dev.Confirmar(Catalogo(producto), Devolvible(10), "tester"));
+
+        Assert.Contains("negativa", ex.Message);
+        Assert.Equal(2, producto.Existencia);
+    }
+
+    [Fact]
+    public void Una_devolucion_sin_motivo_no_se_confirma()
+    {
+        var producto = Producto();
+        var dev = Devolucion(3, motivo: "   ");
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => dev.Confirmar(Catalogo(producto), Devolvible(10), "tester"));
+
+        Assert.Contains("motivo", ex.Message);
+        Assert.Equal(50, producto.Existencia);
+    }
+
+    [Fact]
+    public void Una_devolucion_sin_lineas_no_se_confirma()
+    {
+        var dev = new DevolucionCompra { Numero = "DEV-0001", Motivo = "x" };
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => dev.Confirmar(new Dictionary<int, Producto>(), new Dictionary<int, decimal>(), "tester"));
+
+        Assert.Contains("no tiene líneas", ex.Message);
+    }
+
+    [Fact]
+    public void Confirmar_sin_el_producto_de_la_linea_falla_antes_de_tocar_nada()
+    {
+        var dev = Devolucion(3);
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => dev.Confirmar(new Dictionary<int, Producto>(), Devolvible(10), "tester"));
+
+        Assert.Contains("Falta el producto", ex.Message);
+        Assert.Equal(EstadoDevolucion.Borrador, dev.Estado);
+    }
+
+    [Fact]
+    public void Una_devolucion_no_se_confirma_dos_veces()
+    {
+        var producto = Producto(existencia: 20);
+        var dev = Devolucion(3);
+        dev.Confirmar(Catalogo(producto), Devolvible(10), "tester");
+
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => dev.Confirmar(Catalogo(producto), Devolvible(10), "tester"));
+
+        Assert.Contains("confirmada", ex.Message);
+        Assert.Equal(17, producto.Existencia); // no volvio a bajar
+    }
 }
