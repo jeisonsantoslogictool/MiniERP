@@ -60,6 +60,32 @@ public class DevolucionCompra : EntidadBase
         ArgumentNullException.ThrowIfNull(productos);
         ArgumentNullException.ThrowIfNull(devolvibleMaximoPorLineaCompra);
 
+        if (Estado != EstadoDevolucion.Borrador)
+            throw new InvalidOperationException(
+                $"La devolución {Numero} está {Estado.ToString().ToLowerInvariant()} y no se puede confirmar.");
+
+        if (Lineas.Count == 0)
+            throw new InvalidOperationException($"La devolución {Numero} no tiene líneas.");
+
+        if (string.IsNullOrWhiteSpace(Motivo))
+            throw new InvalidOperationException($"La devolución {Numero} exige un motivo.");
+
+        // Se valida todo antes de mover el inventario: si algo falla, no se toco nada.
+        foreach (var linea in Lineas)
+        {
+            if (!productos.ContainsKey(linea.ProductoId))
+                throw new InvalidOperationException(
+                    $"Falta el producto de la línea '{linea.Descripcion}'.");
+
+            if (!devolvibleMaximoPorLineaCompra.TryGetValue(linea.LineaCompraId, out var maximo))
+                throw new InvalidOperationException(
+                    $"La línea '{linea.Descripcion}' no corresponde a la compra que se devuelve.");
+
+            if (linea.Cantidad > maximo)
+                throw new InvalidOperationException(
+                    $"No puedes devolver {linea.Cantidad} de '{linea.Descripcion}': solo quedan {maximo} por devolver.");
+        }
+
         var movimientos = new List<MovimientoInventario>(Lineas.Count);
 
         foreach (var linea in Lineas)
