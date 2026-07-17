@@ -14,7 +14,7 @@ descubrirlo en la ocho.
 
 | Decisión | Elección | Razón |
 |----------|----------|-------|
-| Stack | Blazor Server · .NET 10 | C# puro, sin JavaScript. Cumple el «ASP.NET Core y C#» que fija el anteproyecto y es lo más rápido de construir entre dos. El alcance no pide offline ni móvil, así que la única debilidad seria de Blazor Server no aplica. |
+| Stack | Blazor Server · .NET 10 | C# puro, sin JavaScript. Cumple el «ASP.NET Core y C#» que fija el anteproyecto y es lo más rápido de construir en un equipo pequeño. El alcance no pide offline ni móvil, así que la única debilidad seria de Blazor Server no aplica. |
 | Base de datos | SQL Server 2022 | Ya instalado. Autenticación de Windows, sin contraseñas en el repositorio. |
 | Repositorio | GitHub privado | `jeisonsantoslogictool/MiniERP`, los cuatro integrantes con acceso. |
 | Caso piloto | Confirmado | Los requerimientos del Capítulo III salen de su operación real. |
@@ -64,11 +64,16 @@ no en la ocho.
 | S9 | 14–20 sep | F4 | Piloto en operación · soporte | Captura de indicadores · arranca Cap. V |
 | S10 | 21–27 sep | F5 | Congelado · solo correcciones | Cierra Cap. V · informe final · ensayo de defensa |
 
+> El código corre en **tres ramas en paralelo** — `jeison/pos`, `samuel/finanzas` y
+> `dionis/cobros-pagos` — no en un solo track. El detalle por rama, con tareas y "gate",
+> está en [Asignaciones.md](Asignaciones.md); las fases de abajo ya dicen qué rama
+> construye cada módulo.
+
 ---
 
 ## Fases
 
-### F0 — Arranque · S1 · ambos devs
+### F0 — Arranque · S1 · base común del equipo
 
 - Repositorio privado en GitHub, los cuatro con acceso.
 - Solución en cuatro capas: Domain, Application, Infrastructure y Web. Dentro de cada
@@ -83,18 +88,19 @@ cinco módulos.
 
 ### F1 — Catálogos · S2–S3
 
-- **Dev A · Inventario:** productos, categorías, existencias, movimientos y alertas de
+- **Inventario — `jeison/pos`:** productos, categorías, existencias, movimientos y alertas de
   reabastecimiento.
-- **Dev B · Clientes:** registro, RNC o cédula, y tipo de comprobante preferido.
+- **Clientes — `dionis/cobros-pagos`:** registro, RNC o cédula, y tipo de comprobante preferido.
+  Dionis adopta lo ya construido y lo extiende.
 
 **Gate:** registras un producto, ajustas su existencia y salta la alerta al bajar del
 mínimo. Registras un cliente con su RNC.
 
 ### F2 — Movimiento · S4–S5 · la fase que decide el proyecto
 
-- **Dev B · Compras:** proveedores, órdenes de compra y recepción de mercancía, que suma
-  al inventario y fija el costo.
-- **Dev A · POS:** búsqueda por código o nombre, carrito, cobro, asignación de NCF y
+- **Compras — `samuel/finanzas`:** proveedores, órdenes de compra y recepción de mercancía, que
+  suma al inventario y fija el costo. Samuel adopta lo ya construido y le añade la devolución a proveedor.
+- **POS — `jeison/pos`:** búsqueda por código o nombre, carrito, cobro, asignación de NCF y
   factura impresa, que resta del inventario.
 
 **Gate:** compras diez unidades y el stock sube a diez. Vendes tres y baja a siete, con su
@@ -102,8 +108,12 @@ NCF y su factura. Esa es, literalmente, la integración que promete el anteproye
 
 ### F3 — Dinero y fiscal · S6–S7
 
-- **Dev B · Finanzas:** ingresos, egresos, costos, márgenes y reportes de rentabilidad.
-- **Dev A · Comprobantes:** secuencias de NCF, estructura del XML e-CF y código QR. Sin
+- **Cobros y pagos — `dionis/cobros-pagos`:** abonos de cliente y pagos a proveedor, estado de
+  cuenta, y cuentas por cobrar y por pagar. **Va primero:** sin bajar los balances, el reporte de
+  finanzas mostraría una deuda que crece para siempre.
+- **Finanzas — `samuel/finanzas`:** ingresos, egresos, costos, márgenes y reportes de rentabilidad.
+  Usa `LineaFactura.CostoUnitario` (congelado), nunca `Producto.Costo`.
+- **Comprobantes — `jeison/pos`:** secuencias de NCF, estructura del XML e-CF y código QR. Sin
   certificación ante la DGII, que el alcance ya excluye explícitamente.
 
 **Gate:** el reporte de rentabilidad cuadra contra las compras y ventas de F2, y se genera
