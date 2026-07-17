@@ -60,4 +60,55 @@ public class DevolucionCompraTests
         Assert.Equal(54m, dev.Itbis);
         Assert.Equal(354m, dev.Total);
     }
+
+    [Fact]
+    public void Confirmar_baja_el_inventario()
+    {
+        var producto = Producto(existencia: 20);
+        var dev = Devolucion(cantidad: 3);
+
+        dev.Confirmar(Catalogo(producto), Devolvible(10), "tester");
+
+        Assert.Equal(17, producto.Existencia);
+    }
+
+    [Fact]
+    public void Confirmar_congela_el_documento()
+    {
+        var producto = Producto();
+        var dev = Devolucion(3);
+
+        dev.Confirmar(Catalogo(producto), Devolvible(10), "tester");
+
+        Assert.Equal(EstadoDevolucion.Confirmada, dev.Estado);
+        Assert.False(dev.EsEditable);
+    }
+
+    [Fact]
+    public void El_movimiento_generado_es_una_devolucion_a_proveedor()
+    {
+        var producto = Producto();
+        var dev = Devolucion(3, motivo: "Producto vencido");
+
+        var movimientos = dev.Confirmar(Catalogo(producto), Devolvible(10), "tester");
+
+        var mov = Assert.Single(movimientos);
+        Assert.Equal(TipoMovimiento.DevolucionProveedor, mov.Tipo);
+        Assert.Equal("DEVOLUCION_COMPRA", mov.ReferenciaTipo);
+        Assert.Equal(dev.Id, mov.ReferenciaId);
+        Assert.Equal("Devolución DEV-0005: Producto vencido", mov.Motivo);
+        Assert.Equal("tester", mov.UsuarioId);
+    }
+
+    [Fact]
+    public void El_movimiento_usa_el_costo_congelado_de_la_compra()
+    {
+        // El costo vivo del producto (99) no importa: se devuelve al costo de la compra (30).
+        var producto = Producto(costo: 99);
+        var dev = Devolucion(3, costoUnitario: 30);
+
+        var movimientos = dev.Confirmar(Catalogo(producto), Devolvible(10), "tester");
+
+        Assert.Equal(30, Assert.Single(movimientos).CostoUnitario);
+    }
 }

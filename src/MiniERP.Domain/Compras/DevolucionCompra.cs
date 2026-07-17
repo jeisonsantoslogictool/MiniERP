@@ -40,4 +40,50 @@ public class DevolucionCompra : EntidadBase
         Itbis = RetailConstants.RedondearImporte(Lineas.Sum(l => l.Itbis));
         Total = Subtotal + Itbis;
     }
+
+    /// <summary>
+    /// Confirma la devolucion: genera los movimientos de salida (que bajan la existencia)
+    /// y congela el documento.
+    /// </summary>
+    /// <param name="productos">Productos de las lineas, indexados por Id, con seguimiento.</param>
+    /// <param name="devolvibleMaximoPorLineaCompra">
+    /// Cuanto queda por devolver de cada linea de compra (comprado menos ya devuelto
+    /// confirmado), indexado por <c>LineaCompraId</c>. Lo calcula el servicio.
+    /// </param>
+    /// <param name="usuarioId">Responsable de la devolucion.</param>
+    /// <returns>Los movimientos generados, para que la capa de datos los persista.</returns>
+    public IReadOnlyList<MovimientoInventario> Confirmar(
+        IReadOnlyDictionary<int, Producto> productos,
+        IReadOnlyDictionary<int, decimal> devolvibleMaximoPorLineaCompra,
+        string? usuarioId)
+    {
+        ArgumentNullException.ThrowIfNull(productos);
+        ArgumentNullException.ThrowIfNull(devolvibleMaximoPorLineaCompra);
+
+        var movimientos = new List<MovimientoInventario>(Lineas.Count);
+
+        foreach (var linea in Lineas)
+        {
+            var producto = productos[linea.ProductoId];
+
+            var movimiento = new MovimientoInventario
+            {
+                Tipo = TipoMovimiento.DevolucionProveedor,
+                Cantidad = linea.Cantidad,
+                CostoUnitario = linea.CostoUnitario,
+                Motivo = $"Devolución {Numero}: {Motivo}",
+                ReferenciaTipo = "DEVOLUCION_COMPRA",
+                ReferenciaId = Id,
+                UsuarioId = usuarioId,
+                CreadoPor = usuarioId
+            };
+
+            producto.AplicarMovimiento(movimiento);
+            movimientos.Add(movimiento);
+        }
+
+        Estado = EstadoDevolucion.Confirmada;
+
+        return movimientos;
+    }
 }
