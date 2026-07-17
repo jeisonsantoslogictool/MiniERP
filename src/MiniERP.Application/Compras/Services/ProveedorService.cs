@@ -19,6 +19,8 @@ public interface IProveedorService
     Task<Resultado<int>> CrearAsync(ProveedorFormDto form, string? usuarioId, CancellationToken ct = default);
 
     Task<Resultado> ActualizarAsync(ProveedorFormDto form, string? usuarioId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CuentasPorPagarDto>> ObtenerCuentasPorPagarAsync(CancellationToken ct = default);
 }
 
 public class ProveedorService(IProveedorRepositorio proveedores) : IProveedorService
@@ -28,6 +30,9 @@ public class ProveedorService(IProveedorRepositorio proveedores) : IProveedorSer
 
     public Task<IReadOnlyList<OpcionDto>> ObtenerOpcionesAsync(CancellationToken ct = default) =>
         proveedores.ObtenerOpcionesAsync(ct);
+
+    public Task<IReadOnlyList<CuentasPorPagarDto>> ObtenerCuentasPorPagarAsync(CancellationToken ct = default) =>
+        proveedores.ObtenerCuentasPorPagarAsync(ct);
 
     public async Task<ProveedorFormDto> NuevoAsync(CancellationToken ct = default) =>
         new() { Codigo = await proveedores.SugerirCodigoAsync(ct) };

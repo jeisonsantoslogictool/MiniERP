@@ -82,6 +82,95 @@ public class ProveedorRepositorio(MiniErpDbContext contexto) : IProveedorReposit
     public void Agregar(Proveedor proveedor) => contexto.Proveedores.Add(proveedor);
 
     public Task<int> GuardarAsync(CancellationToken ct = default) => contexto.SaveChangesAsync(ct);
+
+    public async Task<IReadOnlyList<CuentasPorPagarDto>> ObtenerCuentasPorPagarAsync(CancellationToken ct = default)
+    {
+        var proveedoresConDeuda = await contexto.Proveedores
+            .AsNoTracking()
+            .Where(p => p.Activo && p.BalanceActual > 0)
+            .Select(p => new
+            {
+                p.Id,
+                p.Codigo,
+                p.Nombre,
+                p.Contacto,
+                p.Telefono,
+                p.BalanceActual,
+                p.DiasCredito
+            })
+            .ToListAsync(ct);
+
+        if (proveedoresConDeuda.Count == 0)
+            return [];
+
+        var ids = proveedoresConDeuda.Select(p => p.Id).ToList();
+
+        var compras = await contexto.Compras
+            .AsNoTracking()
+            .Where(c => ids.Contains(c.ProveedorId) && c.Condicion == Domain.Shared.CondicionPago.Credito && c.Estado == Domain.Compras.EstadoCompra.Recibida)
+            .Select(c => new { c.ProveedorId, c.FechaRecepcion, c.Fecha, c.Total })
+            .ToListAsync(ct);
+
+        var pagos = await contexto.Pagos
+            .AsNoTracking()
+            .Where(p => ids.Contains(p.ProveedorId))
+            .GroupBy(p => p.ProveedorId)
+            .Select(g => new { ProveedorId = g.Key, TotalPagado = g.Sum(p => p.Monto) })
+            .ToListAsync(ct);
+
+        var comprasPorProveedor = compras.GroupBy(c => c.ProveedorId).ToDictionary(g => g.Key, g => g.OrderBy(c => c.FechaRecepcion ?? c.Fecha).ToList());
+        var pagosPorProveedor = pagos.ToDictionary(p => p.ProveedorId, p => p.TotalPagado);
+
+        var resultado = new List<CuentasPorPagarDto>(proveedoresConDeuda.Count);
+        var fechaActual = DateTime.UtcNow.Date;
+
+        foreach (var p in proveedoresConDeuda)
+        {
+            decimal totalPagado = pagosPorProveedor.TryGetValue(p.Id, out var tp) ? tp : 0m;
+            int diasVencidos = 0;
+            decimal montoVencido = 0m;
+
+            if (comprasPorProveedor.TryGetValue(p.Id, out var comprasProveedor))
+            {
+                foreach (var c in comprasProveedor)
+                {
+                    if (totalPagado >= c.Total)
+                    {
+                        totalPagado -= c.Total;
+                        continue;
+                    }
+
+                    var montoPendiente = c.Total - totalPagado;
+                    totalPagado = 0;
+
+                    var fechaReferencia = (c.FechaRecepcion ?? c.Fecha).Date;
+                    var fechaVencimiento = fechaReferencia.AddDays(p.DiasCredito);
+                    var dias = (fechaActual - fechaVencimiento).Days;
+
+                    if (dias > 0)
+                    {
+                        montoVencido += montoPendiente;
+                        if (dias > diasVencidos)
+                            diasVencidos = dias;
+                    }
+                }
+            }
+
+            resultado.Add(new CuentasPorPagarDto(
+                p.Id,
+                p.Codigo,
+                p.Nombre,
+                p.Contacto,
+                p.Telefono,
+                p.BalanceActual,
+                p.DiasCredito,
+                diasVencidos,
+                montoVencido
+            ));
+        }
+
+        return resultado.OrderByDescending(r => r.MontoVencido).ThenByDescending(r => r.DiasVencidos).ThenBy(r => r.Nombre).ToList();
+    }
 }
 
 public class CompraRepositorio(MiniErpDbContext contexto) : ICompraRepositorio

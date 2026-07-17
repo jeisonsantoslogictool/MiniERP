@@ -22,6 +22,8 @@ public interface IProveedorRepositorio
     void Agregar(Proveedor proveedor);
 
     Task<int> GuardarAsync(CancellationToken ct = default);
+
+    Task<IReadOnlyList<CuentasPorPagarDto>> ObtenerCuentasPorPagarAsync(CancellationToken ct = default);
 }
 
 public interface ICompraRepositorio

@@ -1,0 +1,179 @@
+@page "/compras/cuentas-por-pagar"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IProveedorService ServicioProveedores
+
+<PageTitle>Cuentas por Pagar</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Cuentas por Pagar</h1>
+    <a class="btn btn-outline-secondary" href="/compras/proveedores">Volver a proveedores</a>
+</div>
+
+@if (cuentas is not null)
+{
+    var totalCartera = cuentas.Sum(c => c.BalanceActual);
+    var totalVencido = cuentas.Sum(c => c.MontoVencido);
+    var proveedoresAtrasados = cuentas.Count(c => c.MontoVencido > 0);
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="p-3 bg-body-secondary rounded h-100">
+                <small class="text-muted d-block fw-semibold text-uppercase">Deuda Total</small>
+                <span class="fs-3">@Formato.Dinero(totalCartera)</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 rounded h-100 @(totalVencido > 0 ? "bg-danger-subtle text-danger" : "bg-body-secondary")">
+                <small class="d-block fw-semibold text-uppercase">Monto Vencido</small>
+                <span class="fs-3 fw-bold">@Formato.Dinero(totalVencido)</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 bg-body-secondary rounded h-100">
+                <small class="text-muted d-block fw-semibold text-uppercase">Proveedores en Mora</small>
+                <span class="fs-3">@proveedoresAtrasados</span>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <input class="form-control" placeholder="Buscar por código, nombre o contacto..."
+               value="@texto" @oninput="OnTextoChanged" />
+    </div>
+    <div class="col-md-3 d-flex align-items-center">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chkVencidos"
+                   checked="@soloVencidos" @onchange="OnVencidosChanged" />
+            <label class="form-check-label text-danger fw-semibold" for="chkVencidos">Solo vencidas</label>
+        </div>
+    </div>
+</div>
+
+@if (cuentas is null)
+{
+    <p class="text-muted">Calculando antigüedad de saldos...</p>
+}
+else if (cuentasFiltradas.Count == 0)
+{
+    <div class="alert alert-success d-flex align-items-center">
+        <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+        <div>No hay cuentas por pagar pendientes bajo estos filtros. Estamos al día con los proveedores.</div>
+    </div>
+}
+else
+{
+    <div class="table-responsive shadow-sm rounded border">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Código</th>
+                    <th>Proveedor</th>
+                    <th>Contacto</th>
+                    <th class="text-center">Días Crédito</th>
+                    <th class="text-end">Balance Total</th>
+                    <th class="text-end">Monto Vencido</th>
+                    <th class="text-center">Antigüedad (Días)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in cuentasFiltradas)
+                {
+                    <tr>
+                        <td><code>@p.Codigo</code></td>
+                        <td class="fw-semibold">@p.Nombre</td>
+                        <td class="small">
+                            @p.Contacto
+                            @if (!string.IsNullOrEmpty(p.Telefono))
+                            {
+                                <br />
+                                <span class="text-muted">@p.Telefono</span>
+                            }
+                        </td>
+                        <td class="text-center">@p.DiasCredito</td>
+                        <td class="text-end font-monospace">@Formato.Dinero(p.BalanceActual)</td>
+                        
+                        <td class="text-end font-monospace @(p.MontoVencido > 0 ? "text-danger fw-bold" : "text-muted")">
+                            @(p.MontoVencido > 0 ? Formato.Dinero(p.MontoVencido) : "—")
+                        </td>
+                        
+                        <td class="text-center">
+                            @if (p.DiasVencidos > 0)
+                            {
+                                <span class="badge rounded-pill text-bg-danger px-3 py-2">
+                                    Vencido +@p.DiasVencidos días
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill text-bg-success px-3 py-2">Al día</span>
+                            }
+                        </td>
+                        
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-success me-1" href="/proveedores/@p.ProveedorId/pago">
+                                <i class="bi bi-cash"></i> Pagar
+                            </a>
+                            <a class="btn btn-sm btn-outline-secondary" href="/compras/proveedores/@p.ProveedorId">
+                                Historial
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<CuentasPorPagarDto>? cuentas;
+    private IReadOnlyList<CuentasPorPagarDto> cuentasFiltradas = [];
+
+    private string? texto;
+    private bool soloVencidos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cuentas = await ServicioProveedores.ObtenerCuentasPorPagarAsync();
+        AplicarFiltros();
+    }
+
+    private void OnTextoChanged(ChangeEventArgs e)
+    {
+        texto = e.Value?.ToString();
+        AplicarFiltros();
+    }
+
+    private void OnVencidosChanged(ChangeEventArgs e)
+    {
+        soloVencidos = (bool?)e.Value ?? false;
+        AplicarFiltros();
+    }
+
+    private void AplicarFiltros()
+    {
+        if (cuentas is null) return;
+
+        var temp = cuentas.AsEnumerable();
+
+        if (soloVencidos)
+        {
+            temp = temp.Where(c => c.MontoVencido > 0);
+        }
+
+        if (!string.IsNullOrWhiteSpace(texto))
+        {
+            var txt = texto.Trim().ToLowerInvariant();
+            temp = temp.Where(c => 
+                c.Codigo.ToLowerInvariant().Contains(txt) || 
+                c.Nombre.ToLowerInvariant().Contains(txt) || 
+                (c.Contacto != null && c.Contacto.ToLowerInvariant().Contains(txt)) || 
+                (c.Telefono != null && c.Telefono.ToLowerInvariant().Contains(txt)));
+        }
+
+        cuentasFiltradas = temp.ToList();
+    }
+}
