@@ -133,8 +133,11 @@ con el `ICompraRepositorio` existente.
 
 - Configuración EF de las dos entidades + `DbSet` en `MiniErpDbContext`.
 - `DevolucionCompraRepositorio` en Infrastructure.
-- **Migración** `AgregarDevolucionCompra` — **solo cuando la ventana esté segura** (`main`
-  estable, sin choques con lo pendiente de Jeison y Dionis).
+- **Migración** `AgregarDevolucionCompra` — **solo cuando la ventana esté segura**. Estado al
+  2026-07-17: ni Samuel ni Dionis han creado su migración todavía, y el `ModelSnapshot` es uno
+  solo. El Plan Maestro pone a Dionis primero en F3, así que el orden acordado es: **Dionis
+  fusiona sus cobros/pagos con su migración a `main` primero; luego Samuel trae `main` y crea la
+  suya encima.** El dominio y la aplicación de la devolución no dependen de esto.
 - Pantalla Blazor: lista de devoluciones + crear desde una compra recibida + confirmar.
 
 Nada de las capas Domain y Application modifica el `ModelSnapshot`. El 70 % del trabajo —el
@@ -162,14 +165,25 @@ Criterio de aceptación del dominio. En verde = dominio terminado, sin migració
 
 ---
 
-## 8. El seam del v2 (balance, con Dionis)
+## 8. El seam del v2 (balance) — patrón ya definido por el código de Dionis
 
-El documento ya tiene `Total` congelado. Cuando Samuel y Dionis acuerden el patrón de rastro
-del saldo del proveedor, el v2 es corto: `ConfirmarAsync` baja `Proveedor.BalanceActual` (o
-escribe el asiento que definan) usando ese `Total`. No se bota nada de lo del v1.
+El documento ya tiene `Total` congelado. El v2 baja `Proveedor.BalanceActual` al confirmar la
+devolución.
 
-**Decisión pendiente (conjunta):** rastro por documento vs. libro mayor de proveedor. Dionis
-tiene el mayor peso porque construye pagos, estado de cuenta y cuentas por pagar.
+**El patrón de rastro ya está decidido** por el código de Dionis en `dionis/cobros-pagos`
+(revisado el 2026-07-17): su entidad `Pago` guarda `BalanceAnterior`/`BalanceResultante`, y
+`Proveedor.AplicarPago(pago)` muta el saldo y estampa el rastro en el documento —exactamente
+como `MovimientoInventario` y `Producto.AplicarMovimiento` hacen con la existencia. Es "rastro
+por documento", enriquecido con el balance antes/después.
+
+El v2 de la devolución **espeja ese patrón**: un `Proveedor.AplicarDevolucion(devolucion)` que
+baje el saldo y estampe antes/después en el documento de devolución. No se introduce un libro
+mayor aparte.
+
+**Matiz a afinar con Dionis:** `AplicarPago` prohíbe pagar más que la deuda. Una devolución en
+efectivo (compra de contado) dejaría el saldo en negativo —el proveedor pasaría a deberle al
+comercio—, caso que ese invariante no contempla. Ese borde se cierra junto con Dionis en el v2,
+sin romper su `AplicarPago`.
 
 ---
 
