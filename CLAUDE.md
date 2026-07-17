@@ -27,6 +27,26 @@ aprovecha el conocimiento de otros sistemas, no se copia su código.
 
 ---
 
+## Empieza aquí — ¿en qué rama estás?
+
+**Lo primero al abrir el repo:** detecta la rama actual (`git branch --show-current`) y orienta
+al desarrollador con lo suyo antes de nada. Cada quien trabaja en **su** rama, nunca en `main`.
+
+| Si estás en… | Eres | Tu módulo | Tus tareas |
+|---|---|---|---|
+| `jeison/pos` | **Jeison** | POS y comprobantes fiscales | [Asignaciones → Jeison](Docs/Asignaciones.md) |
+| `samuel/finanzas` | **Samuel** | Compras y finanzas | [Asignaciones → Samuel](Docs/Asignaciones.md) |
+| `dionis/cobros-pagos` | **Dionis** | Clientes, cobros y pagos | [Asignaciones → Dionis](Docs/Asignaciones.md) |
+| `main` | — | No se trabaja aquí | Cámbiate a tu rama: `git checkout <tu-rama>` |
+
+- **Estado global del proyecto:** la tabla **Dónde vamos** (aquí abajo) es el tablero. Al cerrar
+  una tarea, actualízala en el mismo commit.
+- **Tu lista concreta**, con el criterio de "terminado", vive en [Docs/Asignaciones.md](Docs/Asignaciones.md).
+- **El plan y el calendario**, en [Docs/Plan-Maestro.md](Docs/Plan-Maestro.md).
+- ¿Rama recién clonada o desactualizada? Trae `main`: `git fetch origin && git merge origin/main`.
+
+---
+
 ## Dónde vamos
 
 **F0, F1 y F2 completos y verificados en navegador.** Sigue F3.

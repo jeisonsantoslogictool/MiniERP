@@ -16,6 +16,10 @@ qué sin que nadie tenga que preguntarlo, que es justo lo que un asesor va a que
 | `dionis/cobros-pagos` | **Dionis** | Cobros, pagos y clientes |
 | — | **Rangelis** | Capítulo II, entrevistas y armado del informe |
 
+> **¿No sabes en qué rama estás?** `git branch --show-current`. Si dice `main`, cámbiate a la
+> tuya: `git checkout <nombre>/<módulo>`. Al abrir el repo con Claude, esto se detecta solo
+> (ver [CLAUDE.md](../CLAUDE.md) → "Empieza aquí").
+
 ---
 
 ## Regla que aplica a los tres
