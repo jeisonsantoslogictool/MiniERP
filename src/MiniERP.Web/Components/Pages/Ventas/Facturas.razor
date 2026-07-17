@@ -1,0 +1,146 @@
+@page "/ventas/facturas"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IVentaService ServicioVentas
+
+<PageTitle>Facturas emitidas</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Facturas emitidas</h1>
+    <a class="btn btn-outline-secondary" href="/ventas">Volver al punto de venta</a>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input class="form-control" placeholder="Buscar por número, NCF o cliente"
+               value="@texto" @oninput="OnTextoChanged" />
+    </div>
+    <div class="col-md-2">
+        <select class="form-select" value="@(estado?.ToString() ?? "")" @onchange="OnEstadoChanged">
+            <option value="">Todos los estados</option>
+            <option value="@EstadoFactura.Emitida">Emitida</option>
+            <option value="@EstadoFactura.Anulada">Anulada</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <div class="input-group">
+            <span class="input-group-text">Desde</span>
+            <input type="date" class="form-control" @bind="desde" @bind:after="Recargar" />
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="input-group">
+            <span class="input-group-text">Hasta</span>
+            <input type="date" class="form-control" @bind="hasta" @bind:after="Recargar" />
+        </div>
+    </div>
+</div>
+
+@if (pagina is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (pagina.Total == 0)
+{
+    <div class="alert alert-secondary">No hay facturas que coincidan con la búsqueda.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>NCF</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Condición</th>
+                    <th>Estado</th>
+                    <th class="text-end">Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var f in pagina.Items)
+                {
+                    <tr class="@(f.Estado == EstadoFactura.Anulada ? "opacity-50" : "")">
+                        <td><code>@f.Numero</code></td>
+                        <td class="small">@(f.Ncf ?? "—")</td>
+                        <td class="small text-nowrap">@Formato.FechaHora(f.Fecha)</td>
+                        <td>@f.ClienteNombre</td>
+                        <td class="small">@(f.Condicion == CondicionPago.Contado ? "Contado" : "Crédito")</td>
+                        <td>
+                            <span class="badge @Formato.ClaseEstadoFactura(f.Estado)">
+                                @Formato.EstadoFactura(f.Estado)
+                            </span>
+                        </td>
+                        <td class="text-end fw-semibold">@Formato.Dinero(f.Total)</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-secondary" href="/ventas/facturas/@f.Id">Ver</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+            @pagina.Total factura(s) · página @pagina.Pagina de @Math.Max(1, pagina.TotalPaginas)
+        </small>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(!pagina.HayAnterior)"
+                    @onclick="() => IrAPagina(pagina.Pagina - 1)">Anterior</button>
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(!pagina.HaySiguiente)"
+                    @onclick="() => IrAPagina(pagina.Pagina + 1)">Siguiente</button>
+        </div>
+    </div>
+}
+
+@code {
+    private PaginaDe<FacturaListaDto>? pagina;
+    private string? texto;
+    private EstadoFactura? estado;
+    private DateTime? desde;
+    private DateTime? hasta;
+    private int paginaActual = 1;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar() =>
+        pagina = await ServicioVentas.BuscarAsync(new FiltroFacturas(
+            Texto: texto,
+            Estado: estado,
+            // La República Dominicana es UTC-4: la fecha civil que elige el usuario se
+            // convierte a UTC para comparar contra Factura.Fecha, que se guarda en UTC.
+            Desde: desde is { } d ? d.Date.AddHours(4) : null,
+            Hasta: hasta is { } h ? h.Date.AddDays(1).AddHours(4).AddTicks(-1) : null,
+            Pagina: paginaActual));
+
+    private async Task Recargar()
+    {
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task OnTextoChanged(ChangeEventArgs e)
+    {
+        texto = e.Value?.ToString();
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task OnEstadoChanged(ChangeEventArgs e)
+    {
+        var valor = e.Value?.ToString();
+        estado = string.IsNullOrEmpty(valor) ? null : Enum.Parse<EstadoFactura>(valor);
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task IrAPagina(int numero)
+    {
+        paginaActual = numero;
+        await Cargar();
+    }
+}
