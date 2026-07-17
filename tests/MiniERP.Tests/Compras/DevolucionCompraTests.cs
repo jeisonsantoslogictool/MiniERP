@@ -201,4 +201,15 @@ public class DevolucionCompraTests
         Assert.Contains("confirmada", ex.Message);
         Assert.Equal(17, producto.Existencia); // no volvio a bajar
     }
+
+    [Fact]
+    public void El_costo_del_producto_no_se_repromedia_al_devolver()
+    {
+        var producto = Producto(existencia: 20, costo: 35);
+        var dev = Devolucion(3, costoUnitario: 30);
+
+        dev.Confirmar(Catalogo(producto), Devolvible(10), "tester");
+
+        Assert.Equal(35, producto.Costo); // el costo vivo no cambia
+    }
 }
