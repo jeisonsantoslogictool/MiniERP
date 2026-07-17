@@ -1,0 +1,171 @@
+@page "/clientes/cuentas-por-cobrar"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IClienteService ServicioClientes
+
+<PageTitle>Cuentas por Cobrar</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Cuentas por Cobrar</h1>
+    <a class="btn btn-outline-secondary" href="/clientes">Volver a clientes</a>
+</div>
+
+@if (cuentas is not null)
+{
+    var totalCartera = cuentas.Sum(c => c.BalanceActual);
+    var totalVencido = cuentas.Sum(c => c.MontoVencido);
+    var clientesAtrasados = cuentas.Count(c => c.MontoVencido > 0);
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="p-3 bg-body-secondary rounded h-100">
+                <small class="text-muted d-block fw-semibold text-uppercase">Cartera Total</small>
+                <span class="fs-3">@Formato.Dinero(totalCartera)</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 rounded h-100 @(totalVencido > 0 ? "bg-danger-subtle text-danger" : "bg-body-secondary")">
+                <small class="d-block fw-semibold text-uppercase">Monto Vencido</small>
+                <span class="fs-3 fw-bold">@Formato.Dinero(totalVencido)</span>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="p-3 bg-body-secondary rounded h-100">
+                <small class="text-muted d-block fw-semibold text-uppercase">Clientes en Mora</small>
+                <span class="fs-3">@clientesAtrasados</span>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        <input class="form-control" placeholder="Buscar por código, nombre o teléfono..."
+               value="@texto" @oninput="OnTextoChanged" />
+    </div>
+    <div class="col-md-3 d-flex align-items-center">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chkVencidos"
+                   checked="@soloVencidos" @onchange="OnVencidosChanged" />
+            <label class="form-check-label text-danger fw-semibold" for="chkVencidos">Solo vencidos</label>
+        </div>
+    </div>
+</div>
+
+@if (cuentas is null)
+{
+    <p class="text-muted">Calculando antigüedad de saldos...</p>
+}
+else if (cuentasFiltradas.Count == 0)
+{
+    <div class="alert alert-success d-flex align-items-center">
+        <i class="bi bi-check-circle-fill fs-4 me-2"></i>
+        <div>No hay cuentas por cobrar pendientes bajo estos filtros. Todo está al día.</div>
+    </div>
+}
+else
+{
+    <div class="table-responsive shadow-sm rounded border">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Código</th>
+                    <th>Cliente</th>
+                    <th>Contacto</th>
+                    <th class="text-center">Días Crédito</th>
+                    <th class="text-end">Balance Total</th>
+                    <th class="text-end">Monto Vencido</th>
+                    <th class="text-center">Antigüedad (Días)</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in cuentasFiltradas)
+                {
+                    <tr>
+                        <td><code>@c.Codigo</code></td>
+                        <td class="fw-semibold">@c.Nombre</td>
+                        <td class="text-muted small">@c.Telefono</td>
+                        <td class="text-center">@c.DiasCredito</td>
+                        <td class="text-end font-monospace">@Formato.Dinero(c.BalanceActual)</td>
+                        
+                        <td class="text-end font-monospace @(c.MontoVencido > 0 ? "text-danger fw-bold" : "text-muted")">
+                            @(c.MontoVencido > 0 ? Formato.Dinero(c.MontoVencido) : "—")
+                        </td>
+                        
+                        <td class="text-center">
+                            @if (c.DiasVencidos > 0)
+                            {
+                                <span class="badge rounded-pill text-bg-danger px-3 py-2">
+                                    Vencido +@c.DiasVencidos días
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill text-bg-success px-3 py-2">Al día</span>
+                            }
+                        </td>
+                        
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-primary me-1" href="/clientes/@c.ClienteId/cobro">
+                                <i class="bi bi-cash"></i> Cobrar
+                            </a>
+                            <a class="btn btn-sm btn-outline-secondary" href="/clientes/@c.ClienteId">
+                                Historial
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<CuentasPorCobrarDto>? cuentas;
+    private IReadOnlyList<CuentasPorCobrarDto> cuentasFiltradas = [];
+
+    private string? texto;
+    private bool soloVencidos;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cuentas = await ServicioClientes.ObtenerCuentasPorCobrarAsync();
+        AplicarFiltros();
+    }
+
+    private void OnTextoChanged(ChangeEventArgs e)
+    {
+        texto = e.Value?.ToString();
+        AplicarFiltros();
+    }
+
+    private void OnVencidosChanged(ChangeEventArgs e)
+    {
+        soloVencidos = (bool?)e.Value ?? false;
+        AplicarFiltros();
+    }
+
+    private void AplicarFiltros()
+    {
+        if (cuentas is null) return;
+
+        var temp = cuentas.AsEnumerable();
+
+        if (soloVencidos)
+        {
+            temp = temp.Where(c => c.MontoVencido > 0);
+        }
+
+        if (!string.IsNullOrWhiteSpace(texto))
+        {
+            var txt = texto.Trim().ToLowerInvariant();
+            temp = temp.Where(c => 
+                c.Codigo.ToLowerInvariant().Contains(txt) || 
+                c.Nombre.ToLowerInvariant().Contains(txt) || 
+                (c.Telefono != null && c.Telefono.ToLowerInvariant().Contains(txt)));
+        }
+
+        cuentasFiltradas = temp.ToList();
+    }
+}

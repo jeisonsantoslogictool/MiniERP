@@ -7,7 +7,10 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Clientes</h1>
-    <a class="btn btn-primary" href="/clientes/nuevo">Nuevo cliente</a>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-danger" href="/clientes/cuentas-por-cobrar">Cuentas por cobrar</a>
+        <a class="btn btn-primary" href="/clientes/nuevo">Nuevo cliente</a>
+    </div>
 </div>
 
 @if (resumen is not null && resumen.TotalClientes > 0)

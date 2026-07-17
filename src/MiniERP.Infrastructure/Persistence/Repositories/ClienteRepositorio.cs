@@ -187,4 +187,90 @@ public class ClienteRepositorio(MiniErpDbContext contexto) : IClienteRepositorio
         resultado.Reverse();
         return resultado;
     }
+
+    public async Task<IReadOnlyList<CuentasPorCobrarDto>> ObtenerCuentasPorCobrarAsync(CancellationToken ct = default)
+    {
+        var clientesConDeuda = await contexto.Clientes
+            .AsNoTracking()
+            .Where(c => c.Activo && c.BalanceActual > 0)
+            .Select(c => new
+            {
+                c.Id,
+                c.Codigo,
+                c.Nombre,
+                c.Telefono,
+                c.BalanceActual,
+                c.DiasCredito
+            })
+            .ToListAsync(ct);
+
+        if (clientesConDeuda.Count == 0)
+            return [];
+
+        var ids = clientesConDeuda.Select(c => c.Id).ToList();
+
+        var facturas = await contexto.Facturas
+            .AsNoTracking()
+            .Where(f => f.ClienteId != null && ids.Contains(f.ClienteId.Value) && f.Condicion == Domain.Shared.CondicionPago.Credito && f.Estado != Domain.Ventas.EstadoFactura.Anulada)
+            .Select(f => new { ClienteId = f.ClienteId.Value, f.Fecha, f.Total })
+            .ToListAsync(ct);
+
+        var cobros = await contexto.Cobros
+            .AsNoTracking()
+            .Where(cb => ids.Contains(cb.ClienteId))
+            .GroupBy(cb => cb.ClienteId)
+            .Select(g => new { ClienteId = g.Key, TotalCobrado = g.Sum(c => c.Monto) })
+            .ToListAsync(ct);
+
+        var facturasPorCliente = facturas.GroupBy(f => f.ClienteId).ToDictionary(g => g.Key, g => g.OrderBy(f => f.Fecha).ToList());
+        var cobrosPorCliente = cobros.ToDictionary(c => c.ClienteId, c => c.TotalCobrado);
+
+        var resultado = new List<CuentasPorCobrarDto>(clientesConDeuda.Count);
+        var fechaActual = DateTime.UtcNow.Date;
+
+        foreach (var c in clientesConDeuda)
+        {
+            decimal totalCobrado = cobrosPorCliente.TryGetValue(c.Id, out var tc) ? tc : 0m;
+            int diasVencidos = 0;
+            decimal montoVencido = 0m;
+
+            if (facturasPorCliente.TryGetValue(c.Id, out var facturasCliente))
+            {
+                foreach (var f in facturasCliente)
+                {
+                    if (totalCobrado >= f.Total)
+                    {
+                        totalCobrado -= f.Total;
+                        continue;
+                    }
+
+                    var montoPendiente = f.Total - totalCobrado;
+                    totalCobrado = 0;
+
+                    var fechaVencimiento = f.Fecha.Date.AddDays(c.DiasCredito);
+                    var dias = (fechaActual - fechaVencimiento).Days;
+
+                    if (dias > 0)
+                    {
+                        montoVencido += montoPendiente;
+                        if (dias > diasVencidos)
+                            diasVencidos = dias;
+                    }
+                }
+            }
+
+            resultado.Add(new CuentasPorCobrarDto(
+                c.Id,
+                c.Codigo,
+                c.Nombre,
+                c.Telefono,
+                c.BalanceActual,
+                c.DiasCredito,
+                diasVencidos,
+                montoVencido
+            ));
+        }
+
+        return resultado.OrderByDescending(r => r.MontoVencido).ThenByDescending(r => r.DiasVencidos).ThenBy(r => r.Nombre).ToList();
+    }
 }

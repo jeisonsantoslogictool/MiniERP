@@ -20,6 +20,8 @@ public interface IClienteService
     Task<Resultado> ActualizarAsync(ClienteFormDto form, string? usuarioId, CancellationToken ct = default);
 
     Task<IReadOnlyList<TransaccionEstadoCuentaDto>> ObtenerEstadoCuentaAsync(int clienteId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CuentasPorCobrarDto>> ObtenerCuentasPorCobrarAsync(CancellationToken ct = default);
 }
 
 /// <summary>
@@ -135,6 +137,9 @@ public class ClienteService(IClienteRepositorio clientes) : IClienteService
         // Como Dionis tiene acceso a IClienteRepositorio, agregamos un metodo en IClienteRepositorio para obtener el historico.
         return await clientes.ObtenerEstadoCuentaAsync(clienteId, ct);
     }
+
+    public Task<IReadOnlyList<CuentasPorCobrarDto>> ObtenerCuentasPorCobrarAsync(CancellationToken ct = default) =>
+        clientes.ObtenerCuentasPorCobrarAsync(ct);
 
     private async Task<Resultado> ValidarAsync(ClienteFormDto form, CancellationToken ct)
     {

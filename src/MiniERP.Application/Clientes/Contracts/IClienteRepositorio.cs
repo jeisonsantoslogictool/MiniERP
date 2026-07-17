@@ -24,4 +24,6 @@ public interface IClienteRepositorio
     Task<int> GuardarAsync(CancellationToken ct = default);
 
     Task<IReadOnlyList<TransaccionEstadoCuentaDto>> ObtenerEstadoCuentaAsync(int clienteId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CuentasPorCobrarDto>> ObtenerCuentasPorCobrarAsync(CancellationToken ct = default);
 }
