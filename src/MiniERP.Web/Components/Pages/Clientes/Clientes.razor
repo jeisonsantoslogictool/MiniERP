@@ -138,6 +138,10 @@ else
                             }
                         </td>
                         <td class="text-end text-nowrap">
+                            @if (c.BalanceActual > 0)
+                            {
+                                <a class="btn btn-sm btn-success me-1" href="/clientes/@c.Id/cobro">Cobrar</a>
+                            }
                             <a class="btn btn-sm btn-outline-secondary" href="/clientes/@c.Id">Editar</a>
                         </td>
                     </tr>

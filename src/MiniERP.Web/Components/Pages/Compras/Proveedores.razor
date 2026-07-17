@@ -79,7 +79,11 @@ else
                         <td class="text-end @(p.BalanceActual > 0 ? "fw-semibold" : "text-muted")">
                             @Formato.Dinero(p.BalanceActual)
                         </td>
-                        <td class="text-end">
+                        <td class="text-end text-nowrap">
+                            @if (p.BalanceActual > 0)
+                            {
+                                <a class="btn btn-sm btn-success me-1" href="/proveedores/@p.Id/pago">Pagar</a>
+                            }
                             <a class="btn btn-sm btn-outline-secondary" href="/compras/proveedores/@p.Id">Editar</a>
                         </td>
                     </tr>

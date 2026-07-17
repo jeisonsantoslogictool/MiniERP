@@ -129,4 +129,62 @@ public class ClienteRepositorio(MiniErpDbContext contexto) : IClienteRepositorio
     public void Agregar(Cliente cliente) => contexto.Clientes.Add(cliente);
 
     public Task<int> GuardarAsync(CancellationToken ct = default) => contexto.SaveChangesAsync(ct);
+
+    public async Task<IReadOnlyList<TransaccionEstadoCuentaDto>> ObtenerEstadoCuentaAsync(int clienteId, CancellationToken ct = default)
+    {
+        // 1. Obtener todas las facturas a crédito de este cliente (que no estén anuladas)
+        var facturas = await contexto.Facturas
+            .AsNoTracking()
+            .Where(f => f.ClienteId == clienteId && f.Condicion == Domain.Shared.CondicionPago.Credito && f.Estado != Domain.Ventas.EstadoFactura.Anulada)
+            .Select(f => new
+            {
+                f.Fecha,
+                Referencia = f.Ncf ?? f.Numero,
+                Concepto = "Venta a Crédito",
+                Debito = f.Total,
+                Credito = 0m
+            })
+            .ToListAsync(ct);
+
+        // 2. Obtener todos los cobros aplicados a este cliente
+        var cobros = await contexto.Cobros
+            .AsNoTracking()
+            .Where(c => c.ClienteId == clienteId)
+            .Select(c => new
+            {
+                c.Fecha,
+                Referencia = "COB-" + c.Id.ToString().PadLeft(6, '0'),
+                Concepto = string.IsNullOrEmpty(c.Observacion) ? "Cobro / Abono" : c.Observacion,
+                Debito = 0m,
+                Credito = c.Monto
+            })
+            .ToListAsync(ct);
+
+        // 3. Unir ambos listados y ordenar cronológicamente
+        var transaccionesCombinadas = facturas.Concat(cobros)
+            .OrderBy(t => t.Fecha)
+            .ToList();
+
+        // 4. Calcular el balance acumulado resultante paso a paso
+        var resultado = new List<TransaccionEstadoCuentaDto>();
+        decimal balanceAcumulado = 0m;
+
+        foreach (var t in transaccionesCombinadas)
+        {
+            balanceAcumulado += t.Debito - t.Credito;
+            resultado.Add(new TransaccionEstadoCuentaDto(
+                t.Fecha,
+                t.Referencia,
+                t.Concepto,
+                t.Debito,
+                t.Credito,
+                balanceAcumulado
+            ));
+        }
+
+        // Devolver ordenado de más reciente a más antiguo para que el estado de cuenta
+        // muestre arriba los movimientos más nuevos.
+        resultado.Reverse();
+        return resultado;
+    }
 }

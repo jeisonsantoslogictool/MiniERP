@@ -41,6 +41,8 @@ public class Cliente : EntidadBase
 
     public bool Activo { get; set; } = true;
 
+    public ICollection<Cobro> Cobros { get; set; } = [];
+
     /// <summary>Cliente habilitado para llevar fiado.</summary>
     public bool TieneCredito => LimiteCredito > 0;
 
@@ -62,6 +64,28 @@ public class Cliente : EntidadBase
     /// </summary>
     public bool PuedeAsumirCredito(decimal monto) =>
         Activo && TieneCredito && monto > 0 && monto <= CreditoDisponible;
+
+    /// <summary>
+    /// Aplica un abono al balance del cliente y deja rastro en el cobro.
+    /// Ningun saldo cambia sin un asiento que lo explique.
+    /// </summary>
+    public void AplicarCobro(Cobro cobro)
+    {
+        ArgumentNullException.ThrowIfNull(cobro);
+
+        if (cobro.Monto <= 0)
+            throw new InvalidOperationException("El monto del cobro debe ser positivo.");
+
+        if (cobro.Monto > BalanceActual)
+            throw new InvalidOperationException(
+                $"El cobro de {cobro.Monto} excede la deuda de {BalanceActual}.");
+
+        cobro.BalanceAnterior = BalanceActual;
+        cobro.BalanceResultante = RetailConstants.RedondearImporte(BalanceActual - cobro.Monto);
+        cobro.ClienteId = Id;
+
+        BalanceActual = cobro.BalanceResultante;
+    }
 
     /// <summary>
     /// Valida el largo del documento segun su tipo. No verifica contra la DGII:
