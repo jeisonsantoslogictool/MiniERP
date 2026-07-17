@@ -28,11 +28,15 @@ informe en manos de una sola persona.
 
 ### Track de código
 
-| Quién | Responsabilidad |
-|-------|-----------------|
-| **Jeison** | Arquitectura, inventario, POS y comprobantes fiscales. La cadena crítica. |
-| **Samuel** | Compras y finanzas: el camino del costo, desde que entra la mercancía hasta el reporte de rentabilidad. |
-| **Dionis** | Clientes, cobros y pagos: el ciclo del dinero a crédito. |
+La frontera va por **módulo completo**, no por concepto: cada quien es dueño de carpetas
+enteras y nadie edita el módulo de otro. Son tres sesiones de Claude trabajando en
+paralelo, y dos manos en el mismo archivo se pagan en el merge.
+
+| Quién | Dueño de | Responsabilidad |
+|-------|----------|-----------------|
+| **Jeison** | `Inventario/` · `Ventas/` | Arquitectura, inventario, POS y comprobantes fiscales. La cadena crítica. |
+| **Dionis** | `Clientes/` · `Compras/` | Los terceros y su crédito, de ambos lados: el cliente que debe y el proveedor a quien se le debe. |
+| **Samuel** | `Finanzas/` | La capa analítica: ingresos, egresos, rentabilidad, estado de resultados y flujo de caja. Lee todo lo demás y no modifica nada. |
 
 **Regla que compensa el desbalance:** quien construye un módulo escribe la sección del
 Capítulo IV que le corresponde, en la misma semana y con sus capturas. Es también quien
@@ -109,15 +113,18 @@ NCF y su factura. Esa es, literalmente, la integración que promete el anteproye
 ### F3 — Dinero y fiscal · S6–S7
 
 - **Cobros y pagos — `dionis/cobros-pagos`:** abonos de cliente y pagos a proveedor, estado de
-  cuenta, y cuentas por cobrar y por pagar. **Va primero:** sin bajar los balances, el reporte de
-  finanzas mostraría una deuda que crece para siempre.
-- **Finanzas — `samuel/finanzas`:** ingresos, egresos, costos, márgenes y reportes de rentabilidad.
-  Usa `LineaFactura.CostoUnitario` (congelado), nunca `Producto.Costo`.
+  cuenta, cuentas por cobrar y por pagar, y devolución a proveedor. **Va primero:** sin bajar los
+  balances, el reporte de finanzas mostraría una deuda que crece para siempre.
+- **Finanzas — `samuel/finanzas`:** ingresos, egresos, rentabilidad, estado de resultados y flujo
+  de caja. Dos reglas que no se negocian: usa `LineaFactura.CostoUnitario` (congelado) y nunca
+  `Producto.Costo`; y **un pago a proveedor no es un egreso** — contarlo como gasto duplica el
+  costo y produce una utilidad falsa. Ver CLAUDE.md.
 - **Comprobantes — `jeison/pos`:** secuencias de NCF, estructura del XML e-CF y código QR. Sin
   certificación ante la DGII, que el alcance ya excluye explícitamente.
 
-**Gate:** el reporte de rentabilidad cuadra contra las compras y ventas de F2, y se genera
-el XML e-CF de una factura real.
+**Gate:** el reporte de rentabilidad cuadra contra las compras y ventas de F2; un cliente salda
+su deuda y el balance baja; se registra un pago a proveedor y la utilidad **no** se mueve; y se
+genera el XML e-CF de una factura real.
 
 ### F4 — Integración y piloto · S8–S9 · los cuatro
 
@@ -154,6 +161,8 @@ el XML e-CF de una factura real.
 | Riesgo | Mitigación |
 |--------|------------|
 | **Rangelis solo con el informe.** Al pasar Samuel y Dionis a código, el track de documento perdió la mitad de su gente. El informe es la mitad de la nota. | Cada dev escribe la sección del Capítulo IV del módulo que construyó, en la misma semana. Rangelis integra en vez de escribirlo todo. Revisar su avance cada semana. |
+| **Tres devs editando los mismos archivos.** `DependencyInjection.cs`, `MiniErpDbContext.cs` y las migraciones los tocan los tres: no hay diseño que lo evite. | La frontera por módulo elimina el resto de los choques. Para estos tres, traer `main` antes de empezar el día y antes del pull request. Nunca al final. |
+| **Confundir utilidad con efectivo.** Registrar pagos a proveedor como egresos duplica el costo y da una utilidad falsa. No lanza error: produce números creíbles y equivocados. | Regla escrita en CLAUDE.md, y un gate explícito: registrar un pago y comprobar que la utilidad no se mueve. |
 | **Dejar el Capítulo IV para el final.** El asesino clásico: el código termina y quedan ochenta páginas por escribir sin memoria de cómo se hizo. | Escribirlo por módulo, y hacerlo parte del gate. Un módulo no está cerrado hasta que su sección del informe existe. |
 | **El alcance creciendo por los bordes.** Analítica, e-commerce, app móvil, offline. | El anteproyecto ya los excluye por escrito. Citarlo y decir que no, sin culpa. |
 | **Perseguir la certificación de la DGII.** Proceso largo, externo y fuera de su control. | Está fuera de alcance por escrito. Se genera el XML e-CF y el QR, y ahí se para. |

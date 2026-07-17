@@ -32,18 +32,47 @@ aprovecha el conocimiento de otros sistemas, no se copia su código.
 **Lo primero al abrir el repo:** detecta la rama actual (`git branch --show-current`) y orienta
 al desarrollador con lo suyo antes de nada. Cada quien trabaja en **su** rama, nunca en `main`.
 
-| Si estás en… | Eres | Tu módulo | Tus tareas |
+| Si estás en… | Eres | Eres dueño de | Tus tareas |
 |---|---|---|---|
-| `jeison/pos` | **Jeison** | POS y comprobantes fiscales | [Asignaciones → Jeison](Docs/Asignaciones.md) |
-| `samuel/finanzas` | **Samuel** | Compras y finanzas | [Asignaciones → Samuel](Docs/Asignaciones.md) |
-| `dionis/cobros-pagos` | **Dionis** | Clientes, cobros y pagos | [Asignaciones → Dionis](Docs/Asignaciones.md) |
+| `jeison/pos` | **Jeison** | `Inventario/` · `Ventas/` | [Asignaciones → Jeison](Docs/Asignaciones.md) |
+| `samuel/finanzas` | **Samuel** | `Finanzas/` | [Asignaciones → Samuel](Docs/Asignaciones.md) |
+| `dionis/cobros-pagos` | **Dionis** | `Clientes/` · `Compras/` | [Asignaciones → Dionis](Docs/Asignaciones.md) |
 | `main` | — | No se trabaja aquí | Cámbiate a tu rama: `git checkout <tu-rama>` |
+
+### La frontera: cada quien es dueño de carpetas completas
+
+**No edites el módulo de otro.** Son tres desarrolladores trabajando en paralelo, cada uno
+con su propia sesión de Claude. Si dos tocan el mismo archivo, el merge lo paga el que
+llegue segundo, y peor: nadie puede defender en la sustentación un módulo que otro escribió.
+
+La frontera se trazó por **módulo del anteproyecto**, no por concepto:
+
+- Jeison: inventario y ventas — la mercancía y su salida.
+- Dionis: clientes y compras — los terceros y su crédito, de ambos lados.
+- Samuel: finanzas — la capa analítica que lee todo lo anterior sin modificarlo.
+
+**¿Necesitas algo del módulo de otro?** Pídelo, no lo escribas. Samuel consume
+`LineaFactura` y `Egreso`; no toca `Factura.cs`.
+
+### Los tres archivos que sí van a chocar siempre
+
+`Infrastructure/DependencyInjection.cs` y `Persistence/MiniErpDbContext.cs` los tocan los
+tres: cada quien registra sus servicios y agrega sus DbSets. Igual con las migraciones,
+que comparten una sola línea de tiempo.
+
+Eso **no tiene solución de diseño**. Son conflictos triviales —líneas que se agregan— y la
+mitigación es traer `main` seguido, no evitar el choque:
+
+```bash
+git fetch origin && git merge origin/main
+```
+
+Hazlo antes de empezar el día y antes de pedir el pull request. Nunca al final.
 
 - **Estado global del proyecto:** la tabla **Dónde vamos** (aquí abajo) es el tablero. Al cerrar
   una tarea, actualízala en el mismo commit.
 - **Tu lista concreta**, con el criterio de "terminado", vive en [Docs/Asignaciones.md](Docs/Asignaciones.md).
 - **El plan y el calendario**, en [Docs/Plan-Maestro.md](Docs/Plan-Maestro.md).
-- ¿Rama recién clonada o desactualizada? Trae `main`: `git fetch origin && git merge origin/main`.
 
 ---
 
@@ -164,6 +193,63 @@ anteproyecto exige.
   (hash de contraseña) o lo que el usuario editará va en el sembrador de arranque.
   Si usas `HasData`, la fecha va **fija**: un `DateTime.UtcNow` ahí hace que el modelo
   cambie en cada compilación y las migraciones nunca cierren.
+
+---
+
+## Un pago a proveedor NO es un egreso
+
+Esta es la trampa más cara del proyecto, y no da error: produce números creíbles y falsos.
+
+Tres cosas distintas que parecen la misma:
+
+| Concepto | Dueño | Qué es | ¿Afecta la utilidad? |
+|---|---|---|---|
+| **`Egreso`** | Samuel · `Finanzas/` | Gasto operativo que no pasa por inventario: alquiler, luz, agua, sueldos, transporte | **Sí** |
+| **`Pago`** | Dionis · `Compras/` | Saldar lo que se le debe a un proveedor | **No** — liquida una deuda |
+| **`Cobro`** | Dionis · `Clientes/` | Saldar lo que un cliente debe | **No** — el ingreso ya se reconoció al facturar |
+
+Registrar los pagos a proveedor como egresos cuenta el costo **dos veces**:
+
+```
+Compras arroz por 640, lo vendes en 1,000, y le pagas al proveedor.
+
+  Ingresos                          1,000
+− Costo de lo vendido                −640    ← el costo ya está aquí
+− Egresos (pago al proveedor)        −640    ← contado otra vez
+= Utilidad                            −280   ← FALSO. Ganaste 360.
+```
+
+El gasto ocurrió cuando **vendiste** la mercancía, no cuando pagaste la factura.
+
+### Son dos reportes distintos, y el anteproyecto pide los dos
+
+**Estado de resultados** — cuánto gana el negocio:
+
+```
+  Ingresos              Factura.Subtotal del período (sin ITBIS)
+− Costo de lo vendido   Factura.CostoTotal (congelado al vender)
+− Egresos operativos    Egreso
+= Utilidad
+```
+
+No entran cobros ni pagos. El ITBIS tampoco: ese dinero es de la DGII, no del comercio.
+
+**Flujo de caja** — cuánto efectivo entra y sale de la gaveta:
+
+```
++ Ventas de contado
++ Cobros a clientes
+− Egresos pagados
+− Pagos a proveedores
+= Efectivo neto
+```
+
+No entran las ventas a crédito que aún no se han cobrado.
+
+Un negocio puede tener utilidad y no tener efectivo — vendió todo fiado. O tener efectivo
+y estar perdiendo — cobró viejo y vende bajo costo. El planteamiento del problema pide las
+dos cosas por separado: *"calcular sus márgenes"* y *"cuidar su flujo de efectivo"*.
+Mezclarlas es el error que esta sección existe para evitar.
 
 ---
 

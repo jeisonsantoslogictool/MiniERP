@@ -9,8 +9,30 @@ todos, que es lo que hace falta para poder defenderlo en septiembre.
 La rama lleva el nombre de su dueño: `<nombre>/<módulo>`. Así el historial dice quién hizo
 qué sin que nadie tenga que preguntarlo, que es justo lo que un asesor va a querer ver.
 
-| Rama | Quién | Módulo |
-|------|-------|--------|
+| Rama | Quién | Dueño de | Módulos del anteproyecto |
+|------|-------|----------|--------------------------|
+| `jeison/pos` | **Jeison** | `Inventario/` · `Ventas/` | Inventario y ventas (POS) |
+| `dionis/cobros-pagos` | **Dionis** | `Clientes/` · `Compras/` | Clientes y compras |
+| `samuel/finanzas` | **Samuel** | `Finanzas/` | Finanzas |
+| — | **Rangelis** | El informe | Capítulo II, entrevistas y armado |
+
+## La frontera: carpetas completas, no conceptos
+
+**Nadie edita el módulo de otro.** La primera versión de este documento partía el trabajo
+por concepto —"el ciclo del dinero" para Dionis— y eso lo obligó a escribir dentro de
+`Compras/`, que era de Samuel. Los dos iban a chocar en `Proveedor.cs` y en
+`Proveedores.razor`, y ninguno podría defender su módulo entero en la sustentación.
+
+Corregido: la frontera va por **módulo del anteproyecto**.
+
+- **Jeison** — la mercancía y su salida.
+- **Dionis** — los terceros y su crédito, de ambos lados: el cliente que debe y el
+  proveedor a quien se le debe. Cobros y pagos son suyos porque son simétricos.
+- **Samuel** — la capa analítica. **Lee todo lo anterior y no modifica nada.**
+
+¿Necesitas algo del módulo de otro? **Pídelo, no lo escribas.**
+
+------|-------|--------|
 | `jeison/pos` | **Jeison** | Punto de venta y comprobantes fiscales |
 | `samuel/finanzas` | **Samuel** | Finanzas y compras |
 | `dionis/cobros-pagos` | **Dionis** | Cobros, pagos y clientes |
@@ -58,10 +80,45 @@ debe entrar al plan de pruebas del 5.1.
 
 ## Samuel — `samuel/finanzas`
 
-### Primero: adoptar compras
+**Dueño de `Finanzas/` completo.** Nada construido: lo construyes todo tú, y por eso lo
+puedes defender entero. **Lees los demás módulos, no los modificas.**
 
-El módulo de compras existe pero **no lo escribiste tú**. Antes de tomar finanzas,
-apropiátelo:
+> **Antes de escribir una línea, lee en [CLAUDE.md](../CLAUDE.md) la sección
+> "Un pago a proveedor NO es un egreso".** Es la trampa que te está esperando: registrar
+> los pagos como gastos cuenta el costo dos veces y produce una utilidad falsa que nadie
+> notaría hasta la defensa.
+
+| # | Tarea | Terminado cuando |
+|---|-------|------------------|
+| 1 | **`Egreso`** | Se registra un gasto operativo con categoría y fecha: alquiler, luz, agua, sueldos, transporte. **Nunca compras de mercancía ni pagos a proveedor.** |
+| 2 | **Reporte de ingresos** | Ventas de un rango, separando contado de crédito, con su ITBIS aparte. Sale de `Factura`. |
+| 3 | **Reporte de rentabilidad** | Margen por período, por producto y por categoría. **Usa `LineaFactura.CostoUnitario`, que está congelado — nunca `Producto.Costo`**, que cambia con cada compra y te daría márgenes falsos. |
+| 4 | **Estado de resultados** | Ingresos − costo de lo vendido − egresos = utilidad. Es el número que el comerciante nunca ha visto. |
+| 5 | **Flujo de caja** | Ventas de contado + cobros − egresos − pagos a proveedor. **Distinto del estado de resultados**, y ambos hacen falta: se puede tener utilidad sin efectivo. |
+| 6 | **Panel de finanzas** | Ventas del día, margen del día, egresos del mes, utilidad y efectivo. Lo primero que el dueño mira al llegar. |
+
+### Gate de Samuel
+
+El reporte de rentabilidad cuadra contra las ventas reales: si se vendieron 3 LB con
+margen 21.38, el reporte del día dice 21.38. Ni un centavo de diferencia.
+
+Y la prueba que de verdad importa: **registra un pago a proveedor y comprueba que la
+utilidad NO se mueve.** Si se mueve, contaste el costo dos veces.
+
+---
+
+## Dionis — `dionis/cobros-pagos`
+
+**Dueño de `Clientes/` y `Compras/`.** Los terceros y su crédito, de ambos lados: el
+cliente que debe y el proveedor a quien se le debe.
+
+Ya construiste `Cobro`, `Pago`, el estado de cuenta y sus pantallas — y seguiste los
+patrones del proyecto sin que nadie te lo dijera: `Cliente.AplicarCobro` es el espejo de
+`Producto.AplicarMovimiento`, con balance anterior y resultante para auditar. Eso está
+bien hecho.
+
+**El módulo de compras pasa a ser tuyo** porque ya estabas trabajando dentro de él con
+los pagos. Antes de extenderlo, apropiátelo:
 
 1. Lee `Domain/Compras/Compra.cs`, `Application/Compras/` e `Infrastructure/.../ComprasRepositorios.cs`.
 2. **Explícale a Jeison**, en voz alta, estas tres cosas:
@@ -70,60 +127,20 @@ apropiátelo:
    - Por qué recibir corre en una sola transacción.
 3. Si no las sabes explicar, no estás listo para defenderlo. Mejor descubrirlo ahora.
 
-Luego extiéndelo con lo que le falta:
-
 | # | Tarea | Terminado cuando |
 |---|-------|------------------|
-| 1 | **Devolución a proveedor** | Se devuelve mercancía de una compra recibida, el inventario baja y el balance del proveedor se ajusta. El tipo `TipoMovimiento.DevolucionProveedor` ya existe y nadie lo usa. |
-
-### Módulo de finanzas — nada construido
-
-| # | Tarea | Terminado cuando |
-|---|-------|------------------|
-| 2 | **Registro de egresos** | Se registran gastos que no son compras de mercancía: alquiler, luz, sueldos, transporte. Con categoría y fecha. |
-| 3 | **Reporte de ingresos** | Ventas de un rango de fechas, separando contado de crédito, con su ITBIS. Sale de `Facturas`. |
-| 4 | **Reporte de rentabilidad** | Margen por período, por producto y por categoría. **Usa `LineaFactura.CostoUnitario`, que está congelado** — no leas `Producto.Costo`, que cambia con cada compra y te daría márgenes falsos. |
-| 5 | **Estado de resultados simple** | Ingresos − costo de lo vendido − egresos = utilidad del período. Es el número que el comerciante nunca ha visto. |
-| 6 | **Panel de finanzas** | Ventas del día, margen del día, egresos del mes y utilidad. Lo primero que el dueño mira al llegar. |
-
-### Gate de Samuel
-
-El reporte de rentabilidad cuadra contra las ventas reales: si vendiste 3 LB con margen
-21.38, el reporte del día dice 21.38. Ni un centavo de diferencia.
-
----
-
-## Dionis — `dionis/cobros-pagos`
-
-### Primero: adoptar clientes
-
-Igual que Samuel. Lee `Domain/Clientes/Cliente.cs` y `Application/Clientes/`, y
-**explícale a Jeison**:
-
-- Por qué el crédito fiscal exige RNC y no basta una cédula.
-- Por qué el documento se guarda sin guiones.
-- Por qué el balance no se puede editar desde la ficha del cliente.
-
-### El hueco real que te toca cerrar
-
-**Hoy los balances suben y nunca bajan.** Una compra a crédito deja al proveedor con
-RD$ 640 que no hay forma de pagar. Una venta a crédito deja al cliente con una deuda que
-no hay forma de cobrar. Sin esto, el módulo de finanzas de Samuel reportaría una deuda
-que crece para siempre.
-
-| # | Tarea | Terminado cuando |
-|---|-------|------------------|
-| 1 | **Cobro a cliente** | Se registra un abono, el balance baja y queda el rastro de quién cobró, cuándo y cuánto. Mismo criterio que el inventario: **ningún saldo cambia sin un asiento que lo explique**. |
-| 2 | **Pago a proveedor** | Lo mismo al revés: se salda lo que se le debe y su balance baja. |
+| 1 | **Cobro a cliente** | ✅ Hecho. |
+| 2 | **Pago a proveedor** | ✅ Hecho. |
 | 3 | **Estado de cuenta del cliente** | Facturas a crédito, abonos y saldo. Es lo que hoy vive en el cuaderno de fiados. |
 | 4 | **Cuentas por cobrar** | Quién debe, cuánto y desde hace cuántos días. Usa `Cliente.DiasCredito` para marcar lo vencido. |
-| 5 | **Cuentas por pagar** | Lo mismo con los proveedores. |
-| 6 | **Extender clientes** | Historial de compras del cliente en su ficha. |
+| 5 | **Cuentas por pagar** | Lo mismo con los proveedores, usando `Proveedor.DiasCredito`. |
+| 6 | **Devolución a proveedor** | Se devuelve mercancía de una compra recibida, el inventario baja y el balance del proveedor se ajusta. `TipoMovimiento.DevolucionProveedor` ya existe y nadie lo usa. |
+| 7 | **Historial de compras del cliente** | En su ficha, para saber qué le vendes y con qué frecuencia. |
 
 ### Gate de Dionis
 
 Un cliente compra a crédito por 500, su balance sube a 500, le cobras 200, y baja a 300.
-El estado de cuenta muestra las tres líneas.
+El estado de cuenta muestra las tres líneas, y cuentas por cobrar lo lista con sus días.
 
 ---
 
