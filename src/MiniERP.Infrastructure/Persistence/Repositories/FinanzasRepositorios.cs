@@ -3,6 +3,7 @@ using MiniERP.Application.Common;
 using MiniERP.Application.Finanzas.Contracts;
 using MiniERP.Application.Finanzas.Dtos;
 using MiniERP.Domain.Finanzas;
+using MiniERP.Domain.Ventas;
 
 namespace MiniERP.Infrastructure.Persistence.Repositories;
 
@@ -128,4 +129,19 @@ public class CategoriaEgresoRepositorio(MiniErpDbContext contexto) : ICategoriaE
     public void Agregar(CategoriaEgreso categoria) => contexto.CategoriasEgreso.Add(categoria);
 
     public Task<int> GuardarAsync(CancellationToken ct = default) => contexto.SaveChangesAsync(ct);
+}
+
+public class ReporteIngresosRepositorio(MiniErpDbContext contexto) : IReporteIngresosRepositorio
+{
+    public async Task<IReadOnlyList<Factura>> ObtenerFacturasDelPeriodoAsync(
+        DateTime desde, DateTime hasta, CancellationToken ct = default)
+    {
+        // El "hasta" incluye el dia completo: hasta el 31 son las ventas del 31 a cualquier hora.
+        var finDelDia = hasta.Date.AddDays(1);
+
+        return await contexto.Facturas
+            .AsNoTracking()
+            .Where(f => f.Fecha >= desde && f.Fecha < finDelDia)
+            .ToListAsync(ct);
+    }
 }

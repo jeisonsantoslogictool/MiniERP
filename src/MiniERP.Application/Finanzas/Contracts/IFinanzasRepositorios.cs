@@ -1,6 +1,7 @@
 using MiniERP.Application.Common;
 using MiniERP.Application.Finanzas.Dtos;
 using MiniERP.Domain.Finanzas;
+using MiniERP.Domain.Ventas;
 
 namespace MiniERP.Application.Finanzas.Contracts;
 
@@ -37,4 +38,15 @@ public interface ICategoriaEgresoRepositorio
     void Agregar(CategoriaEgreso categoria);
 
     Task<int> GuardarAsync(CancellationToken ct = default);
+}
+
+public interface IReporteIngresosRepositorio
+{
+    /// <summary>
+    /// Facturas emitidas o anuladas cuya fecha cae en el periodo. La calculadora descarta
+    /// las anuladas; se traen para que esa regla se pueda comprobar. Sin las lineas: el
+    /// reporte solo necesita los totales del encabezado.
+    /// </summary>
+    Task<IReadOnlyList<Factura>> ObtenerFacturasDelPeriodoAsync(
+        DateTime desde, DateTime hasta, CancellationToken ct = default);
 }

@@ -69,8 +69,10 @@ public static class DependencyInjection
         // Finanzas
         services.AddScoped<IEgresoRepositorio, EgresoRepositorio>();
         services.AddScoped<ICategoriaEgresoRepositorio, CategoriaEgresoRepositorio>();
+        services.AddScoped<IReporteIngresosRepositorio, ReporteIngresosRepositorio>();
         services.AddScoped<IEgresoService, EgresoService>();
         services.AddScoped<ICategoriaEgresoService, CategoriaEgresoService>();
+        services.AddScoped<IReporteIngresosService, ReporteIngresosService>();
 
         return services;
     }
