@@ -169,7 +169,7 @@ contraseña de administrador en la consola** dentro de un recuadro. Solo se mues
 ### Cómo no chocar en el merge
 
 Los conflictos no salen *dentro* de tu módulo —la frontera por carpeta ya lo evita—, sino
-en los **archivos compartidos que nadie posee**. Estas cuatro reglas los cortan:
+en los **archivos compartidos que nadie posee**. Estas cinco reglas los cortan:
 
 1. **Integra a `main` a diario, no al final.** Tarea terminada = merge a `main` el mismo
    día. Una rama que vive una semana acumula una semana de choques; una que vive un día,
@@ -196,6 +196,14 @@ en los **archivos compartidos que nadie posee**. Estas cuatro reglas los cortan:
 
    Así el `_Imports.razor` raíz y el `DependencyInjection.cs` raíz casi nunca se tocan y
    dejan de ser fuente de conflictos.
+
+5. **La cadena de conexión no lleva datos de tu máquina.** `appsettings.json` se queda con
+   `Server=localhost` —el objetivo real y el del piloto—. Si tu SQL Server es una instancia
+   con nombre (p. ej. `SQLEXPRESS`), ponla en **tus user-secrets**, no en `appsettings.json`:
+   es compartido y le rompe el arranque a los demás (ya pasó una vez).
+   ```bash
+   dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost\SQLEXPRESS;Database=MiniERP;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true" --project src/MiniERP.Web
+   ```
 
 ### Antes de pedir el pull request
 

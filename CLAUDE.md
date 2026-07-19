@@ -130,6 +130,8 @@ pero los conflictos salen en los archivos compartidos. Reglas:
   `AddInfrastructure` raíz, que solo los encadena.
 - **Migraciones en serie:** una a la vez, integrada a `main` el mismo día. Dos migraciones sin
   integrar chocan en el `ModelSnapshot`.
+- **Cadena de conexión:** `appsettings.json` con `Server=localhost`; tu instancia con nombre
+  (p. ej. `SQLEXPRESS`) va en user-secrets, **nunca** en `appsettings.json` (es compartido).
 - **Integra a `main` a diario y re-ramifica** al cerrar cada tarea; no vivas en una rama vieja.
 
 ---
