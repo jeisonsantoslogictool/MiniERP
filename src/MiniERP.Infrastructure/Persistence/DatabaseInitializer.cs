@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MiniERP.Domain.Clientes;
 using MiniERP.Domain.Core;
+using MiniERP.Domain.Finanzas;
 using MiniERP.Domain.Inventario;
 using MiniERP.Domain.Ventas;
 using MiniERP.Infrastructure.Settings;
@@ -39,6 +40,7 @@ public class DatabaseInitializer(
         await SembrarRolesAsync();
         await SembrarAdministradorAsync();
         await SembrarCategoriasAsync(ct);
+        await SembrarCategoriasEgresoAsync(ct);
         await SembrarSecuenciasNcfAsync(ct);
     }
 
@@ -264,5 +266,31 @@ public class DatabaseInitializer(
         await contexto.SaveChangesAsync(ct);
 
         log.LogInformation("Categorias iniciales sembradas: {Cantidad}", nombres.Length);
+    }
+
+    /// <summary>
+    /// Siembra las categorias tipicas de gasto de un minimarket. El comerciante puede
+    /// agregar las suyas; estas son solo el punto de partida para no empezar en blanco.
+    /// </summary>
+    private async Task SembrarCategoriasEgresoAsync(CancellationToken ct)
+    {
+        if (!_config.SembrarCategorias)
+            return;
+
+        if (await contexto.CategoriasEgreso.AnyAsync(ct))
+            return;
+
+        string[] nombres = ["Alquiler", "Luz", "Agua", "Sueldos", "Transporte"];
+
+        contexto.CategoriasEgreso.AddRange(nombres.Select(n => new CategoriaEgreso
+        {
+            Nombre = n,
+            Activo = true,
+            CreadoPor = "sistema"
+        }));
+
+        await contexto.SaveChangesAsync(ct);
+
+        log.LogInformation("Categorias de egreso iniciales sembradas: {Cantidad}", nombres.Length);
     }
 }

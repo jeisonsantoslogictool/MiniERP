@@ -6,6 +6,8 @@ using MiniERP.Application.Clientes.Contracts;
 using MiniERP.Application.Clientes.Services;
 using MiniERP.Application.Compras.Contracts;
 using MiniERP.Application.Compras.Services;
+using MiniERP.Application.Finanzas.Contracts;
+using MiniERP.Application.Finanzas.Services;
 using MiniERP.Application.Inventario.Contracts;
 using MiniERP.Application.Inventario.Services;
 using MiniERP.Application.Ventas.Contracts;
@@ -63,6 +65,12 @@ public static class DependencyInjection
         services.AddScoped<ICompraRepositorio, CompraRepositorio>();
         services.AddScoped<IProveedorService, ProveedorService>();
         services.AddScoped<ICompraService, CompraService>();
+
+        // Finanzas
+        services.AddScoped<IEgresoRepositorio, EgresoRepositorio>();
+        services.AddScoped<ICategoriaEgresoRepositorio, CategoriaEgresoRepositorio>();
+        services.AddScoped<IEgresoService, EgresoService>();
+        services.AddScoped<ICategoriaEgresoService, CategoriaEgresoService>();
 
         return services;
     }
