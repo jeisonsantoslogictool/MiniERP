@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MiniERP.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using MiniERP.Infrastructure.Persistence;
 namespace MiniERP.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(MiniErpDbContext))]
-    partial class MiniErpDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260719154751_AgregarFinanzasEgreso")]
+    partial class AgregarFinanzasEgreso
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -258,61 +261,6 @@ namespace MiniERP.Infrastructure.Persistence.Migrations
                     b.ToTable("Clientes", (string)null);
                 });
 
-            modelBuilder.Entity("MiniERP.Domain.Clientes.Cobro", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("BalanceAnterior")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("BalanceResultante")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ClienteId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CreadoPor")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaModificacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ModificadoPor")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("Monto")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Observacion")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<string>("UsuarioId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClienteId", "Fecha");
-
-                    b.ToTable("Cobros", (string)null);
-                });
-
             modelBuilder.Entity("MiniERP.Domain.Compras.Compra", b =>
                 {
                     b.Property<int>("Id")
@@ -439,61 +387,6 @@ namespace MiniERP.Infrastructure.Persistence.Migrations
                     b.HasIndex("ProductoId");
 
                     b.ToTable("LineasCompra", (string)null);
-                });
-
-            modelBuilder.Entity("MiniERP.Domain.Compras.Pago", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("BalanceAnterior")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("BalanceResultante")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("CreadoPor")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaModificacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ModificadoPor")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("Monto")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Observacion")
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<int>("ProveedorId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UsuarioId")
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProveedorId", "Fecha");
-
-                    b.ToTable("Pagos", (string)null);
                 });
 
             modelBuilder.Entity("MiniERP.Domain.Compras.Proveedor", b =>
@@ -1371,17 +1264,6 @@ namespace MiniERP.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("MiniERP.Domain.Clientes.Cobro", b =>
-                {
-                    b.HasOne("MiniERP.Domain.Clientes.Cliente", "Cliente")
-                        .WithMany("Cobros")
-                        .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Cliente");
-                });
-
             modelBuilder.Entity("MiniERP.Domain.Compras.Compra", b =>
                 {
                     b.HasOne("MiniERP.Domain.Compras.Proveedor", "Proveedor")
@@ -1410,17 +1292,6 @@ namespace MiniERP.Infrastructure.Persistence.Migrations
                     b.Navigation("Compra");
 
                     b.Navigation("Producto");
-                });
-
-            modelBuilder.Entity("MiniERP.Domain.Compras.Pago", b =>
-                {
-                    b.HasOne("MiniERP.Domain.Compras.Proveedor", "Proveedor")
-                        .WithMany("Pagos")
-                        .HasForeignKey("ProveedorId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Proveedor");
                 });
 
             modelBuilder.Entity("MiniERP.Domain.Finanzas.Egreso", b =>
@@ -1493,11 +1364,6 @@ namespace MiniERP.Infrastructure.Persistence.Migrations
                     b.Navigation("Producto");
                 });
 
-            modelBuilder.Entity("MiniERP.Domain.Clientes.Cliente", b =>
-                {
-                    b.Navigation("Cobros");
-                });
-
             modelBuilder.Entity("MiniERP.Domain.Compras.Compra", b =>
                 {
                     b.Navigation("Lineas");
@@ -1506,8 +1372,6 @@ namespace MiniERP.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("MiniERP.Domain.Compras.Proveedor", b =>
                 {
                     b.Navigation("Compras");
-
-                    b.Navigation("Pagos");
                 });
 
             modelBuilder.Entity("MiniERP.Domain.Finanzas.CategoriaEgreso", b =>

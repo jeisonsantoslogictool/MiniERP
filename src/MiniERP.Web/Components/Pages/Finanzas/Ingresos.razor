@@ -1,0 +1,85 @@
+@page "/finanzas/ingresos"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IReporteIngresosService ServicioIngresos
+
+<PageTitle>Ingresos</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Reporte de ingresos</h1>
+    <a class="btn btn-outline-secondary" href="/finanzas">Volver</a>
+</div>
+
+<div class="row g-2 mb-4 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Desde</label>
+        <input class="form-control" type="date" @bind="desde" @bind:after="Cargar" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Hasta</label>
+        <input class="form-control" type="date" @bind="hasta" @bind:after="Cargar" />
+    </div>
+</div>
+
+@if (resumen is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Condición</th>
+                    <th class="text-end">Facturas</th>
+                    <th class="text-end">Subtotal (sin ITBIS)</th>
+                    <th class="text-end">ITBIS</th>
+                    <th class="text-end">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Contado</td>
+                    <td class="text-end">@resumen.Contado.Cantidad</td>
+                    <td class="text-end">@Formato.Dinero(resumen.Contado.Subtotal)</td>
+                    <td class="text-end text-muted">@Formato.Dinero(resumen.Contado.Itbis)</td>
+                    <td class="text-end">@Formato.Dinero(resumen.Contado.Total)</td>
+                </tr>
+                <tr>
+                    <td>Crédito</td>
+                    <td class="text-end">@resumen.Credito.Cantidad</td>
+                    <td class="text-end">@Formato.Dinero(resumen.Credito.Subtotal)</td>
+                    <td class="text-end text-muted">@Formato.Dinero(resumen.Credito.Itbis)</td>
+                    <td class="text-end">@Formato.Dinero(resumen.Credito.Total)</td>
+                </tr>
+            </tbody>
+            <tfoot class="table-group-divider">
+                <tr class="fw-semibold">
+                    <td>Total general</td>
+                    <td class="text-end">@resumen.Cantidad</td>
+                    <td class="text-end">@Formato.Dinero(resumen.Subtotal)</td>
+                    <td class="text-end text-muted">@Formato.Dinero(resumen.Itbis)</td>
+                    <td class="text-end">@Formato.Dinero(resumen.Total)</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <p class="text-muted small">
+        El <strong>subtotal</strong> es la venta sin ITBIS: es el ingreso del negocio. El
+        ITBIS solo se recauda para la DGII. No se incluyen las facturas anuladas.
+    </p>
+}
+
+@code {
+    private ResumenIngresos? resumen;
+
+    private DateTime desde = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+    private DateTime hasta = DateTime.UtcNow.Date;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar() =>
+        resumen = await ServicioIngresos.ObtenerAsync(new FiltroReporteIngresos(desde, hasta));
+}

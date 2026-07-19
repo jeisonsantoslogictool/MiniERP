@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using MiniERP.Domain.Clientes;
 using MiniERP.Domain.Compras;
+using MiniERP.Domain.Finanzas;
 using MiniERP.Domain.Inventario;
 using MiniERP.Domain.Ventas;
 
@@ -35,6 +36,10 @@ public class MiniErpDbContext(DbContextOptions<MiniErpDbContext> options)
     public DbSet<Compra> Compras => Set<Compra>();
     public DbSet<LineaCompra> LineasCompra => Set<LineaCompra>();
     public DbSet<Pago> Pagos => Set<Pago>();
+
+    // Finanzas
+    public DbSet<CategoriaEgreso> CategoriasEgreso => Set<CategoriaEgreso>();
+    public DbSet<Egreso> Egresos => Set<Egreso>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
