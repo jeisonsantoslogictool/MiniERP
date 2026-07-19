@@ -1,12 +1,417 @@
 @page "/ventas"
 @attribute [Authorize]
+@rendermode InteractiveServer
+@inject IVentaService ServicioVentas
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider Auth
 
-<PageTitle>Ventas</PageTitle>
+<PageTitle>Punto de venta</PageTitle>
 
-<h1>Ventas</h1>
-
-<p class="lead">Punto de venta: busqueda, carrito, cobro, NCF y emision del comprobante.</p>
-
-<div class="alert alert-secondary" role="alert">
-    Modulo pendiente. Se construye en la fase <strong>F2</strong> del plan.
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Punto de venta</h1>
+    <a class="btn btn-outline-secondary" href="/ventas/facturas">Facturas emitidas</a>
 </div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger alert-dismissible" role="alert">
+        @error
+        <button type="button" class="btn-close" @onclick="() => error = null"></button>
+    </div>
+}
+
+@if (emitida is not null)
+{
+    <div class="alert alert-success" role="alert">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <strong class="fs-5">Venta cobrada — @emitida.Ncf</strong>
+                <div>
+                    Total @Formato.Dinero(emitida.Total)
+                    @if (emitida.Cambio > 0)
+                    {
+                        <span class="ms-3 fs-5 fw-bold">Cambio: @Formato.Dinero(emitida.Cambio)</span>
+                    }
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a class="btn btn-sm btn-success" href="/ventas/facturas/@emitida.Id">Ver factura</a>
+                <button class="btn btn-sm btn-outline-success" @onclick="NuevaVenta">Nueva venta (F2)</button>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="mb-3">
+            <label class="form-label">Buscar producto</label>
+            <input @ref="cajaBusqueda" class="form-control form-control-lg"
+                   placeholder="Código, código de barras o descripción — Enter agrega el primero"
+                   value="@busqueda"
+                   @oninput="OnBuscar"
+                   @onkeydown="OnTeclaBusqueda" />
+        </div>
+
+        @if (sugerencias.Count > 0)
+        {
+            <div class="list-group mb-3">
+                @foreach (var p in sugerencias)
+                {
+                    <button type="button" class="list-group-item list-group-item-action"
+                            @onclick="() => Agregar(p)">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><code>@p.Codigo</code> @p.Descripcion</span>
+                            <span class="text-end">
+                                <strong>@Formato.Dinero(p.PrecioConItbis)</strong>
+                                <br />
+                                <small class="@(p.Existencia <= 0 ? "text-danger" : "text-muted")">
+                                    @Formato.Cantidad(p.Existencia, p.PermiteDecimales) @p.UnidadMedida
+                                </small>
+                            </span>
+                        </div>
+                    </button>
+                }
+            </div>
+        }
+
+        @if (!carrito.HayLineas)
+        {
+            <div class="alert alert-secondary">El carrito está vacío. Busca un producto para empezar.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th style="width: 150px">Cantidad</th>
+                            <th class="text-end">Precio</th>
+                            <th class="text-end">ITBIS</th>
+                            <th class="text-end">Importe</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var linea in carrito.Lineas)
+                        {
+                            <tr>
+                                <td>
+                                    <code class="small">@linea.Codigo</code><br />
+                                    @linea.Descripcion
+                                </td>
+                                <td>
+                                    <div class="input-group input-group-sm">
+                                        <input class="form-control" type="number"
+                                               step="@(linea.PermiteDecimales ? "0.001" : "1")"
+                                               value="@linea.Cantidad"
+                                               @onchange="e => CambiarCantidad(linea, e)" />
+                                        <span class="input-group-text">@linea.UnidadMedida</span>
+                                    </div>
+                                    @if (linea.Cantidad > linea.ExistenciaDisponible)
+                                    {
+                                        <small class="text-danger">
+                                            Solo hay @Formato.Cantidad(linea.ExistenciaDisponible, linea.PermiteDecimales)
+                                        </small>
+                                    }
+                                </td>
+                                <td class="text-end">@Formato.Dinero(linea.PrecioUnitario)</td>
+                                <td class="text-end text-muted">
+                                    @if (linea.TasaItbis == 0)
+                                    {
+                                        <span class="badge text-bg-light">Exento</span>
+                                    }
+                                    else
+                                    {
+                                        @Formato.Dinero(linea.Itbis)
+                                    }
+                                </td>
+                                <td class="text-end fw-semibold">@Formato.Dinero(linea.Total)</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-danger" @onclick="() => Quitar(linea)">×</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-4">
+        <div class="p-3 border rounded">
+            <h2 class="h5">Cobro</h2>
+
+            <div class="mb-3">
+                <label class="form-label">Cliente</label>
+                @if (clienteElegido is null)
+                {
+                    <input class="form-control" placeholder="Buscar cliente — vacío = contado"
+                           value="@busquedaCliente" @oninput="OnBuscarCliente" />
+
+                    @if (clientes.Count > 0)
+                    {
+                        <div class="list-group mt-1">
+                            @foreach (var c in clientes)
+                            {
+                                <button type="button" class="list-group-item list-group-item-action py-1"
+                                        @onclick="() => ElegirCliente(c)">
+                                    <small>
+                                        <strong>@c.Nombre</strong>
+                                        @if (c.TieneCredito)
+                                        {
+                                            <span class="text-muted"> · disponible @Formato.Dinero(c.CreditoDisponible)</span>
+                                        }
+                                    </small>
+                                </button>
+                            }
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="d-flex justify-content-between align-items-center p-2 bg-body-secondary rounded">
+                        <div>
+                            <strong>@clienteElegido.Nombre</strong>
+                            <br />
+                            <small class="text-muted">@Formato.Comprobante(clienteElegido.TipoComprobante)</small>
+                            @if (clienteElegido.TieneCredito)
+                            {
+                                <br />
+                                <small>Disponible: @Formato.Dinero(clienteElegido.CreditoDisponible)</small>
+                            }
+                        </div>
+                        <button class="btn btn-sm btn-outline-secondary" @onclick="QuitarCliente">Quitar</button>
+                    </div>
+                }
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Condición</label>
+                <select class="form-select" @bind="carrito.Condicion">
+                    <option value="@CondicionPago.Contado">Contado</option>
+                    <option value="@CondicionPago.Credito">Crédito</option>
+                </select>
+                @if (carrito.Condicion == CondicionPago.Credito && clienteElegido is null)
+                {
+                    <div class="form-text text-danger">
+                        El crédito exige un cliente registrado: no se le fía a un desconocido.
+                    </div>
+                }
+            </div>
+
+            <dl class="row mb-2">
+                <dt class="col-6 fw-normal text-muted">Subtotal</dt>
+                <dd class="col-6 text-end">@Formato.Dinero(carrito.Subtotal)</dd>
+                <dt class="col-6 fw-normal text-muted">ITBIS</dt>
+                <dd class="col-6 text-end">@Formato.Dinero(carrito.Itbis)</dd>
+            </dl>
+
+            <div class="d-flex justify-content-between align-items-baseline border-top pt-2 mb-3">
+                <span class="fs-5">Total</span>
+                <span class="fs-3 fw-bold">@Formato.Dinero(carrito.Total)</span>
+            </div>
+
+            @if (carrito.Condicion == CondicionPago.Contado)
+            {
+                <div class="mb-2">
+                    <label class="form-label">Efectivo recibido</label>
+                    <input class="form-control form-control-lg text-end" type="number" step="0.01"
+                           value="@carrito.MontoRecibido" @onchange="OnMontoRecibido" />
+                </div>
+
+                @if (carrito.Faltante > 0)
+                {
+                    <div class="alert alert-warning py-2 mb-2">
+                        Faltan <strong>@Formato.Dinero(carrito.Faltante)</strong>
+                    </div>
+                }
+                else if (carrito.Cambio > 0)
+                {
+                    <div class="alert alert-info py-2 mb-2 d-flex justify-content-between">
+                        <span>Cambio</span>
+                        <strong class="fs-5">@Formato.Dinero(carrito.Cambio)</strong>
+                    </div>
+                }
+            }
+
+            <button class="btn btn-primary btn-lg w-100" @onclick="Cobrar" disabled="@(!PuedeCobrar)">
+                @(cobrando ? "Cobrando..." : "Cobrar")
+            </button>
+
+            @if (carrito.HayLineas)
+            {
+                <button class="btn btn-outline-secondary w-100 mt-2" @onclick="NuevaVenta" disabled="@cobrando">
+                    Cancelar venta
+                </button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private VentaFormDto carrito = new();
+    private IReadOnlyList<ProductoParaVentaDto> sugerencias = [];
+    private IReadOnlyList<ClienteParaVentaDto> clientes = [];
+    private ClienteParaVentaDto? clienteElegido;
+    private FacturaEmitidaDto? emitida;
+
+    private ElementReference cajaBusqueda;
+    private string? busqueda;
+    private string? busquedaCliente;
+    private string? error;
+    private bool cobrando;
+    private string? usuarioId;
+
+    private bool PuedeCobrar => carrito.HayLineas && !cobrando;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool primeraVez)
+    {
+        // El cajero debe poder escanear sin tocar el mouse.
+        if (primeraVez)
+            await cajaBusqueda.FocusAsync();
+    }
+
+    private async Task OnBuscar(ChangeEventArgs e)
+    {
+        busqueda = e.Value?.ToString();
+
+        sugerencias = string.IsNullOrWhiteSpace(busqueda)
+            ? []
+            : await ServicioVentas.BuscarProductosAsync(busqueda);
+    }
+
+    /// <summary>
+    /// Enter agrega la primera coincidencia. Un escaner de codigo de barras termina su
+    /// lectura con Enter, asi que escanear equivale a agregar el producto al carrito.
+    /// </summary>
+    private async Task OnTeclaBusqueda(KeyboardEventArgs e)
+    {
+        if (e.Key != "Enter" || sugerencias.Count == 0)
+            return;
+
+        await Agregar(sugerencias[0]);
+    }
+
+    private async Task Agregar(ProductoParaVentaDto p)
+    {
+        var existente = carrito.Lineas.FirstOrDefault(l => l.ProductoId == p.Id);
+
+        // Escanear dos veces el mismo producto suma, no duplica el renglon: es lo que
+        // el cajero espera al pasar dos latas iguales.
+        if (existente is not null)
+        {
+            existente.Cantidad += 1;
+        }
+        else
+        {
+            carrito.Lineas.Add(new LineaVentaDto
+            {
+                ProductoId = p.Id,
+                Codigo = p.Codigo,
+                Descripcion = p.Descripcion,
+                UnidadMedida = p.UnidadMedida,
+                PermiteDecimales = p.PermiteDecimales,
+                Cantidad = 1,
+                PrecioUnitario = p.PrecioVenta,
+                TasaItbis = p.TasaItbis,
+                ExistenciaDisponible = p.ManejaInventario ? p.Existencia : decimal.MaxValue
+            });
+        }
+
+        busqueda = null;
+        sugerencias = [];
+        error = null;
+        emitida = null;
+
+        await cajaBusqueda.FocusAsync();
+    }
+
+    private void Quitar(LineaVentaDto linea) => carrito.Lineas.Remove(linea);
+
+    private static void CambiarCantidad(LineaVentaDto linea, ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var valor))
+            linea.Cantidad = valor;
+    }
+
+    private void OnMontoRecibido(ChangeEventArgs e)
+    {
+        carrito.MontoRecibido = decimal.TryParse(e.Value?.ToString(), out var valor) ? valor : 0;
+    }
+
+    private async Task OnBuscarCliente(ChangeEventArgs e)
+    {
+        busquedaCliente = e.Value?.ToString();
+
+        clientes = string.IsNullOrWhiteSpace(busquedaCliente)
+            ? []
+            : await ServicioVentas.BuscarClientesAsync(busquedaCliente);
+    }
+
+    private void ElegirCliente(ClienteParaVentaDto c)
+    {
+        clienteElegido = c;
+        carrito.ClienteId = c.Id;
+        carrito.ClienteNombre = c.Nombre;
+        clientes = [];
+        busquedaCliente = null;
+    }
+
+    private void QuitarCliente()
+    {
+        clienteElegido = null;
+        carrito.ClienteId = null;
+        carrito.ClienteNombre = null;
+        carrito.Condicion = CondicionPago.Contado;
+    }
+
+    private async Task Cobrar()
+    {
+        error = null;
+        emitida = null;
+        cobrando = true;
+
+        try
+        {
+            var resultado = await ServicioVentas.EmitirAsync(carrito, usuarioId);
+
+            if (resultado.Fallo)
+            {
+                error = resultado.Error;
+                return;
+            }
+
+            emitida = resultado.Valor;
+            carrito = new VentaFormDto();
+            clienteElegido = null;
+            busqueda = busquedaCliente = null;
+            sugerencias = [];
+            clientes = [];
+        }
+        finally
+        {
+            cobrando = false;
+        }
+    }
+
+    private async Task NuevaVenta()
+    {
+        carrito = new VentaFormDto();
+        clienteElegido = null;
+        emitida = null;
+        error = null;
+        busqueda = busquedaCliente = null;
+        sugerencias = [];
+        clientes = [];
+
+        await cajaBusqueda.FocusAsync();
+    }
+}

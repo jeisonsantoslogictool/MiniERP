@@ -1,0 +1,145 @@
+@page "/ventas/facturas/{Id:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IVentaService ServicioVentas
+
+<PageTitle>@(factura?.Numero ?? "Factura")</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="mb-0">@(factura?.Numero ?? "Factura")</h1>
+        @if (factura is not null)
+        {
+            <span class="badge @Formato.ClaseEstadoFactura(factura.Estado)">@Formato.EstadoFactura(factura.Estado)</span>
+        }
+    </div>
+    <a class="btn btn-outline-secondary" href="/ventas/facturas">Volver</a>
+</div>
+
+@if (cargando)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (factura is null)
+{
+    <div class="alert alert-warning">La factura no existe.</div>
+}
+else
+{
+    @if (factura.Estado == EstadoFactura.Anulada)
+    {
+        <div class="alert alert-danger">
+            <strong>Factura anulada.</strong>
+            @if (!string.IsNullOrWhiteSpace(factura.MotivoAnulacion))
+            {
+                <span> Motivo: @factura.MotivoAnulacion</span>
+            }
+        </div>
+    }
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="border rounded p-3 h-100">
+                <h2 class="h6 text-muted">Comprobante</h2>
+                <dl class="row mb-0">
+                    <dt class="col-5 fw-normal text-muted">NCF</dt>
+                    <dd class="col-7"><code>@(factura.Ncf ?? "—")</code></dd>
+                    <dt class="col-5 fw-normal text-muted">Tipo</dt>
+                    <dd class="col-7">@Formato.Comprobante(factura.TipoComprobante)</dd>
+                    <dt class="col-5 fw-normal text-muted">Fecha</dt>
+                    <dd class="col-7">@Formato.FechaHora(factura.Fecha)</dd>
+                    <dt class="col-5 fw-normal text-muted">Condición</dt>
+                    <dd class="col-7">@(factura.Condicion == CondicionPago.Contado ? "Contado" : "Crédito")</dd>
+                    @if (!string.IsNullOrWhiteSpace(factura.UsuarioId))
+                    {
+                        <dt class="col-5 fw-normal text-muted">Cajero</dt>
+                        <dd class="col-7">@factura.UsuarioId</dd>
+                    }
+                </dl>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="border rounded p-3 h-100">
+                <h2 class="h6 text-muted">Cliente</h2>
+                <dl class="row mb-0">
+                    <dt class="col-5 fw-normal text-muted">Nombre</dt>
+                    <dd class="col-7">@factura.ClienteNombre</dd>
+                    <dt class="col-5 fw-normal text-muted">Documento</dt>
+                    <dd class="col-7">@(string.IsNullOrWhiteSpace(factura.ClienteDocumento) ? "—" : factura.ClienteDocumento)</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Descripción</th>
+                    <th class="text-end">Cantidad</th>
+                    <th class="text-end">Precio</th>
+                    <th class="text-end">ITBIS</th>
+                    <th class="text-end">Importe</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var l in factura.Lineas)
+                {
+                    <tr>
+                        <td><code>@l.Codigo</code></td>
+                        <td>@l.Descripcion</td>
+                        <td class="text-end text-nowrap">@Formato.Cantidad(l.Cantidad, l.PermiteDecimales) @l.UnidadMedida</td>
+                        <td class="text-end">@Formato.Dinero(l.PrecioUnitario)</td>
+                        <td class="text-end text-muted">
+                            @if (l.TasaItbis == 0)
+                            {
+                                <span class="badge text-bg-light">Exento</span>
+                            }
+                            else
+                            {
+                                @Formato.Dinero(l.Itbis)
+                            }
+                        </td>
+                        <td class="text-end fw-semibold">@Formato.Dinero(l.Total)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row justify-content-end">
+        <div class="col-md-5 col-lg-4">
+            <dl class="row mb-0 border-top pt-3">
+                <dt class="col-6 fw-normal text-muted">Subtotal</dt>
+                <dd class="col-6 text-end">@Formato.Dinero(factura.Subtotal)</dd>
+                <dt class="col-6 fw-normal text-muted">ITBIS</dt>
+                <dd class="col-6 text-end">@Formato.Dinero(factura.Itbis)</dd>
+                <dt class="col-6 fw-bold fs-5">Total</dt>
+                <dd class="col-6 text-end fw-bold fs-5">@Formato.Dinero(factura.Total)</dd>
+                @if (factura.Condicion == CondicionPago.Contado)
+                {
+                    <dt class="col-6 fw-normal text-muted">Recibido</dt>
+                    <dd class="col-6 text-end">@Formato.Dinero(factura.MontoRecibido)</dd>
+                    <dt class="col-6 fw-normal text-muted">Cambio</dt>
+                    <dd class="col-6 text-end">@Formato.Dinero(factura.Cambio)</dd>
+                }
+            </dl>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private FacturaDetalleDto? factura;
+    private bool cargando = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+        factura = await ServicioVentas.ObtenerDetalleAsync(Id);
+        cargando = false;
+    }
+}

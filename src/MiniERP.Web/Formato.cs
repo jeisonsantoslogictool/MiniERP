@@ -66,6 +66,21 @@ public static class Formato
         _ => "text-bg-light"
     };
 
+    public static string EstadoFactura(Domain.Ventas.EstadoFactura estado) => estado switch
+    {
+        Domain.Ventas.EstadoFactura.Emitida => "Emitida",
+        Domain.Ventas.EstadoFactura.Anulada => "Anulada",
+        _ => estado.ToString()
+    };
+
+    /// <summary>Color del estado: emitida es una venta viva; anulada quedó sin efecto.</summary>
+    public static string ClaseEstadoFactura(Domain.Ventas.EstadoFactura estado) => estado switch
+    {
+        Domain.Ventas.EstadoFactura.Emitida => "text-bg-success",
+        Domain.Ventas.EstadoFactura.Anulada => "text-bg-secondary",
+        _ => "text-bg-light"
+    };
+
     public static string Movimiento(TipoMovimiento tipo) => tipo switch
     {
         TipoMovimiento.Entrada => "Entrada",
