@@ -1,0 +1,270 @@
+@page "/finanzas/egresos"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IEgresoService ServicioEgresos
+@inject ICategoriaEgresoService ServicioCategorias
+@inject AuthenticationStateProvider Auth
+
+<PageTitle>Egresos</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Egresos</h1>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="/finanzas/egresos/categorias">Categorías</a>
+        <a class="btn btn-outline-secondary" href="/finanzas">Volver</a>
+    </div>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+@if (aviso is not null)
+{
+    <div class="alert alert-success" role="alert">@aviso</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h2 class="h5 mb-3">@(EstaEditando ? "Editar egreso" : "Registrar egreso")</h2>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Fecha</label>
+                <input class="form-control" type="date" @bind="form.Fecha" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Categoría</label>
+                <select class="form-select" @bind="form.CategoriaEgresoId">
+                    <option value="0">Selecciona...</option>
+                    @foreach (var op in opciones)
+                    {
+                        <option value="@op.Id">@op.Texto</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Monto</label>
+                <input class="form-control" type="number" step="0.01" min="0" @bind="form.Monto" />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Nota (opcional)</label>
+                <input class="form-control" @bind="form.Descripcion" placeholder="Ej. Luz de enero" />
+            </div>
+        </div>
+        <div class="mt-3 d-flex gap-2">
+            <button class="btn btn-primary" @onclick="Guardar" disabled="@guardando">
+                @(EstaEditando ? "Guardar cambios" : "Registrar egreso")
+            </button>
+            @if (EstaEditando)
+            {
+                <button class="btn btn-outline-secondary" @onclick="CancelarEdicion">Cancelar</button>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="row g-2 mb-3 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Desde</label>
+        <input class="form-control" type="date" @bind="filtroDesde" @bind:after="RecargarDesdeFiltro" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Hasta</label>
+        <input class="form-control" type="date" @bind="filtroHasta" @bind:after="RecargarDesdeFiltro" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Categoría</label>
+        <select class="form-select" value="@(filtroCategoria?.ToString() ?? "")" @onchange="OnFiltroCategoriaChanged">
+            <option value="">Todas</option>
+            @foreach (var op in opciones)
+            {
+                <option value="@op.Id">@op.Texto</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3 text-md-end">
+        <div class="p-2 rounded bg-body-secondary">
+            <small class="text-muted d-block">Total del período</small>
+            <strong class="fs-5">@Formato.Dinero(total)</strong>
+        </div>
+    </div>
+</div>
+
+@if (pagina is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (pagina.Total == 0)
+{
+    <div class="alert alert-secondary">No hay egresos que coincidan.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Categoría</th>
+                    <th class="text-end">Monto</th>
+                    <th>Nota</th>
+                    <th>Registrado por</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var e in pagina.Items)
+                {
+                    <tr>
+                        <td class="text-nowrap">@e.Fecha.ToString("dd/MM/yyyy")</td>
+                        <td>@e.Categoria</td>
+                        <td class="text-end fw-semibold">@Formato.Dinero(e.Monto)</td>
+                        <td class="text-muted small">@e.Descripcion</td>
+                        <td class="small">@e.RegistradoPor</td>
+                        <td class="text-end text-nowrap">
+                            <button class="btn btn-sm btn-outline-secondary" @onclick="() => Editar(e.Id)">Editar</button>
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => Eliminar(e.Id)">Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+            @pagina.Total egreso(s) · página @pagina.Pagina de @Math.Max(1, pagina.TotalPaginas)
+        </small>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(!pagina.HayAnterior)"
+                    @onclick="() => IrAPagina(pagina.Pagina - 1)">Anterior</button>
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(!pagina.HaySiguiente)"
+                    @onclick="() => IrAPagina(pagina.Pagina + 1)">Siguiente</button>
+        </div>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<OpcionDto> opciones = [];
+    private PaginaDe<EgresoListaDto>? pagina;
+    private decimal total;
+
+    private EgresoFormDto form = new() { Fecha = DateTime.UtcNow.Date };
+    private bool guardando;
+
+    private DateTime? filtroDesde;
+    private DateTime? filtroHasta;
+    private int? filtroCategoria;
+    private int paginaActual = 1;
+
+    private string? usuarioId;
+    private string? error;
+    private string? aviso;
+
+    private bool EstaEditando => form.Id != 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+        opciones = await ServicioCategorias.ObtenerOpcionesAsync();
+        await Cargar();
+    }
+
+    private async Task Cargar()
+    {
+        var filtro = new FiltroEgresos(
+            Desde: filtroDesde, Hasta: filtroHasta,
+            CategoriaEgresoId: filtroCategoria, Pagina: paginaActual);
+
+        pagina = await ServicioEgresos.BuscarAsync(filtro);
+        total = await ServicioEgresos.ObtenerTotalAsync(filtro);
+    }
+
+    private async Task RecargarDesdeFiltro()
+    {
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task OnFiltroCategoriaChanged(ChangeEventArgs e)
+    {
+        var valor = e.Value?.ToString();
+        filtroCategoria = string.IsNullOrEmpty(valor) ? null : int.Parse(valor);
+        await RecargarDesdeFiltro();
+    }
+
+    private async Task Guardar()
+    {
+        error = aviso = null;
+        guardando = true;
+
+        try
+        {
+            var editando = EstaEditando;
+            var resultado = await ServicioEgresos.GuardarAsync(form, usuarioId);
+
+            if (resultado.Fallo)
+            {
+                error = resultado.Error;
+                return;
+            }
+
+            aviso = editando ? "Egreso actualizado." : "Egreso registrado.";
+            LimpiarForm();
+            await Cargar();
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    private async Task Editar(int id)
+    {
+        error = aviso = null;
+
+        var existente = await ServicioEgresos.ObtenerParaEditarAsync(id);
+
+        if (existente is null)
+        {
+            error = "El egreso ya no existe.";
+            return;
+        }
+
+        form = existente;
+    }
+
+    private void CancelarEdicion()
+    {
+        error = aviso = null;
+        LimpiarForm();
+    }
+
+    private async Task Eliminar(int id)
+    {
+        error = aviso = null;
+
+        var resultado = await ServicioEgresos.EliminarAsync(id);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+            return;
+        }
+
+        if (form.Id == id)
+            LimpiarForm();
+
+        await Cargar();
+    }
+
+    private void LimpiarForm() =>
+        form = new EgresoFormDto { Fecha = DateTime.UtcNow.Date };
+
+    private async Task IrAPagina(int numero)
+    {
+        paginaActual = numero;
+        await Cargar();
+    }
+}

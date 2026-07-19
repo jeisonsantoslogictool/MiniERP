@@ -29,10 +29,7 @@ public class EgresoRepositorio(MiniErpDbContext contexto) : IEgresoRepositorio
                 e.CategoriaEgreso!.Nombre,
                 e.Monto,
                 e.Descripcion,
-                contexto.Users
-                    .Where(u => u.Id == e.UsuarioId)
-                    .Select(u => u.Email)
-                    .FirstOrDefault()))
+                e.UsuarioId))
             .ToListAsync(ct);
 
         return new PaginaDe<EgresoListaDto>(items, total, filtro.Pagina, filtro.TamanoEfectivo);

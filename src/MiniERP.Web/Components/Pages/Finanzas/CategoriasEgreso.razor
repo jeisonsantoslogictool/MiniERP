@@ -1,0 +1,198 @@
+@page "/finanzas/egresos/categorias"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject ICategoriaEgresoService ServicioCategorias
+@inject AuthenticationStateProvider Auth
+
+<PageTitle>Categorías de egreso</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Categorías de egreso</h1>
+    <a class="btn btn-outline-secondary" href="/finanzas/egresos">Volver</a>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+
+<div class="row g-2 mb-4 align-items-end">
+    <div class="col-md-4">
+        <label class="form-label">Nombre</label>
+        <input class="form-control" @bind="nombreNueva" placeholder="Ej. Publicidad" />
+    </div>
+    <div class="col-md-5">
+        <label class="form-label">Descripción</label>
+        <input class="form-control" @bind="descripcionNueva" placeholder="Opcional" />
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-primary w-100" @onclick="Crear">Agregar categoría</button>
+    </div>
+</div>
+
+@if (pagina is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Descripción</th>
+                    <th class="text-end">Egresos</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in pagina.Items)
+                {
+                    <tr>
+                        @if (editandoId == c.Id)
+                        {
+                            <td><input class="form-control form-control-sm" @bind="nombreEdicion" /></td>
+                            <td><input class="form-control form-control-sm" @bind="descripcionEdicion" /></td>
+                            <td class="text-end text-muted">@c.CantidadEgresos</td>
+                            <td>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" @bind="activoEdicion" />
+                                    <label class="form-check-label small">Activa</label>
+                                </div>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-primary" @onclick="Guardar">Guardar</button>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => editandoId = null">Cancelar</button>
+                            </td>
+                        }
+                        else
+                        {
+                            <td class="@(c.Activo ? "" : "opacity-50")">@c.Nombre</td>
+                            <td class="text-muted small">@c.Descripcion</td>
+                            <td class="text-end text-muted">@c.CantidadEgresos</td>
+                            <td>
+                                @if (c.Activo)
+                                {
+                                    <span class="badge text-bg-success">Activa</span>
+                                }
+                                else
+                                {
+                                    <span class="badge text-bg-secondary">Inactiva</span>
+                                }
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => Editar(c)">Editar</button>
+                                @if (c.Activo)
+                                {
+                                    <button class="btn btn-sm btn-outline-warning" @onclick="() => CambiarEstado(c.Id, false)">Desactivar</button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-success" @onclick="() => CambiarEstado(c.Id, true)">Activar</button>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private PaginaDe<CategoriaEgresoListaDto>? pagina;
+    private string? error;
+    private string? usuarioId;
+
+    private string nombreNueva = string.Empty;
+    private string? descripcionNueva;
+
+    private int? editandoId;
+    private string nombreEdicion = string.Empty;
+    private string? descripcionEdicion;
+    private bool activoEdicion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+        await Cargar();
+    }
+
+    private async Task Cargar() =>
+        pagina = await ServicioCategorias.BuscarAsync(new FiltroCategoriasEgreso(TamanoPagina: 100));
+
+    private async Task Crear()
+    {
+        error = null;
+
+        var form = new CategoriaEgresoFormDto
+        {
+            Nombre = nombreNueva,
+            Descripcion = descripcionNueva,
+            Activo = true
+        };
+
+        var resultado = await ServicioCategorias.GuardarAsync(form, usuarioId);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+            return;
+        }
+
+        nombreNueva = string.Empty;
+        descripcionNueva = null;
+        await Cargar();
+    }
+
+    private void Editar(CategoriaEgresoListaDto c)
+    {
+        editandoId = c.Id;
+        nombreEdicion = c.Nombre;
+        descripcionEdicion = c.Descripcion;
+        activoEdicion = c.Activo;
+        error = null;
+    }
+
+    private async Task Guardar()
+    {
+        error = null;
+
+        var form = new CategoriaEgresoFormDto
+        {
+            Id = editandoId!.Value,
+            Nombre = nombreEdicion,
+            Descripcion = descripcionEdicion,
+            Activo = activoEdicion
+        };
+
+        var resultado = await ServicioCategorias.GuardarAsync(form, usuarioId);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+            return;
+        }
+
+        editandoId = null;
+        await Cargar();
+    }
+
+    private async Task CambiarEstado(int id, bool activo)
+    {
+        error = null;
+
+        var resultado = await ServicioCategorias.CambiarEstadoAsync(id, activo, usuarioId);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+            return;
+        }
+
+        await Cargar();
+    }
+}
