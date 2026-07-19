@@ -23,11 +23,12 @@ public record ResumenIngresos(
     {
         ArgumentNullException.ThrowIfNull(facturas);
 
-        var lista = facturas.ToList();
+        // Una venta anulada no es un ingreso: se descarta antes de sumar.
+        var emitidas = facturas.Where(f => !f.EstaAnulada).ToList();
 
         return new ResumenIngresos(
-            Resumir(lista.Where(f => f.Condicion == CondicionPago.Contado)),
-            Resumir(lista.Where(f => f.Condicion == CondicionPago.Credito)));
+            Resumir(emitidas.Where(f => f.Condicion == CondicionPago.Contado)),
+            Resumir(emitidas.Where(f => f.Condicion == CondicionPago.Credito)));
     }
 
     private static ResumenIngresosPorCondicion Resumir(IEnumerable<Factura> facturas)

@@ -91,4 +91,19 @@ public class ResumenIngresosTests
         Assert.Equal(1770m, resumen.Total);
         Assert.Equal(2, resumen.Cantidad);
     }
+
+    [Fact]
+    public void Excluye_las_facturas_anuladas()
+    {
+        var facturas = new[]
+        {
+            Factura(CondicionPago.Contado, 1000, 180),
+            Factura(CondicionPago.Contado, 999, 179, estado: EstadoFactura.Anulada),
+        };
+
+        var resumen = ResumenIngresos.Calcular(facturas);
+
+        Assert.Equal(1, resumen.Contado.Cantidad);
+        Assert.Equal(1000m, resumen.Contado.Subtotal);
+    }
 }
