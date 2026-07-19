@@ -1,19 +1,46 @@
+:root {
+    --orange:#F26D21; --orange-600:#D9560F; --orange-50:#FEF1E8; --orange-100:#FBDFC9;
+    --ink:#1C1917; --muted:#7C736C; --faint:#A69E97;
+    --border:#E8E2DC; --border-soft:#F0EBE6; --surface:#F6F3F0; --card:#FFFFFF; --canvas:#F1ECE8;
+    --ok:#1B7F46; --ok-bg:#E7F2EB; --danger:#C0392B; --danger-bg:#FBE9E6;
+    --radius:14px; --radius-sm:10px;
+    --shadow-sm:0 1px 2px rgba(28,25,23,.06);
+    --shadow:0 1px 2px rgba(28,25,23,.05), 0 14px 34px -18px rgba(28,25,23,.22);
+
+    /* Bootstrap re-mapeado al naranja cálido */
+    --bs-primary:#F26D21; --bs-primary-rgb:242,109,33;
+    --bs-body-color:#1C1917; --bs-body-bg:#F1ECE8;
+    --bs-border-color:#E8E2DC; --bs-secondary-color:#7C736C;
+    --bs-font-sans-serif:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+
 html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: var(--bs-font-sans-serif);
+    background-color: var(--canvas);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
 }
 
 a, .btn-link {
-    color: #006bb7;
+    color: var(--orange-600);
 }
 
 .btn-primary {
+    --bs-btn-bg: var(--orange);
+    --bs-btn-border-color: var(--orange);
+    --bs-btn-hover-bg: var(--orange-600);
+    --bs-btn-hover-border-color: var(--orange-600);
+    --bs-btn-active-bg: var(--orange-600);
+    --bs-btn-active-border-color: var(--orange-600);
+    --bs-btn-disabled-bg: var(--orange);
+    --bs-btn-disabled-border-color: var(--orange);
     color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    box-shadow: 0 8px 18px -8px rgba(242, 109, 33, .6);
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+  box-shadow: 0 0 0 0.2rem var(--orange-50);
+  border-color: var(--orange);
 }
 
 .content {
@@ -57,4 +84,103 @@ h1:focus {
 
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
+}
+
+/* ============================================================
+   Componentes — piel blanco · naranja · gris cálido
+   ============================================================ */
+
+.btn { border-radius: 10px; font-weight: 600; }
+
+.btn-outline-primary {
+    --bs-btn-color: var(--orange-600);
+    --bs-btn-border-color: var(--orange-100);
+    --bs-btn-hover-bg: var(--orange);
+    --bs-btn-hover-border-color: var(--orange);
+    --bs-btn-hover-color: #fff;
+    --bs-btn-active-bg: var(--orange-600);
+    --bs-btn-active-border-color: var(--orange-600);
+}
+.btn-outline-secondary {
+    --bs-btn-color: var(--ink);
+    --bs-btn-border-color: var(--border);
+    --bs-btn-hover-bg: var(--surface);
+    --bs-btn-hover-border-color: var(--border);
+    --bs-btn-hover-color: var(--ink);
+}
+.btn-outline-danger {
+    --bs-btn-color: var(--danger);
+    --bs-btn-border-color: #F0D3CE;
+    --bs-btn-hover-bg: var(--danger);
+    --bs-btn-hover-border-color: var(--danger);
+}
+
+/* superficies */
+.card {
+    border-color: var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+}
+.border { border-color: var(--border) !important; }
+.rounded { border-radius: var(--radius-sm) !important; }
+.bg-body-secondary { background-color: var(--surface) !important; }
+
+/* tablas */
+.table {
+    --bs-table-hover-bg: #FCFAF8;
+    font-variant-numeric: tabular-nums;
+}
+.table > thead th {
+    text-transform: uppercase;
+    font-size: .72rem;
+    letter-spacing: .06em;
+    color: var(--faint);
+    font-weight: 700;
+}
+.table > :not(caption) > * > * {
+    border-bottom-color: var(--border-soft);
+    padding: .7rem .75rem;
+}
+
+/* formularios */
+.form-control, .form-select {
+    border-color: var(--border);
+    border-radius: 10px;
+    color: var(--ink);
+}
+.form-label { font-size: .82rem; font-weight: 600; color: var(--muted); }
+.input-group-text { background: var(--surface); border-color: var(--border); color: var(--muted); }
+
+/* listas (sugerencias del POS) */
+.list-group-item { border-color: var(--border-soft); }
+.list-group-item-action:hover { background: var(--orange-50); }
+
+/* estados */
+.badge { font-weight: 700; border-radius: 999px; padding: .38em .72em; }
+.text-bg-success { background-color: var(--ok-bg) !important; color: var(--ok) !important; }
+.text-bg-secondary { background-color: var(--surface) !important; color: var(--muted) !important; }
+.text-bg-warning { background-color: var(--orange-50) !important; color: var(--orange-600) !important; }
+.text-bg-light { background-color: var(--surface) !important; color: var(--muted) !important; }
+.text-bg-danger { background-color: var(--danger-bg) !important; color: var(--danger) !important; }
+
+/* avisos */
+.alert { border-radius: var(--radius); }
+.alert-success { --bs-alert-bg: var(--ok-bg); --bs-alert-color: var(--ok); --bs-alert-border-color: #CDE7D6; }
+.alert-danger { --bs-alert-bg: var(--danger-bg); --bs-alert-color: var(--danger); --bs-alert-border-color: #F0D3CE; }
+.alert-warning { --bs-alert-bg: var(--orange-50); --bs-alert-color: var(--orange-600); --bs-alert-border-color: var(--orange-100); }
+.alert-secondary { --bs-alert-bg: var(--surface); --bs-alert-color: var(--muted); --bs-alert-border-color: var(--border); }
+.alert-info { --bs-alert-bg: #EAF1FE; --bs-alert-color: #2258C4; --bs-alert-border-color: #D3E1FB; }
+
+/* NCF / códigos */
+code { color: var(--muted); }
+
+/* foco accesible */
+:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+
+/* impresión (se conserva del módulo de facturas) */
+@media print {
+    .sidebar, .top-row, #blazor-error-ui, .d-print-none { display: none !important; }
+    .page { display: block !important; }
+    main, .content { width: 100% !important; padding: 0 !important; margin: 0 !important; }
+    body { background: #fff !important; }
 }
