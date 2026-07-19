@@ -212,7 +212,7 @@ public class ClienteRepositorio(MiniErpDbContext contexto) : IClienteRepositorio
         var facturas = await contexto.Facturas
             .AsNoTracking()
             .Where(f => f.ClienteId != null && ids.Contains(f.ClienteId.Value) && f.Condicion == Domain.Shared.CondicionPago.Credito && f.Estado != Domain.Ventas.EstadoFactura.Anulada)
-            .Select(f => new { ClienteId = f.ClienteId.Value, f.Fecha, f.Total })
+            .Select(f => new { ClienteId = f.ClienteId!.Value, f.Fecha, f.Total })
             .ToListAsync(ct);
 
         var cobros = await contexto.Cobros
