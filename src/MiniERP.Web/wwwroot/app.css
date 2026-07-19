@@ -58,3 +58,29 @@ h1:focus {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+/* Impresión: solo la factura en el papel, sin el menú ni los botones.
+   Todo lo que no debe imprimirse lleva la clase .d-print-none de Bootstrap. */
+@media print {
+    .sidebar,
+    .top-row,
+    #blazor-error-ui,
+    .d-print-none {
+        display: none !important;
+    }
+
+    .page {
+        display: block !important;
+    }
+
+    main,
+    .content {
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    body {
+        background: #fff !important;
+    }
+}
