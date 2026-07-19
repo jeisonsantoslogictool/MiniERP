@@ -1,0 +1,103 @@
+@page "/proveedores/{ProveedorId:int}/pago"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IProveedorService ServicioProveedores
+@inject IPagosService ServicioPagos
+@inject NavigationManager Navegacion
+
+<PageTitle>Registrar Pago</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h3 class="card-title mb-0">Registrar Pago a Proveedor</h3>
+            </div>
+            <div class="card-body">
+                @if (proveedor is null)
+                {
+                    <p class="text-muted">Cargando datos del proveedor...</p>
+                }
+                else
+                {
+                    <div class="mb-4">
+                        <h4 class="mb-1">@proveedor.Nombre</h4>
+                        <p class="text-muted mb-0">Código: <code>@proveedor.Codigo</code></p>
+                        <hr />
+                        <div class="p-3 bg-light rounded d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Deuda Pendiente con Proveedor:</span>
+                            <span class="fs-4 fw-semibold text-danger">@Formato.Dinero(proveedor.BalanceActual)</span>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(mensajeError))
+                    {
+                        <div class="alert alert-danger">@mensajeError</div>
+                    }
+
+                    <EditForm Model="form" OnValidSubmit="Guardar">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Monto a Pagar (RD$)</label>
+                            <InputNumber @bind-Value="form.Monto" class="form-control form-control-lg text-end" placeholder="0.00" />
+                            <ValidationMessage For="() => form.Monto" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Observación / Concepto</label>
+                            <InputText @bind-Value="form.Observacion" class="form-control" placeholder="Ej. Abono, pago factura de compra..." />
+                            <ValidationMessage For="() => form.Observacion" />
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="/compras" class="btn btn-outline-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-success btn-lg" disabled="@(form.Monto <= 0 || form.Monto > proveedor.BalanceActual)">
+                                Registrar Pago
+                            </button>
+                        </div>
+                    </EditForm>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int ProveedorId { get; set; }
+
+    private MiniERP.Application.Compras.Dtos.ProveedorFormDto? proveedor;
+    private PagoFormDto form = new();
+    private string? mensajeError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        proveedor = await ServicioProveedores.ObtenerParaEditarAsync(ProveedorId);
+        if (proveedor is null)
+        {
+            Navegacion.NavigateTo("/compras");
+            return;
+        }
+
+        form.ProveedorId = proveedor.Id;
+        form.ProveedorNombre = proveedor.Nombre;
+        form.BalanceActual = proveedor.BalanceActual;
+        form.Monto = proveedor.BalanceActual; // Sugerir saldar todo por defecto
+    }
+
+    private async Task Guardar()
+    {
+        mensajeError = null;
+
+        var resultado = await ServicioPagos.RegistrarPagoAsync(form, "Dionis");
+        if (resultado.Exito)
+        {
+            Navegacion.NavigateTo("/compras");
+        }
+        else
+        {
+            mensajeError = resultado.Error;
+        }
+    }
+}

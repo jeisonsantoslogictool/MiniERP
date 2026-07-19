@@ -55,6 +55,8 @@ public static class DependencyInjection
         // Clientes
         services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
         services.AddScoped<IClienteService, ClienteService>();
+        services.AddScoped<ICobrosRepositorio, CobrosRepositorio>();
+        services.AddScoped<ICobrosService, CobrosService>();
 
         // Ventas
         services.AddScoped<ISecuenciaNcfRepositorio, SecuenciaNcfRepositorio>();
@@ -64,8 +66,10 @@ public static class DependencyInjection
         // Compras
         services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
         services.AddScoped<ICompraRepositorio, CompraRepositorio>();
+        services.AddScoped<IPagosRepositorio, PagosRepositorio>();
         services.AddScoped<IProveedorService, ProveedorService>();
         services.AddScoped<ICompraService, CompraService>();
+        services.AddScoped<IPagosService, PagosService>();
 
         return services;
     }

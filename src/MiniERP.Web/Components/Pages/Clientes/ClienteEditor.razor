@@ -144,6 +144,57 @@ else
             <a class="btn btn-outline-secondary" href="/clientes">Cancelar</a>
         </div>
     </EditForm>
+
+    @if (!EsNuevo)
+    {
+        <hr class="my-5" />
+        <h2 class="h4 mb-3">Estado de Cuenta / Historial</h2>
+
+        @if (transacciones is null)
+        {
+            <p class="text-muted">Cargando movimientos...</p>
+        }
+        else if (transacciones.Count == 0)
+        {
+            <div class="alert alert-info">Este cliente no registra facturas a crédito ni cobros aplicados.</div>
+        }
+        else
+        {
+            <div class="table-responsive shadow-sm rounded border">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Referencia</th>
+                            <th>Concepto</th>
+                            <th class="text-end">Cargo (+)</th>
+                            <th class="text-end">Abono (−)</th>
+                            <th class="text-end">Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in transacciones)
+                        {
+                            <tr>
+                                <td class="text-nowrap text-muted">@Formato.FechaHora(t.Fecha)</td>
+                                <td><code>@t.Referencia</code></td>
+                                <td>@t.Concepto</td>
+                                <td class="text-end text-danger font-monospace">
+                                    @(t.Debito > 0 ? Formato.Dinero(t.Debito) : "—")
+                                </td>
+                                <td class="text-end text-success font-monospace">
+                                    @(t.Credito > 0 ? Formato.Dinero(t.Credito) : "—")
+                                </td>
+                                <td class="text-end fw-semibold font-monospace">
+                                    @Formato.Dinero(t.BalanceResultante)
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
 }
 
 @code {
@@ -157,6 +208,7 @@ else
     private bool guardando;
     private bool noEncontrado;
     private string? usuarioId;
+    private IReadOnlyList<TransaccionEstadoCuentaDto>? transacciones;
 
     private bool EsNuevo => Id is null;
 
@@ -194,6 +246,7 @@ else
             }
 
             form = existente;
+            transacciones = await ServicioClientes.ObtenerEstadoCuentaAsync(id);
         }
         else
         {

@@ -18,6 +18,10 @@ public interface IClienteService
     Task<Resultado<int>> CrearAsync(ClienteFormDto form, string? usuarioId, CancellationToken ct = default);
 
     Task<Resultado> ActualizarAsync(ClienteFormDto form, string? usuarioId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<TransaccionEstadoCuentaDto>> ObtenerEstadoCuentaAsync(int clienteId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<CuentasPorCobrarDto>> ObtenerCuentasPorCobrarAsync(CancellationToken ct = default);
 }
 
 /// <summary>
@@ -123,6 +127,19 @@ public class ClienteService(IClienteRepositorio clientes) : IClienteService
 
         return Resultado.Ok();
     }
+
+    public async Task<IReadOnlyList<TransaccionEstadoCuentaDto>> ObtenerEstadoCuentaAsync(int clienteId, CancellationToken ct = default)
+    {
+        // NOTA: Para no violar la separacion de capas y dado que no hay un repositorio de Facturas todavia,
+        // podemos utilizar una consulta sobre el repositorio de cobros y extender el repositorio de clientes.
+        // Pero lo mas directo y eficiente para el Estado de Cuenta es exponerlo consultando la base de datos
+        // o implementando una consulta consolidada. 
+        // Como Dionis tiene acceso a IClienteRepositorio, agregamos un metodo en IClienteRepositorio para obtener el historico.
+        return await clientes.ObtenerEstadoCuentaAsync(clienteId, ct);
+    }
+
+    public Task<IReadOnlyList<CuentasPorCobrarDto>> ObtenerCuentasPorCobrarAsync(CancellationToken ct = default) =>
+        clientes.ObtenerCuentasPorCobrarAsync(ct);
 
     private async Task<Resultado> ValidarAsync(ClienteFormDto form, CancellationToken ct)
     {

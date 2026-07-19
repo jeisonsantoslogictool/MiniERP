@@ -39,8 +39,31 @@ public class Proveedor : EntidadBase
     public bool Activo { get; set; } = true;
 
     public ICollection<Compra> Compras { get; set; } = [];
+    public ICollection<Pago> Pagos { get; set; } = [];
 
     public bool TieneDeuda => BalanceActual > 0;
+
+    /// <summary>
+    /// Aplica un pago al balance del proveedor y deja rastro en el pago.
+    /// Ningun saldo cambia sin un asiento que lo explique.
+    /// </summary>
+    public void AplicarPago(Pago pago)
+    {
+        ArgumentNullException.ThrowIfNull(pago);
+
+        if (pago.Monto <= 0)
+            throw new InvalidOperationException("El monto del pago debe ser positivo.");
+
+        if (pago.Monto > BalanceActual)
+            throw new InvalidOperationException(
+                $"El pago de {pago.Monto} excede la deuda de {BalanceActual}.");
+
+        pago.BalanceAnterior = BalanceActual;
+        pago.BalanceResultante = RetailConstants.RedondearImporte(BalanceActual - pago.Monto);
+        pago.ProveedorId = Id;
+
+        BalanceActual = pago.BalanceResultante;
+    }
 
     /// <summary>
     /// Valida el largo del documento segun su tipo. Un proveedor formal trae RNC;

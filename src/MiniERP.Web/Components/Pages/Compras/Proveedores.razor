@@ -8,6 +8,7 @@
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Proveedores</h1>
     <div class="d-flex gap-2">
+        <a class="btn btn-outline-danger" href="/compras/cuentas-por-pagar">Cuentas por pagar</a>
         <a class="btn btn-outline-secondary" href="/compras">Volver a compras</a>
         <a class="btn btn-primary" href="/compras/proveedores/nuevo">Nuevo proveedor</a>
     </div>
@@ -79,7 +80,11 @@ else
                         <td class="text-end @(p.BalanceActual > 0 ? "fw-semibold" : "text-muted")">
                             @Formato.Dinero(p.BalanceActual)
                         </td>
-                        <td class="text-end">
+                        <td class="text-end text-nowrap">
+                            @if (p.BalanceActual > 0)
+                            {
+                                <a class="btn btn-sm btn-success me-1" href="/proveedores/@p.Id/pago">Pagar</a>
+                            }
                             <a class="btn btn-sm btn-outline-secondary" href="/compras/proveedores/@p.Id">Editar</a>
                         </td>
                     </tr>

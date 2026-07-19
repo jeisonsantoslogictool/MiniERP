@@ -23,6 +23,7 @@ public class MiniErpDbContext(DbContextOptions<MiniErpDbContext> options)
 
     // Clientes
     public DbSet<Cliente> Clientes => Set<Cliente>();
+    public DbSet<Cobro> Cobros => Set<Cobro>();
 
     // Ventas
     public DbSet<SecuenciaNcf> SecuenciasNcf => Set<SecuenciaNcf>();
@@ -33,6 +34,7 @@ public class MiniErpDbContext(DbContextOptions<MiniErpDbContext> options)
     public DbSet<Proveedor> Proveedores => Set<Proveedor>();
     public DbSet<Compra> Compras => Set<Compra>();
     public DbSet<LineaCompra> LineasCompra => Set<LineaCompra>();
+    public DbSet<Pago> Pagos => Set<Pago>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

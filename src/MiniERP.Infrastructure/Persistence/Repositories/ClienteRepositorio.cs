@@ -129,4 +129,148 @@ public class ClienteRepositorio(MiniErpDbContext contexto) : IClienteRepositorio
     public void Agregar(Cliente cliente) => contexto.Clientes.Add(cliente);
 
     public Task<int> GuardarAsync(CancellationToken ct = default) => contexto.SaveChangesAsync(ct);
+
+    public async Task<IReadOnlyList<TransaccionEstadoCuentaDto>> ObtenerEstadoCuentaAsync(int clienteId, CancellationToken ct = default)
+    {
+        // 1. Obtener todas las facturas a crédito de este cliente (que no estén anuladas)
+        var facturas = await contexto.Facturas
+            .AsNoTracking()
+            .Where(f => f.ClienteId == clienteId && f.Condicion == Domain.Shared.CondicionPago.Credito && f.Estado != Domain.Ventas.EstadoFactura.Anulada)
+            .Select(f => new
+            {
+                f.Fecha,
+                Referencia = f.Ncf ?? f.Numero,
+                Concepto = "Venta a Crédito",
+                Debito = f.Total,
+                Credito = 0m
+            })
+            .ToListAsync(ct);
+
+        // 2. Obtener todos los cobros aplicados a este cliente
+        var cobros = await contexto.Cobros
+            .AsNoTracking()
+            .Where(c => c.ClienteId == clienteId)
+            .Select(c => new
+            {
+                c.Fecha,
+                Referencia = "COB-" + c.Id.ToString().PadLeft(6, '0'),
+                Concepto = string.IsNullOrEmpty(c.Observacion) ? "Cobro / Abono" : c.Observacion,
+                Debito = 0m,
+                Credito = c.Monto
+            })
+            .ToListAsync(ct);
+
+        // 3. Unir ambos listados y ordenar cronológicamente
+        var transaccionesCombinadas = facturas.Concat(cobros)
+            .OrderBy(t => t.Fecha)
+            .ToList();
+
+        // 4. Calcular el balance acumulado resultante paso a paso
+        var resultado = new List<TransaccionEstadoCuentaDto>();
+        decimal balanceAcumulado = 0m;
+
+        foreach (var t in transaccionesCombinadas)
+        {
+            balanceAcumulado += t.Debito - t.Credito;
+            resultado.Add(new TransaccionEstadoCuentaDto(
+                t.Fecha,
+                t.Referencia,
+                t.Concepto,
+                t.Debito,
+                t.Credito,
+                balanceAcumulado
+            ));
+        }
+
+        // Devolver ordenado de más reciente a más antiguo para que el estado de cuenta
+        // muestre arriba los movimientos más nuevos.
+        resultado.Reverse();
+        return resultado;
+    }
+
+    public async Task<IReadOnlyList<CuentasPorCobrarDto>> ObtenerCuentasPorCobrarAsync(CancellationToken ct = default)
+    {
+        var clientesConDeuda = await contexto.Clientes
+            .AsNoTracking()
+            .Where(c => c.Activo && c.BalanceActual > 0)
+            .Select(c => new
+            {
+                c.Id,
+                c.Codigo,
+                c.Nombre,
+                c.Telefono,
+                c.BalanceActual,
+                c.DiasCredito
+            })
+            .ToListAsync(ct);
+
+        if (clientesConDeuda.Count == 0)
+            return [];
+
+        var ids = clientesConDeuda.Select(c => c.Id).ToList();
+
+        var facturas = await contexto.Facturas
+            .AsNoTracking()
+            .Where(f => f.ClienteId != null && ids.Contains(f.ClienteId.Value) && f.Condicion == Domain.Shared.CondicionPago.Credito && f.Estado != Domain.Ventas.EstadoFactura.Anulada)
+            .Select(f => new { ClienteId = f.ClienteId.Value, f.Fecha, f.Total })
+            .ToListAsync(ct);
+
+        var cobros = await contexto.Cobros
+            .AsNoTracking()
+            .Where(cb => ids.Contains(cb.ClienteId))
+            .GroupBy(cb => cb.ClienteId)
+            .Select(g => new { ClienteId = g.Key, TotalCobrado = g.Sum(c => c.Monto) })
+            .ToListAsync(ct);
+
+        var facturasPorCliente = facturas.GroupBy(f => f.ClienteId).ToDictionary(g => g.Key, g => g.OrderBy(f => f.Fecha).ToList());
+        var cobrosPorCliente = cobros.ToDictionary(c => c.ClienteId, c => c.TotalCobrado);
+
+        var resultado = new List<CuentasPorCobrarDto>(clientesConDeuda.Count);
+        var fechaActual = DateTime.UtcNow.Date;
+
+        foreach (var c in clientesConDeuda)
+        {
+            decimal totalCobrado = cobrosPorCliente.TryGetValue(c.Id, out var tc) ? tc : 0m;
+            int diasVencidos = 0;
+            decimal montoVencido = 0m;
+
+            if (facturasPorCliente.TryGetValue(c.Id, out var facturasCliente))
+            {
+                foreach (var f in facturasCliente)
+                {
+                    if (totalCobrado >= f.Total)
+                    {
+                        totalCobrado -= f.Total;
+                        continue;
+                    }
+
+                    var montoPendiente = f.Total - totalCobrado;
+                    totalCobrado = 0;
+
+                    var fechaVencimiento = f.Fecha.Date.AddDays(c.DiasCredito);
+                    var dias = (fechaActual - fechaVencimiento).Days;
+
+                    if (dias > 0)
+                    {
+                        montoVencido += montoPendiente;
+                        if (dias > diasVencidos)
+                            diasVencidos = dias;
+                    }
+                }
+            }
+
+            resultado.Add(new CuentasPorCobrarDto(
+                c.Id,
+                c.Codigo,
+                c.Nombre,
+                c.Telefono,
+                c.BalanceActual,
+                c.DiasCredito,
+                diasVencidos,
+                montoVencido
+            ));
+        }
+
+        return resultado.OrderByDescending(r => r.MontoVencido).ThenByDescending(r => r.DiasVencidos).ThenBy(r => r.Nombre).ToList();
+    }
 }
