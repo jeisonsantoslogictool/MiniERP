@@ -2,18 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MiniERP.Application.Clientes.Contracts;
-using MiniERP.Application.Clientes.Services;
-using MiniERP.Application.Compras.Contracts;
-using MiniERP.Application.Compras.Services;
-using MiniERP.Application.Finanzas.Contracts;
-using MiniERP.Application.Finanzas.Services;
-using MiniERP.Application.Inventario.Contracts;
-using MiniERP.Application.Inventario.Services;
-using MiniERP.Application.Ventas.Contracts;
-using MiniERP.Application.Ventas.Services;
 using MiniERP.Infrastructure.Persistence;
-using MiniERP.Infrastructure.Persistence.Repositories;
 using MiniERP.Infrastructure.Settings;
 
 namespace MiniERP.Infrastructure;
@@ -22,7 +11,13 @@ namespace MiniERP.Infrastructure;
 /// Punto de entrada de la capa de infraestructura. La capa de presentacion la invoca
 /// sin conocer Entity Framework ni el motor de base de datos que hay detras.
 /// </summary>
-public static class DependencyInjection
+/// <remarks>
+/// Cada modulo registra sus propios servicios en su archivo parcial
+/// (DependencyInjection.Inventario.cs, .Clientes.cs, .Ventas.cs, .Compras.cs, .Finanzas.cs).
+/// Este archivo solo arma la base comun y los encadena, para que dos personas no editen
+/// la misma lista de registros y choquen en el merge.
+/// </remarks>
+public static partial class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
@@ -48,39 +43,12 @@ public static class DependencyInjection
         services.Configure<SeedSettings>(configuration.GetSection(SeedSettings.SectionName));
         services.AddScoped<DatabaseInitializer>();
 
-        // Inventario
-        services.AddScoped<IProductoRepositorio, ProductoRepositorio>();
-        services.AddScoped<ICategoriaRepositorio, CategoriaRepositorio>();
-        services.AddScoped<IProductoService, ProductoService>();
-        services.AddScoped<ICategoriaService, CategoriaService>();
-
-        // Clientes
-        services.AddScoped<IClienteRepositorio, ClienteRepositorio>();
-        services.AddScoped<IClienteService, ClienteService>();
-        services.AddScoped<ICobrosRepositorio, CobrosRepositorio>();
-        services.AddScoped<ICobrosService, CobrosService>();
-
-        // Ventas
-        services.AddScoped<ISecuenciaNcfRepositorio, SecuenciaNcfRepositorio>();
-        services.AddScoped<IVentaRepositorio, VentaRepositorio>();
-        services.AddScoped<IVentaService, VentaService>();
-
-        // Compras
-        services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
-        services.AddScoped<ICompraRepositorio, CompraRepositorio>();
-        services.AddScoped<IPagosRepositorio, PagosRepositorio>();
-        services.AddScoped<IProveedorService, ProveedorService>();
-        services.AddScoped<ICompraService, CompraService>();
-        services.AddScoped<IPagosService, PagosService>();
-
-        // Finanzas
-        services.AddScoped<IEgresoRepositorio, EgresoRepositorio>();
-        services.AddScoped<ICategoriaEgresoRepositorio, CategoriaEgresoRepositorio>();
-        services.AddScoped<IReporteIngresosRepositorio, ReporteIngresosRepositorio>();
-        services.AddScoped<IEgresoService, EgresoService>();
-        services.AddScoped<ICategoriaEgresoService, CategoriaEgresoService>();
-        services.AddScoped<IReporteIngresosService, ReporteIngresosService>();
-
-        return services;
+        // Cada modulo registra lo suyo en su archivo parcial. Anade tus servicios alli, no aqui.
+        return services
+            .AddInventario()
+            .AddClientes()
+            .AddVentas()
+            .AddCompras()
+            .AddFinanzas();
     }
 }

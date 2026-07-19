@@ -32,12 +32,6 @@ Corregido: la frontera va por **módulo del anteproyecto**.
 
 ¿Necesitas algo del módulo de otro? **Pídelo, no lo escribas.**
 
-------|-------|--------|
-| `jeison/pos` | **Jeison** | Punto de venta y comprobantes fiscales |
-| `samuel/finanzas` | **Samuel** | Finanzas y compras |
-| `dionis/cobros-pagos` | **Dionis** | Cobros, pagos y clientes |
-| — | **Rangelis** | Capítulo II, entrevistas y armado del informe |
-
 > **¿No sabes en qué rama estás?** `git branch --show-current`. Si dice `main`, cámbiate a la
 > tuya: `git checkout <nombre>/<módulo>`. Al abrir el repo con Claude, esto se detecta solo
 > (ver [CLAUDE.md](../CLAUDE.md) → "Empieza aquí").
@@ -171,6 +165,37 @@ contraseña de administrador en la consola** dentro de un recuadro. Solo se mues
 
 **Requisitos:** Visual Studio 2026 (por el formato `.slnx` y .NET 10) y SQL Server en
 `localhost` con autenticación de Windows.
+
+### Cómo no chocar en el merge
+
+Los conflictos no salen *dentro* de tu módulo —la frontera por carpeta ya lo evita—, sino
+en los **archivos compartidos que nadie posee**. Estas cuatro reglas los cortan:
+
+1. **Integra a `main` a diario, no al final.** Tarea terminada = merge a `main` el mismo
+   día. Una rama que vive una semana acumula una semana de choques; una que vive un día,
+   casi ninguno.
+
+2. **Al terminar una tarea, re-ramifica.** Cuando tu rama entra a `main`, bórrala y crea
+   una nueva desde `main` para lo siguiente. Seguir sobre la rama vieja te hace divergir
+   otra vez.
+   ```bash
+   git checkout main && git pull
+   git branch -d <tu-rama-vieja>
+   git checkout -b <nombre>/<siguiente-tarea>
+   ```
+
+3. **Migraciones en serie, nunca dos a la vez.** El `ModelSnapshot` de EF es un solo
+   archivo: dos migraciones sin integrar chocan seguro. Antes de crear la tuya, trae
+   `main`; créala, compílala y **súbela a `main` el mismo día**, avisando "migré, hagan
+   pull". El siguiente que migre trae `main` primero.
+
+4. **Tus `@using` y tus registros de servicios van en TU archivo, no en el compartido:**
+   - `@using` de tu módulo → `Components/Pages/<TuModulo>/_Imports.razor`, no el raíz.
+   - Registrar un servicio → `DependencyInjection.<TuModulo>.cs` (método `Add<TuModulo>`),
+     no el `AddInfrastructure` raíz.
+
+   Así el `_Imports.razor` raíz y el `DependencyInjection.cs` raíz casi nunca se tocan y
+   dejan de ser fuente de conflictos.
 
 ### Antes de pedir el pull request
 

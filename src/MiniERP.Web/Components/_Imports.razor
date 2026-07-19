@@ -1,4 +1,7 @@
-﻿@using System.Net.Http
+@* Solo lo transversal: framework, Web, Application.Common y todos los Domain.
+   Los @using de servicios/DTOs de TU módulo van en Pages/<TuModulo>/_Imports.razor,
+   no aquí — así nadie choca en este archivo compartido. *@
+@using System.Net.Http
 @using System.Net.Http.Json
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
@@ -12,16 +15,6 @@
 @using MiniERP.Web.Components
 @using MiniERP.Web.Components.Layout
 @using MiniERP.Application.Common
-@using MiniERP.Application.Inventario.Dtos
-@using MiniERP.Application.Inventario.Services
-@using MiniERP.Application.Clientes.Dtos
-@using MiniERP.Application.Clientes.Services
-@using MiniERP.Application.Compras.Dtos
-@using MiniERP.Application.Compras.Services
-@using MiniERP.Application.Ventas.Dtos
-@using MiniERP.Application.Ventas.Services
-@using MiniERP.Application.Finanzas.Dtos
-@using MiniERP.Application.Finanzas.Services
 @using MiniERP.Domain.Inventario
 @using MiniERP.Domain.Clientes
 @using MiniERP.Domain.Compras

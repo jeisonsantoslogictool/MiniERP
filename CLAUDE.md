@@ -110,14 +110,27 @@ NCF `B0200000001`, total 114.00 y cambio 86.00.
 **Cada quien en su rama**, con su nombre. Nadie commitea directo a `main`: se integra por
 pull request revisado por otro del grupo.
 
-| Rama | Quién |
-|------|-------|
-| `jeison/pos` | Punto de venta y comprobantes fiscales |
-| `samuel/finanzas` | Finanzas y compras |
-| `dionis/cobros-pagos` | Cobros, pagos y clientes |
+| Rama | Quién | Dueño de |
+|------|-------|----------|
+| `jeison/pos` | Jeison | `Inventario/` · `Ventas/` — POS y comprobantes |
+| `dionis/cobros-pagos` | Dionis | `Clientes/` · `Compras/` — terceros y su crédito |
+| `samuel/finanzas` | Samuel | `Finanzas/` — lee todo lo demás, no lo modifica |
 
 **Un módulo no está terminado hasta que su sección del Capítulo IV existe**, escrita en la
 misma semana y con las capturas del momento.
+
+### Trabajo en paralelo — no chocar
+
+La frontera va por **carpeta de módulo** (detalle en [Asignaciones](Docs/Asignaciones.md)),
+pero los conflictos salen en los archivos compartidos. Reglas:
+
+- **`@using` de un módulo** → `Components/Pages/<Módulo>/_Imports.razor`, no el `_Imports.razor`
+  raíz (que se queda con framework, `Domain.*` y `Application.Common`).
+- **Registrar un servicio** → `DependencyInjection.<Módulo>.cs` (método `Add<Módulo>`), no el
+  `AddInfrastructure` raíz, que solo los encadena.
+- **Migraciones en serie:** una a la vez, integrada a `main` el mismo día. Dos migraciones sin
+  integrar chocan en el `ModelSnapshot`.
+- **Integra a `main` a diario y re-ramifica** al cerrar cada tarea; no vivas en una rama vieja.
 
 ---
 
