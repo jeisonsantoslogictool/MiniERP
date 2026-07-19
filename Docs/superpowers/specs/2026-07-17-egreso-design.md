@@ -54,6 +54,10 @@ sección "Un pago a proveedor NO es un egreso".)
 - `CategoriaEgresoId` + `CategoriaEgreso?`
 - `Monto` (decimal)
 - `Descripcion?` (nota opcional)
+- `UsuarioId?` — **el usuario que registró el gasto (responsable)**, como `Pago.UsuarioId`
+  y `MovimientoInventario.UsuarioId`. Se muestra en la lista ("registrado por"). Es distinto
+  de `CreadoPor`/`ModificadoPor`, que `EntidadBase` guarda como auditoría de infraestructura;
+  `Registrar` fija ambos (`UsuarioId` y `CreadoPor`) con el mismo usuario.
 
 ### `Egreso.Registrar(...)` — guard del dominio
 
@@ -78,7 +82,8 @@ servicio aplica las mismas dos reglas antes de guardar.
 1. `Registrar` con monto negativo lanza.
 2. `Registrar` con monto cero lanza.
 3. `Registrar` sin categoría (id 0) lanza.
-4. `Registrar` válido crea el egreso con su fecha, monto, categoría, descripción y usuario.
+4. `Registrar` válido crea el egreso con su fecha, monto, categoría, descripción y guarda el
+   usuario responsable en `UsuarioId`.
 5. `Registrar` acepta descripción nula (la nota es opcional).
 
 En verde = dominio terminado, sin base de datos.
@@ -114,7 +119,8 @@ movimiento de inventario, sino un registro de gasto que el comerciante puede cor
 ## 7. Web (`Components/Pages/Finanzas`)
 
 - **Registrar egreso**: formulario con fecha, categoría (desplegable), monto y nota.
-- **Lista de egresos**: filtro por rango de fechas y categoría, con el total del período.
+- **Lista de egresos**: filtro por rango de fechas y categoría, con el total del período y
+  la columna "registrado por" (el usuario responsable de cada gasto).
 - **Administrar categorías de egreso**: alta, edición y activar/desactivar.
 
 ---
