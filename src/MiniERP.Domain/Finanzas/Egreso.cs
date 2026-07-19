@@ -29,6 +29,12 @@ public class Egreso : EntidadBase
         decimal monto, DateTime fecha, int categoriaEgresoId,
         string? descripcion, string? usuarioId)
     {
+        if (monto <= 0)
+            throw new InvalidOperationException("El monto del egreso debe ser mayor que cero.");
+
+        if (categoriaEgresoId == 0)
+            throw new InvalidOperationException("El egreso debe tener una categoría.");
+
         return new Egreso
         {
             Monto = monto,

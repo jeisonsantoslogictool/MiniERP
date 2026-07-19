@@ -27,4 +27,31 @@ public class EgresoTests
 
         Assert.Null(egreso.Descripcion);
     }
+
+    [Fact]
+    public void Registrar_con_monto_cero_falla()
+    {
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => Egreso.Registrar(0m, new DateTime(2026, 7, 17), 3, "Luz", "tester"));
+
+        Assert.Contains("monto", ex.Message);
+    }
+
+    [Fact]
+    public void Registrar_con_monto_negativo_falla()
+    {
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => Egreso.Registrar(-100m, new DateTime(2026, 7, 17), 3, "Luz", "tester"));
+
+        Assert.Contains("monto", ex.Message);
+    }
+
+    [Fact]
+    public void Registrar_sin_categoria_falla()
+    {
+        var ex = Assert.Throws<InvalidOperationException>(
+            () => Egreso.Registrar(5000m, new DateTime(2026, 7, 17), 0, "Luz", "tester"));
+
+        Assert.Contains("categor", ex.Message);
+    }
 }
