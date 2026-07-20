@@ -1,0 +1,75 @@
+@page "/finanzas/estado-resultados"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IEstadoResultadosService ServicioEstado
+
+<PageTitle>Estado de resultados</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Estado de resultados</h1>
+    <a class="btn btn-outline-secondary" href="/finanzas">Volver</a>
+</div>
+
+<div class="row g-2 mb-4 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Desde</label>
+        <input class="form-control" type="date" @bind="desde" @bind:after="Cargar" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Hasta</label>
+        <input class="form-control" type="date" @bind="hasta" @bind:after="Cargar" />
+    </div>
+</div>
+
+@if (resultado is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle" style="max-width: 520px;">
+            <tbody>
+                <tr>
+                    <td>Ingresos <small class="text-muted">(ventas sin ITBIS)</small></td>
+                    <td class="text-end">@Formato.Dinero(resultado.Ingresos)</td>
+                </tr>
+                <tr>
+                    <td>− Costo de lo vendido</td>
+                    <td class="text-end text-muted">@Formato.Dinero(resultado.CostoVendido)</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="fw-semibold">= Margen bruto</td>
+                    <td class="text-end fw-semibold">@Formato.Dinero(resultado.MargenBruto)</td>
+                </tr>
+                <tr>
+                    <td>− Egresos</td>
+                    <td class="text-end text-muted">@Formato.Dinero(resultado.Egresos)</td>
+                </tr>
+                <tr class="table-group-divider">
+                    <td class="fw-bold fs-5">= Utilidad</td>
+                    <td class="text-end fw-bold fs-5 @(resultado.Utilidad < 0 ? "text-danger" : "text-success")">
+                        @Formato.Dinero(resultado.Utilidad)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="text-muted small">
+        No entran cobros ni pagos: un pago a proveedor no es un gasto —el costo ya se contó al
+        vender—. El ITBIS tampoco: ese dinero es de la DGII, no del comercio.
+    </p>
+}
+
+@code {
+    private EstadoResultados? resultado;
+
+    private DateTime desde = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+    private DateTime hasta = DateTime.UtcNow.Date;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar() =>
+        resultado = await ServicioEstado.ObtenerAsync(new FiltroPeriodo(desde, hasta));
+}

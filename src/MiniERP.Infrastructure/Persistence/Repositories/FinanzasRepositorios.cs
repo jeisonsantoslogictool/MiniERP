@@ -167,3 +167,26 @@ public class ReporteRentabilidadRepositorio(MiniErpDbContext contexto) : IReport
             .ToListAsync(ct);
     }
 }
+
+public class FlujoCajaRepositorio(MiniErpDbContext contexto) : IFlujoCajaRepositorio
+{
+    public async Task<decimal> SumarCobrosAsync(DateTime desde, DateTime hasta, CancellationToken ct = default)
+    {
+        var finDelDia = hasta.Date.AddDays(1);
+
+        return await contexto.Cobros
+            .AsNoTracking()
+            .Where(c => c.Fecha >= desde && c.Fecha < finDelDia)
+            .SumAsync(c => (decimal?)c.Monto, ct) ?? 0m;
+    }
+
+    public async Task<decimal> SumarPagosAsync(DateTime desde, DateTime hasta, CancellationToken ct = default)
+    {
+        var finDelDia = hasta.Date.AddDays(1);
+
+        return await contexto.Pagos
+            .AsNoTracking()
+            .Where(p => p.Fecha >= desde && p.Fecha < finDelDia)
+            .SumAsync(p => (decimal?)p.Monto, ct) ?? 0m;
+    }
+}

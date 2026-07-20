@@ -60,3 +60,12 @@ public interface IReporteRentabilidadRepositorio
     Task<IReadOnlyList<RenglonVendido>> ObtenerRenglonesDelPeriodoAsync(
         DateTime desde, DateTime hasta, CancellationToken ct = default);
 }
+
+public interface IFlujoCajaRepositorio
+{
+    /// <summary>Suma de los cobros a clientes del periodo (efectivo que entro).</summary>
+    Task<decimal> SumarCobrosAsync(DateTime desde, DateTime hasta, CancellationToken ct = default);
+
+    /// <summary>Suma de los pagos a proveedor del periodo (efectivo que salio).</summary>
+    Task<decimal> SumarPagosAsync(DateTime desde, DateTime hasta, CancellationToken ct = default);
+}
