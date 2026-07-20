@@ -135,9 +135,22 @@ la DGII.)
 La pantalla `/finanzas/estado-resultados` mostró, en cascada: Ingresos RD$ 100.00 − Costo
 RD$ 60.00 = Margen bruto RD$ 40.00 − Egresos RD$ 0.00 = **Utilidad RD$ 40.00**. Cuadró.
 
-El *gate* del anteproyecto ("registrar un pago a proveedor y comprobar que la utilidad no se
-mueve") queda garantizado por construcción y por las pruebas de dominio: como el tipo no
-admite pagos, ningún pago puede alterar la utilidad.
+### El gate, demostrado en pantalla
+El *gate* del anteproyecto es "registrar un pago a proveedor y comprobar que la utilidad no
+se mueve". Se demostró de dos formas:
+
+1. **Por construcción y pruebas:** el tipo `EstadoResultados` no admite pagos, así que ningún
+   pago puede alterar la utilidad.
+2. **En ejecución, con un pago real:** se registró un proveedor, una compra a crédito de
+   RD$ 70.80 (recibida, creando la deuda) y luego el **pago de RD$ 70.80**. El resultado:
+   - **Estado de resultados: la utilidad se quedó EXACTAMENTE en RD$ 40.00** — el pago no la
+     movió (captura `gate-pago-utilidad-intacta.png`).
+   - **Flujo de caja: el efectivo bajó de RD$ 118.00 a RD$ 47.20** — el pago sí salió de la
+     gaveta (captura `gate-pago-flujo-baja.png`).
+
+   El mismo pago afectó el efectivo pero no la ganancia. Si el sistema hubiera contado el pago
+   como egreso, la utilidad habría caído a −30.80; se quedó en 40. **La trampa más cara del
+   proyecto quedó cerrada, y demostrada.**
 
 ---
 
@@ -222,4 +235,5 @@ límites UTC si hiciera falta.
 ---
 
 *Capturas de la verificación (con datos reales):* `ingresos-con-venta-real.png` ·
-`rentabilidad-gate-cuadra.png` · `flujo-caja-verificacion.png` · y el panel de la portada.
+`rentabilidad-gate-cuadra.png` · `flujo-caja-verificacion.png` ·
+`gate-pago-utilidad-intacta.png` · `gate-pago-flujo-baja.png` · y el panel de la portada.
