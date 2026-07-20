@@ -2,10 +2,11 @@
 @attribute [Authorize]
 @rendermode InteractiveServer
 @inject IVentaService ServicioVentas
+@inject IJSRuntime JS
 
 <PageTitle>@(factura?.Numero ?? "Factura")</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
     <div>
         <h1 class="mb-0">@(factura?.Numero ?? "Factura")</h1>
         @if (factura is not null)
@@ -13,7 +14,13 @@
             <span class="badge @Formato.ClaseEstadoFactura(factura.Estado)">@Formato.EstadoFactura(factura.Estado)</span>
         }
     </div>
-    <a class="btn btn-outline-secondary" href="/ventas/facturas">Volver</a>
+    <div class="d-flex gap-2">
+        @if (factura is not null)
+        {
+            <button class="btn btn-outline-primary" @onclick="Imprimir">Imprimir</button>
+        }
+        <a class="btn btn-outline-secondary" href="/ventas/facturas">Volver</a>
+    </div>
 </div>
 
 @if (cargando)
@@ -26,9 +33,23 @@ else if (factura is null)
 }
 else
 {
+    @* Encabezado que solo aparece en el papel: da forma de documento fiscal. *@
+    <div class="d-none d-print-block text-center mb-4">
+        <h2 class="mb-1">FACTURA</h2>
+        <div>@Formato.Comprobante(factura.TipoComprobante)</div>
+        <div>NCF: <strong>@(factura.Ncf ?? "—")</strong> · No. @factura.Numero</div>
+        <div class="small">@Formato.FechaHora(factura.Fecha)</div>
+        @if (factura.Estado == EstadoFactura.Anulada)
+        {
+            <div class="fw-bold mt-1">
+                *** ANULADA ***@(string.IsNullOrWhiteSpace(factura.MotivoAnulacion) ? "" : $" — {factura.MotivoAnulacion}")
+            </div>
+        }
+    </div>
+
     @if (factura.Estado == EstadoFactura.Anulada)
     {
-        <div class="alert alert-danger">
+        <div class="alert alert-danger d-print-none">
             <strong>Factura anulada.</strong>
             @if (!string.IsNullOrWhiteSpace(factura.MotivoAnulacion))
             {
@@ -142,4 +163,6 @@ else
         factura = await ServicioVentas.ObtenerDetalleAsync(Id);
         cargando = false;
     }
+
+    private async Task Imprimir() => await JS.InvokeVoidAsync("print");
 }
