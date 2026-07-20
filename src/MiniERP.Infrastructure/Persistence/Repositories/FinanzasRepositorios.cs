@@ -145,3 +145,25 @@ public class ReporteIngresosRepositorio(MiniErpDbContext contexto) : IReporteIng
             .ToListAsync(ct);
     }
 }
+
+public class ReporteRentabilidadRepositorio(MiniErpDbContext contexto) : IReporteRentabilidadRepositorio
+{
+    public async Task<IReadOnlyList<RenglonVendido>> ObtenerRenglonesDelPeriodoAsync(
+        DateTime desde, DateTime hasta, CancellationToken ct = default)
+    {
+        var finDelDia = hasta.Date.AddDays(1);
+
+        return await contexto.LineasFactura
+            .AsNoTracking()
+            .Where(l => l.Factura!.Fecha >= desde && l.Factura.Fecha < finDelDia)
+            .Select(l => new RenglonVendido(
+                l.Factura!.Estado == EstadoFactura.Anulada,
+                l.ProductoId,
+                l.Producto!.Descripcion,
+                l.Producto.CategoriaId,
+                l.Producto.Categoria!.Nombre,
+                l.Cantidad * l.PrecioUnitario,
+                l.Cantidad * l.CostoUnitario))   // costo CONGELADO de la linea, no Producto.Costo
+            .ToListAsync(ct);
+    }
+}

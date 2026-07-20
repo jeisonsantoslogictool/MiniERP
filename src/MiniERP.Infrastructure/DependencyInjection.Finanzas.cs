@@ -13,9 +13,11 @@ public static partial class DependencyInjection
         services.AddScoped<IEgresoRepositorio, EgresoRepositorio>();
         services.AddScoped<ICategoriaEgresoRepositorio, CategoriaEgresoRepositorio>();
         services.AddScoped<IReporteIngresosRepositorio, ReporteIngresosRepositorio>();
+        services.AddScoped<IReporteRentabilidadRepositorio, ReporteRentabilidadRepositorio>();
         services.AddScoped<IEgresoService, EgresoService>();
         services.AddScoped<ICategoriaEgresoService, CategoriaEgresoService>();
         services.AddScoped<IReporteIngresosService, ReporteIngresosService>();
+        services.AddScoped<IReporteRentabilidadService, ReporteRentabilidadService>();
 
         return services;
     }

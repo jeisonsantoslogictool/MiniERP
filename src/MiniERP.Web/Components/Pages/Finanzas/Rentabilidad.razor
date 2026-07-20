@@ -1,0 +1,115 @@
+@page "/finanzas/rentabilidad"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IReporteRentabilidadService ServicioRentabilidad
+
+<PageTitle>Rentabilidad</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Reporte de rentabilidad</h1>
+    <a class="btn btn-outline-secondary" href="/finanzas">Volver</a>
+</div>
+
+<div class="row g-2 mb-4 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Desde</label>
+        <input class="form-control" type="date" @bind="desde" @bind:after="Cargar" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Hasta</label>
+        <input class="form-control" type="date" @bind="hasta" @bind:after="Cargar" />
+    </div>
+</div>
+
+@if (resumen is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else
+{
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="p-3 rounded bg-body-secondary h-100">
+                <small class="text-muted d-block">Vendido (sin ITBIS)</small>
+                <strong class="fs-5">@Formato.Dinero(resumen.Total.Subtotal)</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 rounded bg-body-secondary h-100">
+                <small class="text-muted d-block">Costo de lo vendido</small>
+                <strong class="fs-5">@Formato.Dinero(resumen.Total.Costo)</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 rounded bg-success-subtle h-100">
+                <small class="text-muted d-block">Margen (ganancia)</small>
+                <strong class="fs-5">@Formato.Dinero(resumen.Total.Margen)</strong>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-3 rounded bg-body-secondary h-100">
+                <small class="text-muted d-block">Margen %</small>
+                <strong class="fs-5">@Formato.Porcentaje(resumen.Total.MargenPorcentaje)</strong>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="h5">Por producto</h2>
+    @Tabla(resumen.PorProducto)
+
+    <h2 class="h5 mt-4">Por categoría</h2>
+    @Tabla(resumen.PorCategoria)
+
+    <p class="text-muted small mt-3">
+        El margen es la venta (sin ITBIS) menos el costo de lo vendido, tomado del costo
+        <strong>congelado</strong> al momento de la venta. No se incluyen las facturas anuladas.
+    </p>
+}
+
+@code {
+    private ResumenRentabilidad? resumen;
+
+    private DateTime desde = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+    private DateTime hasta = DateTime.UtcNow.Date;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar() =>
+        resumen = await ServicioRentabilidad.ObtenerAsync(new FiltroPeriodo(desde, hasta));
+
+    private RenderFragment Tabla(IReadOnlyList<RentabilidadPorItem> items) => __builder =>
+    {
+        if (items.Count == 0)
+        {
+            <div class="alert alert-secondary">No hay ventas en el período.</div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th class="text-end">Vendido</th>
+                            <th class="text-end">Costo</th>
+                            <th class="text-end">Margen</th>
+                            <th class="text-end">Margen %</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var i in items)
+                        {
+                            <tr>
+                                <td>@i.Nombre</td>
+                                <td class="text-end">@Formato.Dinero(i.Subtotal)</td>
+                                <td class="text-end text-muted">@Formato.Dinero(i.Costo)</td>
+                                <td class="text-end fw-semibold">@Formato.Dinero(i.Margen)</td>
+                                <td class="text-end">@Formato.Porcentaje(i.MargenPorcentaje)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    };
+}

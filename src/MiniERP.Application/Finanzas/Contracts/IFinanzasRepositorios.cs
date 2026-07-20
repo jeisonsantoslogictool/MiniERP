@@ -50,3 +50,13 @@ public interface IReporteIngresosRepositorio
     Task<IReadOnlyList<Factura>> ObtenerFacturasDelPeriodoAsync(
         DateTime desde, DateTime hasta, CancellationToken ct = default);
 }
+
+public interface IReporteRentabilidadRepositorio
+{
+    /// <summary>
+    /// Los renglones vendidos del periodo (lineas de factura), con el costo CONGELADO de la
+    /// linea y la categoria del producto. La calculadora descarta las anuladas.
+    /// </summary>
+    Task<IReadOnlyList<RenglonVendido>> ObtenerRenglonesDelPeriodoAsync(
+        DateTime desde, DateTime hasta, CancellationToken ct = default);
+}
