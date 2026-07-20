@@ -108,4 +108,20 @@ public class ResumenRentabilidadTests
         Assert.Equal(160m, r.Total.Costo);
         Assert.Equal(140m, r.Total.Margen);
     }
+
+    [Fact]
+    public void Excluye_las_facturas_anuladas()
+    {
+        var renglones = new[]
+        {
+            Renglon(100, 60),
+            Renglon(999, 1, anulada: true),
+        };
+
+        var r = ResumenRentabilidad.Calcular(renglones);
+
+        Assert.Equal(100m, r.Total.Subtotal);
+        Assert.Equal(40m, r.Total.Margen);
+        Assert.Single(r.PorProducto);
+    }
 }

@@ -15,7 +15,8 @@ public record ResumenRentabilidad(
     {
         ArgumentNullException.ThrowIfNull(renglones);
 
-        var vendidos = renglones.ToList();
+        // Una venta anulada no cuenta.
+        var vendidos = renglones.Where(r => !r.FacturaAnulada).ToList();
 
         var porProducto = vendidos
             .GroupBy(r => (r.ProductoId, r.Producto))
