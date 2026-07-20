@@ -1,20 +1,25 @@
-﻿@implements IDisposable
+@implements IDisposable
 
 @inject NavigationManager NavigationManager
 
-<div class="top-row ps-3 navbar navbar-dark">
+<div class="top-row ps-3 navbar">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">Mini ERP</a>
+        <a class="navbar-brand" href="">
+            <span class="marca-logo">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-6 9 6v11a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" /></svg>
+            </span>
+            <span>Mini ERP<span class="marca-sub">Minimarket piloto</span></span>
+        </a>
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+<input type="checkbox" title="Menú de navegación" class="navbar-toggler" />
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-6 9 6v11a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" /></svg> Inicio
             </NavLink>
         </div>
 
@@ -22,31 +27,37 @@
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="inventario">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Inventario
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8" /></svg> Inventario
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="ventas">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Ventas
+                    <NavLink class="nav-link" href="ventas" Match="NavLinkMatch.All">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.4 12.4a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 7H6" /></svg> Punto de venta
+                    </NavLink>
+                </div>
+
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="ventas/facturas">
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l4 4v15a1 1 0 0 1-1.4.9L15 20l-2.5 1.9L10 20l-2.5 1.9L5 20l-.6.9A1 1 0 0 1 3 20V4a2 2 0 0 1 2-2z" /><path d="M8 8h7M8 12h7" /></svg> Facturas
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="compras">
-                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Compras
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 3h13v10H1zM14 8h4l3 3v2h-7" /><circle cx="6" cy="18" r="1.6" /><circle cx="18" cy="18" r="1.6" /></svg> Compras
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="clientes">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Clientes
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2" /><path d="M3 20a6 6 0 0 1 12 0M16 5.5a3 3 0 0 1 0 5M21 20a5.5 5.5 0 0 0-4-5.3" /></svg> Clientes
                     </NavLink>
                 </div>
 
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="finanzas">
-                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Finanzas
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg> Finanzas
                     </NavLink>
                 </div>
             </Authorized>
@@ -56,7 +67,7 @@
             <Authorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Manage">
-                        <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> @context.User.Identity?.Name
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M4 21a8 8 0 0 1 16 0" /></svg> @context.User.Identity?.Name
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
@@ -64,7 +75,7 @@
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
                         <button type="submit" class="nav-link">
-                            <span class="bi bi-arrow-bar-left-nav-menu" aria-hidden="true"></span> Logout
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" /></svg> Cerrar sesión
                         </button>
                     </form>
                 </div>
@@ -72,12 +83,12 @@
             <NotAuthorized>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Register">
-                        <span class="bi bi-person-nav-menu" aria-hidden="true"></span> Register
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M4 21a8 8 0 0 1 16 0M19 3v6M22 6h-6" /></svg> Registrarse
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Login">
-                        <span class="bi bi-person-badge-nav-menu" aria-hidden="true"></span> Login
+                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" /></svg> Iniciar sesión
                     </NavLink>
                 </div>
             </NotAuthorized>
@@ -105,4 +116,3 @@
         NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }
-
