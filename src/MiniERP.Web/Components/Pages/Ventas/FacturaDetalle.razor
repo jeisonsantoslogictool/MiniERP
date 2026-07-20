@@ -3,6 +3,7 @@
 @rendermode InteractiveServer
 @inject IVentaService ServicioVentas
 @inject IJSRuntime JS
+@inject AuthenticationStateProvider Auth
 
 <PageTitle>@(factura?.Numero ?? "Factura")</PageTitle>
 
@@ -15,6 +16,10 @@
         }
     </div>
     <div class="d-flex gap-2">
+        @if (factura is not null && factura.Estado == EstadoFactura.Emitida)
+        {
+            <button class="btn btn-outline-danger" @onclick="MostrarAnular">Anular</button>
+        }
         @if (factura is not null)
         {
             <button class="btn btn-outline-primary" @onclick="Imprimir">Imprimir</button>
@@ -33,6 +38,36 @@ else if (factura is null)
 }
 else
 {
+    @if (error is not null)
+    {
+        <div class="alert alert-danger d-print-none">@error</div>
+    }
+    @if (aviso is not null)
+    {
+        <div class="alert alert-success d-print-none">@aviso</div>
+    }
+
+    @if (mostrandoAnular)
+    {
+        <div class="card border-danger mb-4 d-print-none">
+            <div class="card-body">
+                <h2 class="h6 text-danger mb-2">Anular esta factura</h2>
+                <p class="small text-muted mb-2">
+                    Se repone el inventario y, si fue a crédito, baja la deuda del cliente. El NCF queda
+                    como comprobante anulado ante la DGII. <strong>No se puede deshacer.</strong>
+                </p>
+                <textarea class="form-control mb-2" rows="2" placeholder="Motivo de la anulación"
+                          @bind="motivo" @bind:event="oninput"></textarea>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-danger" @onclick="ConfirmarAnular" disabled="@anulando">
+                        @(anulando ? "Anulando..." : "Confirmar anulación")
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="CancelarAnular" disabled="@anulando">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    }
+
     @* Encabezado que solo aparece en el papel: da forma de documento fiscal. *@
     <div class="d-none d-print-block text-center mb-4">
         <h2 class="mb-1">FACTURA</h2>
@@ -156,12 +191,71 @@ else
 
     private FacturaDetalleDto? factura;
     private bool cargando = true;
+    private string? usuarioId;
+
+    private bool mostrandoAnular;
+    private string? motivo;
+    private bool anulando;
+    private string? error;
+    private string? aviso;
 
     protected override async Task OnParametersSetAsync()
     {
         cargando = true;
+
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+
         factura = await ServicioVentas.ObtenerDetalleAsync(Id);
         cargando = false;
+    }
+
+    private void MostrarAnular()
+    {
+        mostrandoAnular = true;
+        error = aviso = null;
+    }
+
+    private void CancelarAnular()
+    {
+        mostrandoAnular = false;
+        motivo = null;
+        error = null;
+    }
+
+    private async Task ConfirmarAnular()
+    {
+        error = null;
+
+        if (string.IsNullOrWhiteSpace(motivo))
+        {
+            error = "Escribe el motivo de la anulación.";
+            return;
+        }
+
+        anulando = true;
+
+        try
+        {
+            var resultado = await ServicioVentas.AnularAsync(Id, motivo!, usuarioId);
+
+            if (resultado.Fallo)
+            {
+                error = resultado.Error;
+                return;
+            }
+
+            // La factura se recarga: ahora aparece anulada, con su motivo.
+            factura = await ServicioVentas.ObtenerDetalleAsync(Id);
+            mostrandoAnular = false;
+            motivo = null;
+            aviso = "Factura anulada. El inventario se repuso" +
+                (factura?.Condicion == CondicionPago.Credito ? " y se descargó la deuda del cliente." : ".");
+        }
+        finally
+        {
+            anulando = false;
+        }
     }
 
     private async Task Imprimir() => await JS.InvokeVoidAsync("print");
