@@ -133,3 +133,29 @@ public record FiltroFacturas(
     public int SaltarRegistros => (Math.Max(1, Pagina) - 1) * TamanoEfectivo;
     public int TamanoEfectivo => Math.Clamp(TamanoPagina, 1, 100);
 }
+
+/// <summary>Una secuencia de NCF tal como la muestra la pantalla de administración.</summary>
+public record SecuenciaNcfDto(
+    int Id,
+    TipoComprobante Tipo,
+    string Prefijo,
+    long Desde,
+    long Hasta,
+    long Actual,
+    long Disponibles,
+    DateTime FechaVencimiento,
+    bool Activa,
+    bool Agotada,
+    bool Vencida,
+    bool PorAgotarse,
+    bool EsElectronica);
+
+/// <summary>Datos para registrar un rango de NCF autorizado por la DGII.</summary>
+public class RegistrarSecuenciaDto
+{
+    public TipoComprobante Tipo { get; set; } = TipoComprobante.Consumo;
+    public string Prefijo { get; set; } = string.Empty;
+    public long Desde { get; set; } = 1;
+    public long Hasta { get; set; }
+    public DateTime FechaVencimiento { get; set; } = DateTime.UtcNow.Date.AddYears(1);
+}

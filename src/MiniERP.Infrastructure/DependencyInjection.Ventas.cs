@@ -13,6 +13,7 @@ public static partial class DependencyInjection
         services.AddScoped<ISecuenciaNcfRepositorio, SecuenciaNcfRepositorio>();
         services.AddScoped<IVentaRepositorio, VentaRepositorio>();
         services.AddScoped<IVentaService, VentaService>();
+        services.AddScoped<ISecuenciaNcfService, SecuenciaNcfService>();
 
         return services;
     }
