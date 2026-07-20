@@ -480,3 +480,7 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Artefactos de sesion de verificacion (las capturas del informe viven en Docs/CapituloIV/capturas/)
+.playwright-mcp/
+/*.png
