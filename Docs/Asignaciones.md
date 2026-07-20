@@ -58,11 +58,12 @@ atómica, modelo de facturación con costo congelado.
 
 | # | Tarea | Terminado cuando |
 |---|-------|------------------|
-| 1 | **Pantalla de facturas emitidas** | Se listan las facturas con filtro por fecha y estado, y se abre el detalle de una. Hoy el enlace `/ventas/facturas/{id}` da 404. |
-| 2 | **Impresión de la factura** | Sale un documento imprimible con el NCF, el detalle, el ITBIS desglosado y los datos del cliente. |
+| 1 | **Pantalla de facturas emitidas** | ✅ **Hecho.** Lista con filtro por fecha y estado, y el detalle; el 404 quedó resuelto. |
+| 2 | **Impresión de la factura** | ✅ **Hecho.** Botón Imprimir + documento con NCF, detalle, ITBIS desglosado y datos del cliente. |
 | 3 | **Anulación desde la pantalla** | Se anula una factura con motivo, el inventario se repone y el balance del cliente baja si era a crédito. La lógica ya existe en `Factura.Anular`, falta la UI. |
 | 4 | **Administración de secuencias NCF** | El administrador registra los rangos que le autorizó la DGII y ve cuántos quedan. Hoy solo existen los rangos sembrados, que **no son válidos ante la DGII**. |
 | 5 | **XML e-CF y código QR** (F3) | Se genera el XML del comprobante electrónico según la Ley 32-23 y su QR. **Sin certificación ante la DGII**: eso está fuera del alcance por escrito. |
+| + | **Rediseño visual de la interfaz** (extra, fuera del plan) | ✅ **Hecho.** Tema global blanco/naranja/gris + menú lateral con íconos (CSS, sin JS pesado). Falta pulir: traducir el login/Identity al español y quitar el enlace "About" de plantilla. |
 
 ### Prueba pendiente que importa
 
