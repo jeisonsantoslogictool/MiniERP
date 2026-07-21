@@ -24,6 +24,12 @@
         {
             <button class="btn btn-outline-primary" @onclick="Imprimir">Imprimir</button>
         }
+        @if (factura is not null && factura.Estado == EstadoFactura.Emitida)
+        {
+            @* Una factura anulada no genera e-CF: ante la DGII eso se retira con una
+               anulación de e-NCF, no volviendo a emitir el comprobante. *@
+            <a class="btn btn-outline-primary" href="/ventas/facturas/@Id/ecf">e-CF</a>
+        }
         <a class="btn btn-outline-secondary" href="/ventas/facturas">Volver</a>
     </div>
 </div>
