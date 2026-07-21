@@ -60,9 +60,9 @@ atómica, modelo de facturación con costo congelado.
 |---|-------|------------------|
 | 1 | **Pantalla de facturas emitidas** | ✅ **Hecho.** Lista con filtro por fecha y estado, y el detalle; el 404 quedó resuelto. |
 | 2 | **Impresión de la factura** | ✅ **Hecho.** Botón Imprimir + documento con NCF, detalle, ITBIS desglosado y datos del cliente. |
-| 3 | **Anulación desde la pantalla** | Se anula una factura con motivo, el inventario se repone y el balance del cliente baja si era a crédito. La lógica ya existe en `Factura.Anular`, falta la UI. |
-| 4 | **Administración de secuencias NCF** | El administrador registra los rangos que le autorizó la DGII y ve cuántos quedan. Hoy solo existen los rangos sembrados, que **no son válidos ante la DGII**. |
-| 5 | **XML e-CF y código QR** (F3) | Se genera el XML del comprobante electrónico según la Ley 32-23 y su QR. **Sin certificación ante la DGII**: eso está fuera del alcance por escrito. |
+| 3 | **Anulación desde la pantalla** | ✅ **Hecho.** Se anula con motivo desde el detalle de la factura; repone inventario y baja el balance del cliente si era a crédito. |
+| 4 | **Administración de secuencias NCF** | ✅ **Hecho.** El administrador registra rangos y ve cuántos quedan. Los rangos sembrados siguen **sin ser válidos ante la DGII**: hay que cargar los autorizados antes del piloto. |
+| 5 | **XML e-CF y código QR** (F3) | Se genera el XML del comprobante electrónico según la Ley 32-23 y su QR, **simulado**: emitir uno real exige registrar la empresa ante la DGII y un certificado digital, que es trámite externo y está fuera del alcance por escrito. El límite exacto de la simulación —qué es real, qué se simula y cómo se rotula— está en [CLAUDE.md → "El e-CF se simula"](../CLAUDE.md). |
 | + | **Rediseño visual de la interfaz** (extra, fuera del plan) | ✅ **Hecho.** Tema global blanco/naranja/gris + menú lateral con íconos (CSS, sin JS pesado). Falta pulir: traducir el login/Identity al español y quitar el enlace "About" de plantilla. |
 
 ### Prueba pendiente que importa

@@ -95,13 +95,17 @@ NCF `B0200000001`, total 114.00 y cambio 86.00.
 
 ### Huecos conocidos
 
-- **No existe la pantalla de facturas emitidas.** El POS enlaza a `/ventas/facturas/{id}`
-  y esa ruta da 404. La venta guarda bien; solo falta dónde verla.
-- **Los balances suben y nunca bajan.** Una compra a crédito deja deuda con el proveedor
-  y no hay forma de pagarla. Le toca a Dionis.
+- **No existe el e-CF.** No hay XML de comprobante electrónico ni QR. Es lo último de F3 que
+  falta en Ventas, y **se construye simulado** (ver "El e-CF se simula" más abajo).
 - **Las pruebas son todas del dominio.** Servicios, repositorios y pantallas se verifican
   a mano. Falta prueba de integración de la transacción de emisión: nada demuestra
-  automáticamente que un rollback libera el NCF reservado.
+  automáticamente que un rollback libera el NCF reservado. Las cuatro pantallas nuevas de
+  Ventas —facturas emitidas, impresión, anulación y secuencias— tampoco tienen prueba.
+- **Ventas e Inventario no tienen su sección del Capítulo IV.** Cuatro tareas cerradas y
+  ninguna escrita. `Docs/CapituloIV/` solo tiene `Egresos.md`.
+
+Cerrados desde la última revisión: la pantalla de facturas emitidas (ya no da 404, con
+impresión y anulación), y los balances, que ahora bajan con `Cobro` y `Pago`.
 
 ---
 
@@ -265,6 +269,30 @@ Un negocio puede tener utilidad y no tener efectivo — vendió todo fiado. O te
 y estar perdiendo — cobró viejo y vende bajo costo. El planteamiento del problema pide las
 dos cosas por separado: *"calcular sus márgenes"* y *"cuidar su flujo de efectivo"*.
 Mezclarlas es el error que esta sección existe para evitar.
+
+---
+
+## El e-CF se simula
+
+**Emitir un e-CF real exige registrar la empresa ante la DGII** y obtener un certificado
+digital de persona jurídica. Es un trámite externo, de la empresa piloto y no del grupo, y
+no cabe en el calendario. El alcance ya lo excluye por escrito; esta sección dice
+**hasta dónde llega la simulación**, que es lo que va a preguntar el asesor.
+
+| Se construye de verdad | Se simula, y se rotula como tal |
+|---|---|
+| El XML según la estructura publicada del e-CF (formato 32, consumo). El esquema es público: no hace falta estar registrado para generarlo bien. | **La firma digital.** Exige el certificado de persona jurídica. |
+| El QR y su URL de consulta con los parámetros reales: RNC emisor, e-NCF, monto, fecha. | **El código de seguridad**, que en el original sale de la firma. Hash determinista. |
+| Los rangos de e-NCF, en la pantalla de administración de secuencias. | **El envío.** Cero llamadas a la API de la DGII. El estado vive local: *Generado → Enviado (simulado) → Aceptado (simulado)*. |
+
+**Todo documento e-CF que el sistema genere lleva visible `DOCUMENTO SIMULADO — NO VÁLIDO
+ANTE LA DGII`**, en pantalla y dentro del XML. El piloto es un comercio real facturando: un
+documento que aparente ser un comprobante fiscal válido y no lo sea es un problema del
+comerciante, no un detalle académico. Rotularlo convierte la limitación en una decisión
+defendible en vez de un hueco.
+
+Lo mismo aplica a las secuencias de NCF sembradas: **no son rangos autorizados**. Ya está
+dicho al final de este documento, y es el mismo criterio.
 
 ---
 
