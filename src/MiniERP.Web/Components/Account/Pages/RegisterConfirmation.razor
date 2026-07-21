@@ -1,4 +1,5 @@
-﻿@page "/Account/RegisterConfirmation"
+@page "/Account/RegisterConfirmation"
+@layout AuthLayout
 
 @using System.Text
 @using Microsoft.AspNetCore.Identity
@@ -10,23 +11,38 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Register confirmation</PageTitle>
+<PageTitle>Confirma tu cuenta · Mini ERP</PageTitle>
 
-<h1>Register confirmation</h1>
+<header class="auth-head">
+    <h1>Confirma tu cuenta</h1>
+    <p>Falta un paso antes de poder entrar.</p>
+</header>
 
 <StatusMessage Message="@statusMessage" />
 
 @if (emailConfirmationLink is not null)
 {
-    <p>
-        This app does not currently have a real email sender registered, see <a href="https://aka.ms/aspaccountconf">these docs</a> for how to configure a real email sender.
-        Normally this would be emailed: <a href="@emailConfirmationLink">Click here to confirm your account</a>
-    </p>
+    @* El sistema no tiene servidor de correo: enviar correos de verdad exige un servicio
+       externo que el alcance no cubre. Mientras tanto el enlace se muestra aqui, que es
+       lo que permite dar de alta usuarios en el piloto sin bloquearse. *@
+    <div class="auth-note">
+        <p>
+            <strong>No hay servicio de correo configurado</strong>, así que el enlace de
+            confirmación se muestra aquí en vez de enviarse.
+        </p>
+        <p><a href="@emailConfirmationLink">Confirmar la cuenta ahora</a></p>
+    </div>
 }
 else
 {
-    <p role="alert">Please check your email to confirm your account.</p>
+    <div class="auth-note" role="alert">
+        <p>Te enviamos un correo con el enlace para confirmar la cuenta. Ábrelo y vuelve a entrar.</p>
+    </div>
 }
+
+<p class="auth-foot">
+    <a href="Account/Login">Volver a iniciar sesión</a>
+</p>
 
 @code {
     private string? emailConfirmationLink;
@@ -53,11 +69,12 @@ else
         if (user is null)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            statusMessage = "Error finding user for unspecified email";
+            statusMessage = "No se encontró ninguna cuenta con ese correo.";
         }
         else if (EmailSender is IdentityNoOpEmailSender)
         {
-            // Once you add a real email sender, you should remove this code that lets you confirm the account
+            // Al conectar un servicio de correo real, esto se quita: el enlace debe viajar
+            // por correo y no mostrarse en pantalla a quien sea que abra la pagina.
             var userId = await UserManager.GetUserIdAsync(user);
             var code = await UserManager.GenerateEmailConfirmationTokenAsync(user);
             code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));

@@ -150,6 +150,117 @@
     max-width: 380px;
 }
 
+/* ============ formulario, compartido por todas las pantallas de acceso ============ */
+
+/* Va con ::deep porque el contenido entra por @Body: son doce paginas distintas
+   dentro del mismo panel. Con los estilos en cada una, la primera que alguien
+   retocara dejaria a las once desalineadas. */
+
+.auth-panel ::deep .auth-head h1 {
+    margin: 0 0 .35rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -.025em;
+    color: var(--ink);
+}
+
+.auth-panel ::deep .auth-head p {
+    margin: 0 0 1.75rem;
+    font-size: .95rem;
+    color: var(--muted);
+}
+
+/* Recordarme y el enlace de contrasena olvidada comparten renglon: son la misma
+   decision —como vuelvo a entrar— y separarlos alargaba el formulario sin motivo. */
+.auth-panel ::deep .auth-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 0 1.25rem;
+    font-size: .88rem;
+}
+
+.auth-panel ::deep .auth-check {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin: 0;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.auth-panel ::deep .auth-row a {
+    text-decoration: none;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.auth-panel ::deep .auth-row a:hover {
+    text-decoration: underline;
+}
+
+/* Separador con la palabra en medio, en vez de dos <hr> sueltos. */
+.auth-panel ::deep .auth-sep {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    margin: 1.35rem 0;
+    font-size: .8rem;
+    color: var(--faint);
+}
+
+.auth-panel ::deep .auth-sep::before,
+.auth-panel ::deep .auth-sep::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.auth-panel ::deep .auth-foot {
+    margin: 1.75rem 0 0;
+    text-align: center;
+    font-size: .85rem;
+    color: var(--muted);
+}
+
+.auth-panel ::deep .auth-foot a {
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-panel ::deep .auth-foot a:hover {
+    text-decoration: underline;
+}
+
+.auth-panel ::deep .auth-dot {
+    margin: 0 .45rem;
+    color: var(--faint);
+}
+
+/* Aviso de las pantallas que solo informan: revisa tu correo, cuenta bloqueada,
+   enlace vencido. Sin formulario, el texto necesita una superficie propia. */
+.auth-panel ::deep .auth-note {
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: .95rem;
+    line-height: 1.6;
+}
+
+.auth-panel ::deep .auth-note.is-alerta {
+    border-color: #F0D3CE;
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.auth-panel ::deep .auth-note p:last-child {
+    margin-bottom: 0;
+}
+
 /* ============ pantallas estrechas ============ */
 
 /* Debajo de 980 la marca se reduce a una cinta: en un teléfono el formulario tiene

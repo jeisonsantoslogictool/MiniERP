@@ -15,7 +15,7 @@
 
 <PageTitle>Iniciar sesión · Mini ERP</PageTitle>
 
-<header class="login-head">
+<header class="auth-head">
     <h1>Iniciar sesión</h1>
     <p>Entra con la cuenta que te dieron en el comercio.</p>
 </header>
@@ -38,8 +38,8 @@
         <ValidationMessage For="() => Input.Password" class="text-danger" />
     </div>
 
-    <div class="login-row">
-        <label class="login-check">
+    <div class="auth-row">
+        <label class="auth-check">
             <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
             <span>Recordarme</span>
         </label>
@@ -48,16 +48,16 @@
 
     <button type="submit" class="w-100 btn btn-lg btn-primary">Entrar</button>
 
-    <div class="login-sep"><span>o</span></div>
+    <div class="auth-sep"><span>o</span></div>
 
     <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" class="w-100 btn btn-outline-secondary">
         Entrar con clave de acceso
     </PasskeySubmit>
 
-    <p class="login-foot">
+    <p class="auth-foot">
         ¿No tienes cuenta?
         <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Crear una</a>
-        <span class="login-sep-dot">·</span>
+        <span class="auth-dot">·</span>
         <a href="Account/ResendEmailConfirmation">Reenviar confirmación</a>
     </p>
 </EditForm>

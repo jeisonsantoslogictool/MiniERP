@@ -1,4 +1,5 @@
-﻿@page "/Account/ConfirmEmail"
+@page "/Account/ConfirmEmail"
+@layout AuthLayout
 
 @using System.Text
 @using Microsoft.AspNetCore.Identity
@@ -8,10 +9,16 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Confirm email</PageTitle>
+<PageTitle>Confirmación de correo · Mini ERP</PageTitle>
 
-<h1>Confirm email</h1>
+<header class="auth-head">
+    <h1>Confirmación de correo</h1>
+    <p>Resultado del enlace que abriste.</p>
+</header>
+
 <StatusMessage Message="@statusMessage" />
+
+<a class="w-100 btn btn-lg btn-primary" href="Account/Login">Iniciar sesión</a>
 
 @code {
     private string? statusMessage;
@@ -37,13 +44,15 @@
         if (user is null)
         {
             HttpContext.Response.StatusCode = StatusCodes.Status404NotFound;
-            statusMessage = $"Error loading user with ID {UserId}";
+            statusMessage = "Error: no se encontró la cuenta de ese enlace.";
         }
         else
         {
             var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Code));
             var result = await UserManager.ConfirmEmailAsync(user, code);
-            statusMessage = result.Succeeded ? "Thank you for confirming your email." : "Error confirming your email.";
+            statusMessage = result.Succeeded
+                ? "Correo confirmado. Ya puedes entrar."
+                : "Error: no se pudo confirmar el correo. El enlace pudo vencer o ya haberse usado.";
         }
     }
 }

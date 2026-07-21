@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MiniERP.Infrastructure.Identity;
 using MiniERP.Infrastructure.Persistence;
 using MiniERP.Infrastructure.Settings;
 
@@ -38,6 +39,7 @@ public static partial class DependencyInjection
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<MiniErpDbContext>()
             .AddSignInManager()
+            .AddErrorDescriber<MensajesDeIdentity>()
             .AddDefaultTokenProviders();
 
         services.Configure<SeedSettings>(configuration.GetSection(SeedSettings.SectionName));

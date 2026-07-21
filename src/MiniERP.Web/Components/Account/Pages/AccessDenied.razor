@@ -1,8 +1,17 @@
-﻿@page "/Account/AccessDenied"
+@page "/Account/AccessDenied"
 
-<PageTitle>Access denied</PageTitle>
+@* Esta se queda con el layout de la app a propósito: quien la ve ya tiene sesión
+   abierta, y quitarle el menú lo dejaría encerrado en una pantalla sin salida. *@
+
+<PageTitle>Acceso denegado</PageTitle>
 
 <header>
-    <h1 class="text-danger">Access denied</h1>
-    <p class="text-danger">You do not have access to this resource.</p>
+    <h1>Acceso denegado</h1>
+    <p class="text-muted">Tu usuario no tiene permiso para esta pantalla.</p>
 </header>
+
+<div class="alert alert-danger" role="alert">
+    Si necesitas entrar aquí, pídele al administrador que te asigne el rol correspondiente.
+</div>
+
+<a class="btn btn-outline-secondary" href="/">Volver al inicio</a>
