@@ -1,0 +1,32 @@
+/* Tarjetas de los modulos. La tarjeta entera es el area de clic (stretched-link),
+   no solo el titulo: en una caja se pulsa rapido y a veces con el dedo. */
+
+.modulo-icono {
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    margin-bottom: .75rem;
+    border-radius: 11px;
+    background: var(--orange-50);
+    color: var(--orange-600);
+}
+
+.modulo-icono svg {
+    width: 21px;
+    height: 21px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.card {
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.card:hover {
+    border-color: var(--orange-100);
+    box-shadow: var(--shadow);
+}
