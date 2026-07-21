@@ -1,0 +1,129 @@
+@page "/ventas/facturas/{Id:int}/ecf"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IEcfService ServicioEcf
+@inject IJSRuntime JS
+
+<PageTitle>e-CF @(ecf?.ENcf ?? "")</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
+    <div>
+        <h1 class="mb-0">Comprobante electrónico</h1>
+        <span class="text-muted small">e-CF · Ley 32-23</span>
+    </div>
+    <div class="d-flex gap-2">
+        @if (ecf is not null)
+        {
+            <a class="btn btn-outline-primary" download="@ecf.NombreArchivo"
+               href="data:application/xml;charset=utf-8;base64,@xmlBase64">Descargar XML</a>
+            <button class="btn btn-outline-primary" @onclick="Imprimir">Imprimir</button>
+        }
+        <a class="btn btn-outline-secondary" href="/ventas/facturas/@Id">Volver a la factura</a>
+    </div>
+</div>
+
+@* El rótulo va primero y no se puede saltar: quien mire esta pantalla tiene que saber
+   qué es antes de leer un solo dato del comprobante. *@
+<div class="alert alert-warning border-warning mb-4">
+    <h2 class="h5 fw-bold mb-2">DOCUMENTO SIMULADO — NO VÁLIDO ANTE LA DGII</h2>
+    <p class="mb-2">
+        Emitir un comprobante electrónico real exige <strong>registrar la empresa ante la DGII</strong>
+        y obtener un certificado digital de persona jurídica. Es un trámite externo, del comercio
+        y no del grupo, y el alcance del proyecto lo excluye por escrito.
+    </p>
+    <p class="mb-0 small">
+        <strong>Es real:</strong> la estructura del XML, el e-NCF y la URL que codifica el QR.
+        <strong>Se simula:</strong> la firma digital, el código de seguridad que sale de ella
+        y el envío — este documento no se transmite a la DGII.
+    </p>
+</div>
+
+@if (cargando)
+{
+    <p class="text-muted">Generando...</p>
+}
+else if (error is not null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+else if (ecf is not null)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-md-7">
+            <div class="border rounded p-3 h-100">
+                <h2 class="h6 text-muted">Identificación del comprobante</h2>
+                <dl class="row mb-0">
+                    <dt class="col-5 fw-normal text-muted">e-NCF</dt>
+                    <dd class="col-7"><code class="fs-6">@ecf.ENcf</code></dd>
+                    <dt class="col-5 fw-normal text-muted">Código de seguridad</dt>
+                    <dd class="col-7">
+                        <code>@ecf.CodigoSeguridad</code>
+                        <span class="badge text-bg-warning ms-1">simulado</span>
+                    </dd>
+                    <dt class="col-5 fw-normal text-muted">Fecha de firma</dt>
+                    <dd class="col-7">@Formato.FechaHora(ecf.FechaFirma)</dd>
+                    <dt class="col-5 fw-normal text-muted">Firma digital</dt>
+                    <dd class="col-7 text-danger">Ausente — sin certificado</dd>
+                </dl>
+                <p class="small text-muted mb-0 mt-3">
+                    El e-NCF conserva el correlativo del NCF de la factura y le cambia el prefijo:
+                    el mismo consumo es <code>B02</code> en papel y <code>E32</code> electrónico.
+                    Certificado el comercio, saldría de un rango <code>E</code> autorizado, que la
+                    pantalla de <a href="/ventas/ncf">secuencias</a> ya sabe registrar.
+                </p>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="border rounded p-3 h-100 text-center">
+                <h2 class="h6 text-muted">Código QR</h2>
+                <img src="@qr" alt="Código QR del comprobante electrónico"
+                     class="img-fluid my-2" style="max-width: 220px;" />
+                <p class="small text-muted mb-0">
+                    Codifica la consulta del timbre en el portal de la DGII. Al escanearlo no
+                    encontrará el comprobante: nunca se envió.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="h6 text-muted">URL que codifica el QR</h2>
+    <pre class="border rounded p-3 bg-body-tertiary small text-wrap text-break">@ecf.UrlConsulta</pre>
+
+    <h2 class="h6 text-muted mt-4">XML del comprobante</h2>
+    <pre class="border rounded p-3 bg-body-tertiary small" style="max-height: 32rem; overflow: auto;">@ecf.Xml</pre>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private EcfGeneradoDto? ecf;
+    private string? qr;
+    private string? xmlBase64;
+    private string? error;
+    private bool cargando = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+        error = null;
+        ecf = null;
+
+        var resultado = await ServicioEcf.GenerarAsync(Id);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+        }
+        else
+        {
+            ecf = resultado.Valor;
+            qr = QrCode.ComoDataUri(ecf!.UrlConsulta);
+            xmlBase64 = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(ecf.Xml));
+        }
+
+        cargando = false;
+    }
+
+    private async Task Imprimir() => await JS.InvokeVoidAsync("print");
+}

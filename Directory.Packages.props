@@ -19,6 +19,11 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.10" />
   </ItemGroup>
 
+  <ItemGroup Label="Comprobantes fiscales">
+    <!-- QR del e-CF. Se usa PngByteQRCode, que no depende de System.Drawing. -->
+    <PackageVersion Include="QRCoder" Version="1.7.0" />
+  </ItemGroup>
+
   <ItemGroup Label="Pruebas">
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
