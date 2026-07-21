@@ -26,15 +26,75 @@
         linear-gradient(155deg, #F58A3E 0%, #F26D21 42%, #C34C0C 100%);
 }
 
-/* Trama de puntos: le quita el aire de degradado plano sin costar una imagen. */
+/* Dos halos que respiran muy despacio. Solo transform y opacidad: la tarjeta grafica
+   los compone sola y no obligan al navegador a repintar nada. */
+.auth-brand::before {
+    content: "";
+    position: absolute;
+    inset: -25%;
+    background:
+        radial-gradient(38% 38% at 24% 30%, rgba(255, 255, 255, .30), transparent 62%),
+        radial-gradient(34% 34% at 76% 74%, rgba(255, 196, 130, .34), transparent 66%);
+    pointer-events: none;
+    animation: halos 22s ease-in-out infinite alternate;
+}
+
+@keyframes halos {
+    0%   { transform: translate3d(-2%, -1%, 0) scale(1); }
+    50%  { transform: translate3d(2%, 2.5%, 0) scale(1.09); }
+    100% { transform: translate3d(-1%, 1%, 0) scale(1.03); }
+}
+
+/* Trama de puntos: le quita el aire de degradado plano sin costar una imagen.
+   Deriva un mosaico exacto (22px) y vuelve al principio, asi el ciclo no se nota. */
 .auth-brand::after {
     content: "";
     position: absolute;
-    inset: 0;
+    inset: -30px;
     background-image: radial-gradient(rgba(255, 255, 255, .16) 1px, transparent 1px);
     background-size: 22px 22px;
     opacity: .55;
     pointer-events: none;
+    animation: deriva 14s linear infinite;
+}
+
+@keyframes deriva {
+    to { transform: translate3d(22px, 22px, 0); }
+}
+
+/* Quien pidio menos movimiento en su sistema no lo recibe. */
+@media (prefers-reduced-motion: reduce) {
+    .auth-brand::before,
+    .auth-brand::after {
+        animation: none;
+    }
+}
+
+/* El aviso de error de Blazor vive en este layout, pero sus estilos estaban solo en
+   MainLayout.razor.css, que es CSS con ambito: no alcanzaban a este div. Sin ellos el
+   aviso se dibujaba siempre, visible y en el flujo de la pagina — de ahi el "Ha ocurrido
+   un error inesperado" fijo abajo y el scroll de mas que no deberia existir. */
+#blazor-error-ui {
+    color-scheme: light only;
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: .6rem 1.25rem .7rem 1.25rem;
+    background: #FEF1E8;
+    border-top: 1px solid #FBDFC9;
+    color: #1C1917;
+    box-shadow: 0 -1px 2px rgba(28, 25, 23, .12);
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: .75rem;
+    top: .5rem;
 }
 
 .auth-brand > * {
