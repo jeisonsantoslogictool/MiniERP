@@ -1,0 +1,196 @@
+@page "/ventas/ncf"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject ISecuenciaNcfService ServicioSecuencias
+@inject AuthenticationStateProvider Auth
+
+<PageTitle>Secuencias de NCF</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Secuencias de NCF</h1>
+    <a class="btn btn-outline-secondary" href="/ventas/facturas">Volver</a>
+</div>
+
+<div class="alert alert-warning">
+    <strong>Las secuencias de arranque no son válidas ante la DGII.</strong> Registra aquí los
+    rangos que te autorizó la DGII y <strong>desactiva</strong> las de arranque, para que el
+    punto de venta emita con las tuyas.
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger">@error</div>
+}
+@if (aviso is not null)
+{
+    <div class="alert alert-success">@aviso</div>
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h2 class="h6 mb-3">Registrar un rango autorizado</h2>
+        <div class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Tipo de comprobante</label>
+                <select class="form-select" @bind="form.Tipo">
+                    <option value="@TipoComprobante.Consumo">@Formato.Comprobante(TipoComprobante.Consumo)</option>
+                    <option value="@TipoComprobante.CreditoFiscal">@Formato.Comprobante(TipoComprobante.CreditoFiscal)</option>
+                    <option value="@TipoComprobante.RegimenEspecial">@Formato.Comprobante(TipoComprobante.RegimenEspecial)</option>
+                    <option value="@TipoComprobante.Gubernamental">@Formato.Comprobante(TipoComprobante.Gubernamental)</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Prefijo</label>
+                <input class="form-control text-uppercase" @bind="form.Prefijo" placeholder="B02" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label">Desde</label>
+                <input type="number" class="form-control" @bind="form.Desde" min="1" />
+            </div>
+            <div class="col-6 col-md-2">
+                <label class="form-label">Hasta</label>
+                <input type="number" class="form-control" @bind="form.Hasta" min="1" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Vence</label>
+                <input type="date" class="form-control" @bind="form.FechaVencimiento" />
+            </div>
+            <div class="col-md-1">
+                <button class="btn btn-primary w-100" @onclick="Registrar" disabled="@guardando">
+                    @(guardando ? "..." : "Registrar")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (lista is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (lista.Count == 0)
+{
+    <div class="alert alert-secondary">Todavía no hay secuencias registradas.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Prefijo</th>
+                    <th class="text-end">Rango</th>
+                    <th class="text-end">Disponibles</th>
+                    <th>Vence</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in lista)
+                {
+                    <tr class="@(s.Activa ? "" : "opacity-50")">
+                        <td>@Formato.Comprobante(s.Tipo)</td>
+                        <td><code>@s.Prefijo</code></td>
+                        <td class="text-end text-nowrap">@s.Desde.ToString("N0") a @s.Hasta.ToString("N0")</td>
+                        <td class="text-end">
+                            <span class="fw-semibold">@s.Disponibles.ToString("N0")</span>
+                            @if (s.Agotada)
+                            {
+                                <span class="badge text-bg-danger ms-1">Agotada</span>
+                            }
+                            else if (s.Vencida)
+                            {
+                                <span class="badge text-bg-secondary ms-1">Vencida</span>
+                            }
+                            else if (s.PorAgotarse)
+                            {
+                                <span class="badge text-bg-warning ms-1">Por agotarse</span>
+                            }
+                        </td>
+                        <td class="small text-nowrap">@s.FechaVencimiento.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            @if (s.Activa)
+                            {
+                                <span class="badge text-bg-success">Activa</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-secondary">Inactiva</span>
+                            }
+                        </td>
+                        <td class="text-end">
+                            @if (s.Activa)
+                            {
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => CambiarEstado(s.Id, false)">Desactivar</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => CambiarEstado(s.Id, true)">Activar</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<SecuenciaNcfDto>? lista;
+    private RegistrarSecuenciaDto form = new();
+    private string? error;
+    private string? aviso;
+    private bool guardando;
+    private string? usuarioId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+        await Cargar();
+    }
+
+    private async Task Cargar() => lista = await ServicioSecuencias.ObtenerTodasAsync();
+
+    private async Task Registrar()
+    {
+        error = aviso = null;
+        guardando = true;
+
+        try
+        {
+            var resultado = await ServicioSecuencias.RegistrarAsync(form, usuarioId);
+
+            if (resultado.Fallo)
+            {
+                error = resultado.Error;
+                return;
+            }
+
+            aviso = $"Rango {form.Prefijo.Trim().ToUpperInvariant()} registrado.";
+            form = new RegistrarSecuenciaDto();
+            await Cargar();
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+
+    private async Task CambiarEstado(int id, bool activa)
+    {
+        error = aviso = null;
+
+        var resultado = await ServicioSecuencias.CambiarEstadoAsync(id, activa);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+            return;
+        }
+
+        await Cargar();
+    }
+}

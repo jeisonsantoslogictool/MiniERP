@@ -72,6 +72,9 @@ public class SecuenciaNcfRepositorio(MiniErpDbContext contexto) : ISecuenciaNcfR
             : secuencia.Formatear(asignados[0]);
     }
 
+    public Task<SecuenciaNcf?> ObtenerAsync(int id, CancellationToken ct = default) =>
+        contexto.SecuenciasNcf.FirstOrDefaultAsync(s => s.Id == id, ct);
+
     public void Agregar(SecuenciaNcf secuencia) => contexto.SecuenciasNcf.Add(secuencia);
 
     public Task<int> GuardarAsync(CancellationToken ct = default) => contexto.SaveChangesAsync(ct);

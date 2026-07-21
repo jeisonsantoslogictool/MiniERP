@@ -20,6 +20,9 @@ public interface ISecuenciaNcfRepositorio
     /// </remarks>
     Task<string?> AsignarSiguienteAsync(TipoComprobante tipo, CancellationToken ct = default);
 
+    /// <summary>La secuencia con seguimiento, para poder activarla o desactivarla.</summary>
+    Task<SecuenciaNcf?> ObtenerAsync(int id, CancellationToken ct = default);
+
     void Agregar(SecuenciaNcf secuencia);
 
     Task<int> GuardarAsync(CancellationToken ct = default);
