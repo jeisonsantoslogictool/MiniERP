@@ -1,4 +1,4 @@
-﻿@page "/Account/Manage/PersonalData"
+@page "/Account/Manage/PersonalData"
 
 @using Microsoft.AspNetCore.Identity
 @using MiniERP.Infrastructure.Persistence
@@ -6,24 +6,34 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Personal Data</PageTitle>
+<PageTitle>Datos personales</PageTitle>
 
 <StatusMessage />
-<h3>Personal Data</h3>
+<h2 class="h5 mb-3">Datos personales</h2>
 
 <div class="row">
-    <div class="col-md-6">
-        <p>Your account contains personal data that you have given us. This page allows you to download or delete that data.</p>
+    <div class="col-xl-8">
         <p>
-            <strong>Deleting this data will permanently remove your account, and this cannot be recovered.</strong>
+            Tu cuenta guarda los datos que registraste al crearla. Aquí puedes descargarlos
+            o borrarlos.
         </p>
-        <form action="Account/Manage/DownloadPersonalData" method="post">
+
+        <form action="Account/Manage/DownloadPersonalData" method="post" class="mb-3">
             <AntiforgeryToken />
-            <button class="btn btn-primary" type="submit">Download</button>
+            <button class="btn btn-primary" type="submit">Descargar mis datos</button>
         </form>
-        <p>
-            <a href="Account/Manage/DeletePersonalData" class="btn btn-danger">Delete</a>
-        </p>
+
+        <div class="alert alert-danger" role="alert">
+            <p class="mb-2">
+                <strong>Borrar los datos elimina la cuenta para siempre y no se puede deshacer.</strong>
+            </p>
+            <p class="mb-0 small">
+                Las facturas, compras y movimientos que registraste <strong>no se borran</strong>:
+                son documentos del comercio y su historial tiene que quedar completo.
+            </p>
+        </div>
+
+        <a href="Account/Manage/DeletePersonalData" class="btn btn-outline-danger">Borrar mi cuenta</a>
     </div>
 </div>
 

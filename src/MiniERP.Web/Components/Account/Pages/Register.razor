@@ -63,7 +63,11 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private string? Message => identityErrors is null ? null : string.Join(" ", identityErrors.Select(error => error.Description));
+    // El prefijo "Error" no es adorno: StatusMessage pinta el aviso de rojo o de verde
+    // segun con que empiece el texto. Sin el, un fallo se muestra como si hubiera salido bien.
+    private string? Message => identityErrors is null
+        ? null
+        : "Error: " + string.Join(" ", identityErrors.Select(error => error.Description));
 
     protected override void OnInitialized()
     {

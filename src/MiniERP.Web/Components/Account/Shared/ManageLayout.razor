@@ -1,17 +1,20 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @layout MiniERP.Web.Components.Layout.MainLayout
 
-<h1>Manage your account</h1>
+@* Esta zona SI lleva el layout de la app: quien la usa ya tiene sesion abierta y viene
+   del menu lateral. Lo que cambia es el encabezado, que antes eran dos titulos seguidos
+   diciendo casi lo mismo. *@
 
-<div>
-    <h2>Change your account settings</h2>
-    <hr />
-    <div class="row">
-        <div class="col-lg-3">
-            <ManageNavMenu />
-        </div>
-        <div class="col-lg-9">
-            @Body
-        </div>
+<header class="mb-4">
+    <h1 class="mb-1">Mi cuenta</h1>
+    <p class="text-muted mb-0">Tus datos de acceso y la seguridad de tu usuario.</p>
+</header>
+
+<div class="row g-4">
+    <div class="col-lg-3">
+        <ManageNavMenu />
+    </div>
+    <div class="col-lg-9">
+        @Body
     </div>
 </div>
