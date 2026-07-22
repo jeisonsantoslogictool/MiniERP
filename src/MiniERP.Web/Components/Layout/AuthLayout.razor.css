@@ -26,23 +26,45 @@
         linear-gradient(155deg, #F58A3E 0%, #F26D21 42%, #C34C0C 100%);
 }
 
-/* Dos halos que respiran muy despacio. Solo transform y opacidad: la tarjeta grafica
-   los compone sola y no obligan al navegador a repintar nada. */
-.auth-brand::before {
-    content: "";
+/* Foco que sigue al puntero.
+   La primera version eran dos halos difusos sobre el degradado, y no se veian: el
+   naranja ya lleva luz propia arriba a la derecha, asi que un blanco al 30% encima no
+   levantaba contraste. Este es un solo circulo, mas concentrado y mas opaco.
+
+   Se mueve con transform y no cambiando el gradiente: mover el gradiente obligaria a
+   repintar el panel entero en cada pixel del raton; una transform la compone la tarjeta
+   grafica sola. La transicion le da el retardo que hace que persiga al cursor en vez de
+   ir pegado a el. */
+.brand-foco {
     position: absolute;
-    inset: -25%;
-    background:
-        radial-gradient(38% 38% at 24% 30%, rgba(255, 255, 255, .30), transparent 62%),
-        radial-gradient(34% 34% at 76% 74%, rgba(255, 196, 130, .34), transparent 66%);
+    top: 0;
+    left: 0;
+    z-index: 0;
+    width: 44rem;
+    height: 44rem;
+    margin: -22rem 0 0 -22rem;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        rgba(255, 255, 255, .46) 0%,
+        rgba(255, 255, 255, .16) 38%,
+        rgba(255, 255, 255, 0) 68%);
     pointer-events: none;
-    animation: halos 22s ease-in-out infinite alternate;
+    will-change: transform;
+    animation: focoQuieto 16s ease-in-out infinite alternate;
 }
 
-@keyframes halos {
-    0%   { transform: translate3d(-2%, -1%, 0) scale(1); }
-    50%  { transform: translate3d(2%, 2.5%, 0) scale(1.09); }
-    100% { transform: translate3d(-1%, 1%, 0) scale(1.03); }
+/* Sin raton todavia —o en un telefono, que no tiene— el foco se pasea solo. */
+@keyframes focoQuieto {
+    0%   { transform: translate3d(32%, 30%, 0) scale(1); }
+    50%  { transform: translate3d(64%, 62%, 0) scale(1.12); }
+    100% { transform: translate3d(38%, 78%, 0) scale(1.04); }
+}
+
+/* En cuanto el puntero se mueve, el guion pone --px y --py y manda el. */
+.auth-brand.con-puntero .brand-foco {
+    animation: none;
+    transform: translate3d(var(--px, 50%), var(--py, 40%), 0);
+    transition: transform .45s cubic-bezier(.22, .61, .36, 1);
 }
 
 /* Trama de puntos: le quita el aire de degradado plano sin costar una imagen.
@@ -62,11 +84,20 @@
     to { transform: translate3d(22px, 22px, 0); }
 }
 
-/* Quien pidio menos movimiento en su sistema no lo recibe. */
+/* Quien pidio menos movimiento en su sistema no lo recibe: el foco se queda quieto
+   en un sitio razonable y la trama deja de derivar. */
 @media (prefers-reduced-motion: reduce) {
-    .auth-brand::before,
+    .brand-foco,
     .auth-brand::after {
         animation: none;
+    }
+
+    .brand-foco {
+        transform: translate3d(45%, 45%, 0);
+    }
+
+    .auth-brand.con-puntero .brand-foco {
+        transition: none;
     }
 }
 

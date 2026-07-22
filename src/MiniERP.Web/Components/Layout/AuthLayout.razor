@@ -6,6 +6,9 @@
 
 <div class="auth-shell">
     <aside class="auth-brand">
+        @* Foco de luz que persigue al puntero. Decorativo: no lo lee el lector de pantalla. *@
+        <span class="brand-foco" aria-hidden="true"></span>
+
         <div class="brand-top">
             <span class="brand-mark">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9l9-6 9 6v11a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z" /></svg>
@@ -56,3 +59,7 @@
     <a href="." class="reload">Recargar</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@* Lo unico que hace falta en JavaScript: pasarle al CSS donde esta el puntero.
+   El movimiento lo hace el CSS. *@
+<script src="js/auth-foco.js"></script>

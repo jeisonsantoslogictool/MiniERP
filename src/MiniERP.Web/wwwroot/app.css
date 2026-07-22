@@ -2,6 +2,12 @@
     --orange:#F26D21; --orange-600:#D9560F; --orange-50:#FEF1E8; --orange-100:#FBDFC9;
     --ink:#1C1917; --muted:#7C736C; --faint:#A69E97;
     --border:#E8E2DC; --border-soft:#F0EBE6; --surface:#F6F3F0; --card:#FFFFFF; --canvas:#F1ECE8;
+
+    /* Los campos necesitan su propia escala, mas marcada que la de los bordes decorativos:
+       un campo tiene que leerse como un hueco donde se escribe, no como una linea pintada
+       sobre el fondo. Con --border (#E8E2DC) sobre el lienzo (#F1ECE8) la diferencia era
+       de dos puntos y los formularios desaparecian. */
+    --field:#FFFFFF; --field-border:#D8CEC4; --field-border-hover:#BFB2A5; --label:#5A524B;
     --ok:#1B7F46; --ok-bg:#E7F2EB; --danger:#C0392B; --danger-bg:#FBE9E6;
     --radius:14px; --radius-sm:10px;
     --shadow-sm:0 1px 2px rgba(28,25,23,.06);
@@ -11,6 +17,12 @@
     --bs-primary:#F26D21; --bs-primary-rgb:242,109,33;
     --bs-body-color:#1C1917; --bs-body-bg:#F1ECE8;
     --bs-border-color:#E8E2DC; --bs-secondary-color:#7C736C;
+
+    /* Remapear solo la regla de `a` dejaba fuera a todo componente que deriva su color
+       del enlace —el menu de Mi cuenta salia azul de Bootstrap sobre un tema naranja—.
+       Cambiando la variable de raiz, ninguno se escapa. */
+    --bs-link-color:#D9560F; --bs-link-hover-color:#B8460B;
+    --bs-link-color-rgb:217,86,15;
     --bs-font-sans-serif:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
 }
 
@@ -38,8 +50,12 @@ a, .btn-link {
     box-shadow: 0 8px 18px -8px rgba(242, 109, 33, .6);
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.2rem var(--orange-50);
+/* El foco tiene que verse a un metro de distancia: en una caja se navega con Tab y con
+   el teclado numerico, sin mirar la pantalla entre golpe y golpe. El halo anterior era
+   naranja al 6%, invisible sobre el lienzo. */
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus,
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 3px rgba(242, 109, 33, .22);
   border-color: var(--orange);
 }
 
@@ -103,9 +119,10 @@ h1:focus {
 }
 .btn-outline-secondary {
     --bs-btn-color: var(--ink);
-    --bs-btn-border-color: var(--border);
+    --bs-btn-bg: var(--card);
+    --bs-btn-border-color: var(--field-border);
     --bs-btn-hover-bg: var(--surface);
-    --bs-btn-hover-border-color: var(--border);
+    --bs-btn-hover-border-color: var(--field-border-hover);
     --bs-btn-hover-color: var(--ink);
 }
 .btn-outline-danger {
@@ -116,6 +133,16 @@ h1:focus {
 }
 
 /* superficies */
+
+/* Todo bloque que hace de panel se apoya en papel blanco. Un borde claro sobre el
+   lienzo no alcanza a separarlo: es lo que hacia que una pantalla entera se leyera
+   como una sola mancha beige. El patron `border rounded` se usa como panel en los
+   cinco modulos, asi que la regla los alcanza a todos sin tocar el archivo de nadie. */
+.card,
+.border.rounded {
+    background-color: var(--card);
+}
+
 .card {
     border-color: var(--border);
     border-radius: var(--radius);
@@ -143,17 +170,73 @@ h1:focus {
 }
 
 /* formularios */
+
+/* Fondo blanco y borde propio: es lo que convierte el campo en un hueco donde se
+   escribe. La sombra interior de un pixel lo hunde apenas, lo justo para que el ojo
+   lo separe del papel sin que parezca un cajon. */
 .form-control, .form-select {
-    border-color: var(--border);
+    background-color: var(--field);
+    border-color: var(--field-border);
     border-radius: 10px;
     color: var(--ink);
+    box-shadow: inset 0 1px 2px rgba(28, 25, 23, .05);
 }
-.form-label { font-size: .82rem; font-weight: 600; color: var(--muted); }
-.input-group-text { background: var(--surface); border-color: var(--border); color: var(--muted); }
+
+.form-control:hover:not(:disabled):not([readonly]),
+.form-select:hover:not(:disabled) {
+    border-color: var(--field-border-hover);
+}
+
+.form-control:focus, .form-select:focus {
+    background-color: var(--field);
+}
+
+/* La pista dentro del campo no puede competir con lo que el usuario escribe. */
+.form-control::placeholder { color: var(--faint); }
+
+/* Un campo que no se puede tocar se ve que no se puede tocar: pierde el blanco y la
+   sombra, que es lo que invitaba a escribir en el. */
+.form-control:disabled, .form-select:disabled, .form-control[readonly] {
+    background-color: var(--surface);
+    color: var(--muted);
+    box-shadow: none;
+}
+
+/* Las casillas tambien eran una linea casi invisible sobre el fondo. */
+.form-check-input {
+    border-color: var(--field-border-hover);
+    background-color: var(--field);
+}
+.form-check-input:checked {
+    background-color: var(--orange);
+    border-color: var(--orange);
+}
+
+.form-label { font-size: .84rem; font-weight: 600; color: var(--label); margin-bottom: .3rem; }
+.form-text { color: var(--muted); }
+.input-group-text { background: var(--surface); border-color: var(--field-border); color: var(--muted); }
 
 /* listas (sugerencias del POS) */
 .list-group-item { border-color: var(--border-soft); }
 .list-group-item-action:hover { background: var(--orange-50); }
+
+/* navegacion secundaria (el menu de Mi cuenta)
+   Deliberadamente mas suave que el menu lateral de la aplicacion: aquel marca en que
+   modulo estas y manda, este solo dice que apartado miras. Dos naranjas solidos a la
+   vez en pantalla compiten y ninguno de los dos orienta. */
+.nav-pills {
+    --bs-nav-link-color: var(--ink);
+    --bs-nav-link-hover-color: var(--orange-600);
+    --bs-nav-pills-link-active-bg: var(--orange-50);
+    --bs-nav-pills-link-active-color: var(--orange-600);
+    --bs-nav-pills-border-radius: 10px;
+}
+.nav-pills .nav-link { text-align: left; font-weight: 500; }
+.nav-pills .nav-link:hover:not(.active) { background-color: var(--surface); }
+.nav-pills .nav-link.active {
+    font-weight: 700;
+    box-shadow: inset 2px 0 0 var(--orange);
+}
 
 /* estados */
 .badge { font-weight: 700; border-radius: 999px; padding: .38em .72em; }
