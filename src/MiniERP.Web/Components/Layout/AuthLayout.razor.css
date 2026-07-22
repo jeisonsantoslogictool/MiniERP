@@ -128,7 +128,12 @@
     top: .5rem;
 }
 
-.auth-brand > * {
+/* El contenido va por encima del degradado y de la trama.
+   El foco queda fuera a proposito: tiene la misma especificidad que esta regla y, al
+   estar declarado antes, perdia. Se quedaba en `position: relative`, ocupaba sitio en la
+   columna y estiraba el panel casi sesenta pixeles — de ahi el scroll— ademas de no
+   colocarse nunca donde debia. */
+.auth-brand > *:not(.brand-foco) {
     position: relative;
     z-index: 1;
 }
