@@ -1,4 +1,4 @@
-﻿@page "/Account/Manage/Email"
+@page "/Account/Manage/Email"
 
 @using System.ComponentModel.DataAnnotations
 @using System.Text
@@ -12,43 +12,52 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Manage email</PageTitle>
+<PageTitle>Correo</PageTitle>
 
-<h3>Manage email</h3>
+<h2 class="h5 mb-3">Correo</h2>
 
-<StatusMessage Message="@message"/>
+<StatusMessage Message="@message" />
+
 <div class="row">
-    <div class="col-xl-6">
+    <div class="col-xl-8">
         <form @onsubmit="OnSendEmailVerificationAsync" @formname="send-verification" id="send-verification-form" method="post">
             <AntiforgeryToken />
         </form>
+
         <EditForm Model="Input" FormName="change-email" OnValidSubmit="OnValidSubmitAsync" method="post">
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
+
             @if (isEmailConfirmed)
             {
                 <div class="form-floating mb-3 input-group">
-                    <input type="text" value="@email" id="email" class="form-control" placeholder="Enter your email" disabled />
+                    <input type="text" value="@email" id="email" class="form-control" placeholder="correo" disabled />
                     <div class="input-group-append">
-                        <span class="h-100 input-group-text text-success font-weight-bold">✓</span>
+                        <span class="h-100 input-group-text text-success fw-bold" title="Confirmado">✓</span>
                     </div>
-                    <label for="email" class="form-label">Email</label>
+                    <label for="email" class="form-label">Correo actual</label>
                 </div>
             }
             else
             {
-                <div class="form-floating mb-3">
-                    <input type="text" value="@email" id="email" class="form-control" placeholder="Enter your email" disabled />
-                    <label for="email" class="form-label">Email</label>
-                    <button type="submit" class="btn btn-link" form="send-verification-form">Send verification email</button>
+                <div class="form-floating mb-2">
+                    <input type="text" value="@email" id="email" class="form-control" placeholder="correo" disabled />
+                    <label for="email" class="form-label">Correo actual</label>
                 </div>
+                <p class="mb-3">
+                    <button type="submit" class="btn btn-link p-0" form="send-verification-form">
+                        Enviar correo de verificación
+                    </button>
+                </p>
             }
+
             <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.NewEmail" id="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="Enter a new email" />
-                <label for="Input.NewEmail" class="form-label">New email</label>
+                <InputText @bind-Value="Input.NewEmail" id="Input.NewEmail" class="form-control" autocomplete="email" aria-required="true" placeholder="nombre@ejemplo.com" />
+                <label for="Input.NewEmail" class="form-label">Correo nuevo</label>
                 <ValidationMessage For="() => Input.NewEmail" class="text-danger" />
             </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Change email</button>
+
+            <button type="submit" class="btn btn-primary">Cambiar correo</button>
         </EditForm>
     </div>
 </div>
@@ -86,7 +95,7 @@
     {
         if (Input.NewEmail is null || Input.NewEmail == email)
         {
-            message = "Your email is unchanged.";
+            message = "Ese ya es tu correo: no cambió nada.";
             return;
         }
 
@@ -105,7 +114,7 @@
 
         await EmailSender.SendConfirmationLinkAsync(user, Input.NewEmail, HtmlEncoder.Default.Encode(callbackUrl));
 
-        message = "Confirmation link to change email sent. Please check your email.";
+        message = "Te enviamos al correo nuevo el enlace para confirmarlo. El cambio no surte efecto hasta que lo abras.";
     }
 
     private async Task OnSendEmailVerificationAsync()
@@ -130,14 +139,14 @@
 
         await EmailSender.SendConfirmationLinkAsync(user, email, HtmlEncoder.Default.Encode(callbackUrl));
 
-        message = "Verification email sent. Please check your email.";
+        message = "Correo de verificación enviado. Revisa tu bandeja.";
     }
 
     private sealed class InputModel
     {
-        [Required]
-        [EmailAddress]
-        [Display(Name = "New email")]
+        [Required(ErrorMessage = "Escribe el correo nuevo.")]
+        [EmailAddress(ErrorMessage = "Ese correo no tiene un formato válido.")]
+        [Display(Name = "Correo nuevo")]
         public string? NewEmail { get; set; }
     }
 }

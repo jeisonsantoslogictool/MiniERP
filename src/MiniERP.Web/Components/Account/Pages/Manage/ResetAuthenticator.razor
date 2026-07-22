@@ -1,4 +1,4 @@
-﻿@page "/Account/Manage/ResetAuthenticator"
+@page "/Account/Manage/ResetAuthenticator"
 
 @using Microsoft.AspNetCore.Identity
 @using MiniERP.Infrastructure.Persistence
@@ -8,26 +8,27 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<ResetAuthenticator> Logger
 
-<PageTitle>Reset authenticator key</PageTitle>
+<PageTitle>Restablecer la clave del autenticador</PageTitle>
 
 <StatusMessage />
-<h3>Reset authenticator key</h3>
+<h2 class="h5 mb-3">Restablecer la clave del autenticador</h2>
+
 <div class="alert alert-warning" role="alert">
-    <p>
-        <span class="glyphicon glyphicon-warning-sign"></span>
-        <strong>If you reset your authenticator key your authenticator app will not work until you reconfigure it.</strong>
+    <p class="mb-2">
+        <strong>Al restablecerla, tu aplicación de autenticación deja de funcionar hasta que
+        la vuelvas a configurar.</strong>
     </p>
-    <p>
-        This process disables 2FA until you verify your authenticator app.
-        If you do not complete your authenticator app configuration you may lose access to your account.
+    <p class="mb-0">
+        La verificación en dos pasos queda apagada mientras tanto. Si no terminas de
+        configurarla, puedes quedarte sin poder entrar.
     </p>
 </div>
-<div>
-    <form @formname="reset-authenticator" @onsubmit="OnSubmitAsync" method="post">
-        <AntiforgeryToken />
-        <button class="btn btn-danger" type="submit">Reset authenticator key</button>
-    </form>
-</div>
+
+<form @formname="reset-authenticator" @onsubmit="OnSubmitAsync" method="post">
+    <AntiforgeryToken />
+    <button class="btn btn-danger" type="submit">Restablecer la clave</button>
+    <a class="btn btn-outline-secondary" href="Account/Manage/TwoFactorAuthentication">Cancelar</a>
+</form>
 
 @code {
     [CascadingParameter]
@@ -51,7 +52,7 @@
 
         RedirectManager.RedirectToWithStatus(
             "Account/Manage/EnableAuthenticator",
-            "Your authenticator app key has been reset, you will need to configure your authenticator app using the new key.",
+            "Clave restablecida. Configura la aplicación otra vez con la clave nueva.",
             HttpContext);
     }
 }

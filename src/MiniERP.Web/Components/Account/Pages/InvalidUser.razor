@@ -1,7 +1,22 @@
-﻿@page "/Account/InvalidUser"
+@page "/Account/InvalidUser"
+@layout AuthLayout
 
-<PageTitle>Invalid user</PageTitle>
+<PageTitle>Usuario no válido · Mini ERP</PageTitle>
 
-<h3>Invalid user</h3>
+<header class="auth-head">
+    <h1>Usuario no válido</h1>
+    <p>No pudimos identificar la cuenta.</p>
+</header>
 
 <StatusMessage />
+
+<div class="auth-note is-alerta">
+    <p>
+        El enlace que abriste apunta a una cuenta que ya no existe. Si te la acaban de crear,
+        pídele al administrador que la revise.
+    </p>
+</div>
+
+<p class="auth-foot">
+    <a href="Account/Login">Volver a iniciar sesión</a>
+</p>

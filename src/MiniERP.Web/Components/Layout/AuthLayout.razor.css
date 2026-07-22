@@ -1,0 +1,379 @@
+/* Pantalla de acceso partida en dos: la marca a la izquierda, el formulario a la
+   derecha. La mitad naranja no es decoración — es lo que distingue esta pantalla de
+   cualquier plantilla de Identity, que es justo lo que se veía antes. */
+
+.auth-shell {
+    display: grid;
+    grid-template-columns: 1.05fr .95fr;
+    min-height: 100vh;
+    background: var(--card);
+}
+
+/* ============ panel de marca ============ */
+
+.auth-brand {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 2.75rem 3.25rem;
+    overflow: hidden;
+    color: #fff;
+    background:
+        radial-gradient(120% 90% at 100% 0%, rgba(255, 255, 255, .20), transparent 55%),
+        radial-gradient(90% 70% at 0% 100%, rgba(0, 0, 0, .24), transparent 60%),
+        linear-gradient(155deg, #F58A3E 0%, #F26D21 42%, #C34C0C 100%);
+}
+
+/* Foco que sigue al puntero.
+   La primera version eran dos halos difusos sobre el degradado, y no se veian: el
+   naranja ya lleva luz propia arriba a la derecha, asi que un blanco al 30% encima no
+   levantaba contraste. Este es un solo circulo, mas concentrado y mas opaco.
+
+   Se mueve con transform y no cambiando el gradiente: mover el gradiente obligaria a
+   repintar el panel entero en cada pixel del raton; una transform la compone la tarjeta
+   grafica sola. La transicion le da el retardo que hace que persiga al cursor en vez de
+   ir pegado a el. */
+.brand-foco {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    width: 44rem;
+    height: 44rem;
+    margin: -22rem 0 0 -22rem;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        rgba(255, 255, 255, .46) 0%,
+        rgba(255, 255, 255, .16) 38%,
+        rgba(255, 255, 255, 0) 68%);
+    pointer-events: none;
+    will-change: transform;
+    animation: focoQuieto 16s ease-in-out infinite alternate;
+}
+
+/* Sin raton todavia —o en un telefono, que no tiene— el foco se pasea solo. */
+@keyframes focoQuieto {
+    0%   { transform: translate3d(32%, 30%, 0) scale(1); }
+    50%  { transform: translate3d(64%, 62%, 0) scale(1.12); }
+    100% { transform: translate3d(38%, 78%, 0) scale(1.04); }
+}
+
+/* En cuanto el puntero se mueve, el guion pone --px y --py y manda el. */
+.auth-brand.con-puntero .brand-foco {
+    animation: none;
+    transform: translate3d(var(--px, 50%), var(--py, 40%), 0);
+    transition: transform .45s cubic-bezier(.22, .61, .36, 1);
+}
+
+/* Trama de puntos: le quita el aire de degradado plano sin costar una imagen.
+   Deriva un mosaico exacto (22px) y vuelve al principio, asi el ciclo no se nota. */
+.auth-brand::after {
+    content: "";
+    position: absolute;
+    inset: -30px;
+    background-image: radial-gradient(rgba(255, 255, 255, .16) 1px, transparent 1px);
+    background-size: 22px 22px;
+    opacity: .55;
+    pointer-events: none;
+    animation: deriva 14s linear infinite;
+}
+
+@keyframes deriva {
+    to { transform: translate3d(22px, 22px, 0); }
+}
+
+/* Quien pidio menos movimiento en su sistema no lo recibe: el foco se queda quieto
+   en un sitio razonable y la trama deja de derivar. */
+@media (prefers-reduced-motion: reduce) {
+    .brand-foco,
+    .auth-brand::after {
+        animation: none;
+    }
+
+    .brand-foco {
+        transform: translate3d(45%, 45%, 0);
+    }
+
+    .auth-brand.con-puntero .brand-foco {
+        transition: none;
+    }
+}
+
+/* El aviso de error de Blazor vive en este layout, pero sus estilos estaban solo en
+   MainLayout.razor.css, que es CSS con ambito: no alcanzaban a este div. Sin ellos el
+   aviso se dibujaba siempre, visible y en el flujo de la pagina — de ahi el "Ha ocurrido
+   un error inesperado" fijo abajo y el scroll de mas que no deberia existir. */
+#blazor-error-ui {
+    color-scheme: light only;
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: .6rem 1.25rem .7rem 1.25rem;
+    background: #FEF1E8;
+    border-top: 1px solid #FBDFC9;
+    color: #1C1917;
+    box-shadow: 0 -1px 2px rgba(28, 25, 23, .12);
+    z-index: 1000;
+}
+
+#blazor-error-ui .dismiss {
+    cursor: pointer;
+    position: absolute;
+    right: .75rem;
+    top: .5rem;
+}
+
+.auth-brand > * {
+    position: relative;
+    z-index: 1;
+}
+
+.auth-brand svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.brand-top {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+}
+
+.brand-mark {
+    display: grid;
+    place-items: center;
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, .18);
+    border: 1px solid rgba(255, 255, 255, .32);
+    backdrop-filter: blur(6px);
+}
+
+.brand-mark svg {
+    width: 25px;
+    height: 25px;
+    fill: currentColor;
+    stroke: none;
+}
+
+.brand-id {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.25;
+}
+
+.brand-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -.01em;
+}
+
+.brand-sub {
+    font-size: .76rem;
+    opacity: .82;
+}
+
+.brand-title {
+    margin: 0 0 .9rem;
+    max-width: 16ch;
+    font-size: clamp(1.7rem, 2.5vw, 2.35rem);
+    font-weight: 700;
+    line-height: 1.18;
+    letter-spacing: -.025em;
+}
+
+.brand-lead {
+    margin: 0 0 2.25rem;
+    max-width: 42ch;
+    font-size: 1rem;
+    line-height: 1.6;
+    opacity: .9;
+}
+
+.brand-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: .9rem;
+}
+
+.brand-list li {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    font-size: .95rem;
+}
+
+.brand-list svg {
+    flex: 0 0 auto;
+    opacity: .88;
+}
+
+.brand-foot {
+    margin: 0;
+    font-size: .78rem;
+    opacity: .72;
+}
+
+/* ============ panel del formulario ============ */
+
+.auth-main {
+    display: grid;
+    place-items: center;
+    padding: 2.5rem 1.5rem;
+    background: var(--card);
+}
+
+.auth-panel {
+    width: 100%;
+    max-width: 380px;
+}
+
+/* ============ formulario, compartido por todas las pantallas de acceso ============ */
+
+/* Va con ::deep porque el contenido entra por @Body: son doce paginas distintas
+   dentro del mismo panel. Con los estilos en cada una, la primera que alguien
+   retocara dejaria a las once desalineadas. */
+
+.auth-panel ::deep .auth-head h1 {
+    margin: 0 0 .35rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -.025em;
+    color: var(--ink);
+}
+
+.auth-panel ::deep .auth-head p {
+    margin: 0 0 1.75rem;
+    font-size: .95rem;
+    color: var(--muted);
+}
+
+/* Recordarme y el enlace de contrasena olvidada comparten renglon: son la misma
+   decision —como vuelvo a entrar— y separarlos alargaba el formulario sin motivo. */
+.auth-panel ::deep .auth-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0 0 1.25rem;
+    font-size: .88rem;
+}
+
+.auth-panel ::deep .auth-check {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    margin: 0;
+    color: var(--muted);
+    cursor: pointer;
+}
+
+.auth-panel ::deep .auth-row a {
+    text-decoration: none;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.auth-panel ::deep .auth-row a:hover {
+    text-decoration: underline;
+}
+
+/* Separador con la palabra en medio, en vez de dos <hr> sueltos. */
+.auth-panel ::deep .auth-sep {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    margin: 1.35rem 0;
+    font-size: .8rem;
+    color: var(--faint);
+}
+
+.auth-panel ::deep .auth-sep::before,
+.auth-panel ::deep .auth-sep::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}
+
+.auth-panel ::deep .auth-foot {
+    margin: 1.75rem 0 0;
+    text-align: center;
+    font-size: .85rem;
+    color: var(--muted);
+}
+
+.auth-panel ::deep .auth-foot a {
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-panel ::deep .auth-foot a:hover {
+    text-decoration: underline;
+}
+
+.auth-panel ::deep .auth-dot {
+    margin: 0 .45rem;
+    color: var(--faint);
+}
+
+/* Aviso de las pantallas que solo informan: revisa tu correo, cuenta bloqueada,
+   enlace vencido. Sin formulario, el texto necesita una superficie propia. */
+.auth-panel ::deep .auth-note {
+    padding: 1.1rem 1.25rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    color: var(--ink);
+    font-size: .95rem;
+    line-height: 1.6;
+}
+
+.auth-panel ::deep .auth-note.is-alerta {
+    border-color: #F0D3CE;
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.auth-panel ::deep .auth-note p:last-child {
+    margin-bottom: 0;
+}
+
+/* ============ pantallas estrechas ============ */
+
+/* Debajo de 980 la marca se reduce a una cinta: en un teléfono el formulario tiene
+   que caber sin desplazar, y el discurso de la izquierda estorba más de lo que suma. */
+@media (max-width: 980px) {
+    .auth-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+    }
+
+    .auth-brand {
+        padding: 1.5rem 1.5rem;
+        gap: 0;
+    }
+
+    .brand-body,
+    .brand-foot {
+        display: none;
+    }
+
+    .auth-main {
+        padding: 2.25rem 1.25rem;
+        align-items: start;
+    }
+}

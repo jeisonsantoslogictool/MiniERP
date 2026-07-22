@@ -1,9 +1,11 @@
 ﻿@page "/Account/Login"
+@layout AuthLayout
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Authentication
 @using Microsoft.AspNetCore.Identity
 @using MiniERP.Infrastructure.Persistence
+@using MiniERP.Web.Components.Layout
 
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
@@ -11,65 +13,54 @@
 @inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Log in</PageTitle>
+<PageTitle>Iniciar sesión · Mini ERP</PageTitle>
 
-<h1>Log in</h1>
-<div class="row">
-    <div class="col-lg-6">
-        <section>
-            <StatusMessage Message="@errorMessage" />
-            <EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
-                <DataAnnotationsValidator />
-                <h2>Use a local account to log in.</h2>
-                <hr />
-                <ValidationSummary class="text-danger" role="alert" />
-                <div class="form-floating mb-3">
-                    <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username webauthn" aria-required="true" placeholder="name@example.com" />
-                    <label for="Input.Email" class="form-label">Email</label>
-                    <ValidationMessage For="() => Input.Email" class="text-danger" />
-                </div>
-                <div class="form-floating mb-3">
-                    <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
-                    <label for="Input.Password" class="form-label">Password</label>
-                    <ValidationMessage For="() => Input.Password" class="text-danger" />
-                </div>
-                <div class="checkbox mb-3">
-                    <label class="form-label">
-                        <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
-                        Remember me
-                    </label>
-                </div>
-                <div>
-                    <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                </div>
-                <hr />
-                <div class="d-flex flex-column">
-                    <span class="text-secondary mx-auto mt-2">OR</span>
-                    <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" class="btn btn-link mx-auto">Log in with a passkey</PasskeySubmit>
-                </div>
-                <hr />
-                <div>
-                    <p>
-                        <a href="Account/ForgotPassword">Forgot your password?</a>
-                    </p>
-                    <p>
-                        <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Register as a new user</a>
-                    </p>
-                    <p>
-                        <a href="Account/ResendEmailConfirmation">Resend email confirmation</a>
-                    </p>
-                </div>
-            </EditForm>
-        </section>
+<header class="auth-head">
+    <h1>Iniciar sesión</h1>
+    <p>Entra con la cuenta que te dieron en el comercio.</p>
+</header>
+
+<StatusMessage Message="@errorMessage" />
+
+<EditForm EditContext="editContext" method="post" OnSubmit="LoginUser" FormName="login">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username webauthn" aria-required="true" placeholder="nombre@ejemplo.com" />
+        <label for="Input.Email" class="form-label">Correo</label>
+        <ValidationMessage For="() => Input.Email" class="text-danger" />
     </div>
-    <div class="col-lg-4 col-lg-offset-2">
-        <section>
-            <h3>Use another service to log in.</h3>
-            <hr />
-            <ExternalLoginPicker />
-        </section>
+
+    <div class="form-floating mb-3">
+        <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="contraseña" />
+        <label for="Input.Password" class="form-label">Contraseña</label>
+        <ValidationMessage For="() => Input.Password" class="text-danger" />
     </div>
-</div>
+
+    <div class="auth-row">
+        <label class="auth-check">
+            <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input" />
+            <span>Recordarme</span>
+        </label>
+        <a href="Account/ForgotPassword">¿Olvidaste tu contraseña?</a>
+    </div>
+
+    <button type="submit" class="w-100 btn btn-lg btn-primary">Entrar</button>
+
+    <div class="auth-sep"><span>o</span></div>
+
+    <PasskeySubmit Operation="PasskeyOperation.Request" Name="Input.Passkey" EmailName="Input.Email" class="w-100 btn btn-outline-secondary">
+        Entrar con clave de acceso
+    </PasskeySubmit>
+
+    <p class="auth-foot">
+        ¿No tienes cuenta?
+        <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Crear una</a>
+        <span class="auth-dot">·</span>
+        <a href="Account/ResendEmailConfirmation">Reenviar confirmación</a>
+    </p>
+</EditForm>
 
 @code {
     private string? errorMessage;
@@ -101,7 +92,7 @@
     {
         if (!string.IsNullOrEmpty(Input.Passkey?.Error))
         {
-            errorMessage = $"Error: {Input.Passkey.Error}";
+            errorMessage = $"No se pudo usar la clave de acceso: {Input.Passkey.Error}";
             return;
         }
 
@@ -142,21 +133,23 @@
         }
         else
         {
-            errorMessage = "Error: Invalid login attempt.";
+            // No se distingue entre correo inexistente y contraseña equivocada: decir
+            // cuál de los dos falló le confirma a un desconocido qué cuentas existen.
+            errorMessage = "Correo o contraseña incorrectos.";
         }
     }
 
     private sealed class InputModel
     {
-        [Required]
-        [EmailAddress]
+        [Required(ErrorMessage = "Escribe tu correo.")]
+        [EmailAddress(ErrorMessage = "Ese correo no tiene un formato válido.")]
         public string Email { get; set; } = "";
 
-        [Required]
+        [Required(ErrorMessage = "Escribe tu contraseña.")]
         [DataType(DataType.Password)]
         public string Password { get; set; } = "";
 
-        [Display(Name = "Remember me?")]
+        [Display(Name = "Recordarme")]
         public bool RememberMe { get; set; }
 
         public PasskeyInputModel? Passkey { get; set; }

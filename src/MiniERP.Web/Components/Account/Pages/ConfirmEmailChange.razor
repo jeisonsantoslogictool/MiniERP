@@ -1,4 +1,4 @@
-﻿@page "/Account/ConfirmEmailChange"
+@page "/Account/ConfirmEmailChange"
 
 @using System.Text
 @using Microsoft.AspNetCore.Identity
@@ -9,11 +9,13 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityRedirectManager RedirectManager
 
-<PageTitle>Confirm email change</PageTitle>
+<PageTitle>Cambio de correo</PageTitle>
 
-<h1>Confirm email change</h1>
+<h1>Cambio de correo</h1>
 
 <StatusMessage Message="@message" />
+
+<a class="btn btn-outline-secondary" href="Account/Manage/Email">Volver a mi correo</a>
 
 @code {
     private string? message;
@@ -35,14 +37,14 @@
         if (UserId is null || Email is null || Code is null)
         {
             RedirectManager.RedirectToWithStatus(
-                "Account/Login", "Error: Invalid email change confirmation link.", HttpContext);
+                "Account/Login", "Error: el enlace de confirmación no es válido.", HttpContext);
             return;
         }
 
         var user = await UserManager.FindByIdAsync(UserId);
         if (user is null)
         {
-            message = "Unable to find user with Id '{userId}'";
+            message = "Error: no se encontró la cuenta de ese enlace.";
             return;
         }
 
@@ -50,7 +52,7 @@
         var result = await UserManager.ChangeEmailAsync(user, Email, code);
         if (!result.Succeeded)
         {
-            message = "Error changing email.";
+            message = "Error: no se pudo cambiar el correo. El enlace pudo vencer o ya haberse usado.";
             return;
         }
 
@@ -59,11 +61,11 @@
         var setUserNameResult = await UserManager.SetUserNameAsync(user, Email);
         if (!setUserNameResult.Succeeded)
         {
-            message = "Error changing user name.";
+            message = "Error: el correo cambió pero el nombre de usuario no. Avisa al administrador.";
             return;
         }
 
         await SignInManager.RefreshSignInAsync(user);
-        message = "Thank you for confirming your email change.";
+        message = $"Correo cambiado. A partir de ahora entras con {Email}.";
     }
 }

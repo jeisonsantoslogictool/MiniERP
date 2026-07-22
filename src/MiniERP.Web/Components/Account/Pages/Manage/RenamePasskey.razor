@@ -1,4 +1,4 @@
-﻿@page "/Account/Manage/RenamePasskey/{Id}"
+@page "/Account/Manage/RenamePasskey/{Id}"
 
 @using MiniERP.Infrastructure.Persistence
 @using System.ComponentModel.DataAnnotations
@@ -8,25 +8,35 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject IdentityRedirectManager RedirectManager
 
+<PageTitle>Nombre de la clave de acceso</PageTitle>
+
 <EditForm Model="Input" OnValidSubmit="Rename" FormName="rename-passkey" method="post">
     <DataAnnotationsValidator />
+
     @if (passkey?.Name is { } name)
     {
-        <h4>Enter a new name for your "@name" passkey</h4>
+        <h2 class="h5 mb-1">Cambiar el nombre de «@name»</h2>
     }
     else
     {
-        <h4>Enter a name for your passkey</h4>
+        <h2 class="h5 mb-1">Ponle nombre a la clave de acceso</h2>
     }
-    <hr />
+
+    <p class="text-muted">Un nombre que te diga de qué dispositivo es: «Teléfono de la caja», por ejemplo.</p>
+
     <ValidationSummary class="text-danger" role="alert" />
-    <div class="form-floating mb-3">
-        <InputText @bind-Value="Input.Name" id="Input.Name" class="form-control" aria-required="true" placeholder="My passkey" />
-        <label for="Input.Name" class="form-label">Passkey name</label>
-        <ValidationMessage For="() => Input.Name" class="text-danger" />
-    </div>
-    <div>
-        <button type="submit" class="w-100 btn btn-lg btn-primary">Continue</button>
+
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Name" id="Input.Name" class="form-control" aria-required="true" placeholder="Teléfono de la caja" />
+                <label for="Input.Name" class="form-label">Nombre</label>
+                <ValidationMessage For="() => Input.Name" class="text-danger" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            <a class="btn btn-outline-secondary" href="Account/Manage/Passkeys">Cancelar</a>
+        </div>
     </div>
 </EditForm>
 
@@ -61,14 +71,14 @@
         }
         catch (FormatException)
         {
-            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: The specified passkey ID had an invalid format.", HttpContext);
+            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: el identificador de la clave de acceso no tiene un formato válido.", HttpContext);
             return;
         }
 
         passkey = await UserManager.GetPasskeyAsync(user, credentialId);
         if (passkey is null)
         {
-            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: The specified passkey could not be found.", HttpContext);
+            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: no se encontró esa clave de acceso.", HttpContext);
             return;
         }
     }
@@ -79,17 +89,17 @@
         var result = await UserManager.AddOrUpdatePasskeyAsync(user!, passkey);
         if (!result.Succeeded)
         {
-            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: The passkey could not be updated.", HttpContext);
+            RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Error: la clave de acceso no se pudo actualizar.", HttpContext);
             return;
         }
 
-        RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Passkey updated successfully.", HttpContext);
+        RedirectManager.RedirectToWithStatus("Account/Manage/Passkeys", "Clave de acceso actualizada.", HttpContext);
     }
 
     private sealed class InputModel
     {
-        [Required]
-        [StringLength(200, ErrorMessage = "Passkey names must be no longer than {1} characters.")]
+        [Required(ErrorMessage = "Escribe un nombre.")]
+        [StringLength(200, ErrorMessage = "El nombre no puede pasar de {1} caracteres.")]
         public string Name { get; set; } = "";
     }
 }

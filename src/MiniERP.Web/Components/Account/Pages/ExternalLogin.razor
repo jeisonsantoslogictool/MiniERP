@@ -16,33 +16,45 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<ExternalLogin> Logger
 
-<PageTitle>Register</PageTitle>
+@layout AuthLayout
+
+<PageTitle>Conectar cuenta · Mini ERP</PageTitle>
+
+@* Hoy no se llega aqui: el sistema no tiene proveedores externos configurados. Se
+   traduce igual para que el dia que se agregue uno no reaparezca una pantalla en ingles. *@
+
+<header class="auth-head">
+    <h1>Conectar cuenta</h1>
+    <p>Falta un dato para terminar de crear tu cuenta.</p>
+</header>
 
 <StatusMessage Message="@message" />
-<h1>Register</h1>
-<h2>Associate your @ProviderDisplayName account.</h2>
-<hr />
 
-<div  class="alert alert-info">
-    You've successfully authenticated with <strong>@ProviderDisplayName</strong>.
-    Please enter an email address for this site below and click the Register button to finish
-    logging in.
+<div class="auth-note">
+    <p class="mb-0">
+        Entraste con <strong>@ProviderDisplayName</strong>. Escribe el correo con el que
+        quieres que quede registrada tu cuenta en el sistema.
+    </p>
 </div>
 
-<div class="row">
-    <div class="col-md-4">
-        <EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="email" placeholder="Please enter your email." />
-                <label for="Input.Email" class="form-label">Email</label>
-                <ValidationMessage For="() => Input.Email" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-        </EditForm>
+<div class="auth-sep"></div>
+
+<EditForm Model="Input" OnValidSubmit="OnValidSubmitAsync" FormName="confirmation" method="post">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+
+    <div class="form-floating mb-4">
+        <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="email" placeholder="nombre@ejemplo.com" />
+        <label for="Input.Email" class="form-label">Correo</label>
+        <ValidationMessage For="() => Input.Email" />
     </div>
-</div>
+
+    <button type="submit" class="w-100 btn btn-lg btn-primary">Crear cuenta</button>
+
+    <p class="auth-foot">
+        <a href="Account/Login">Volver a iniciar sesión</a>
+    </p>
+</EditForm>
 
 @code {
     public const string LoginCallbackAction = "LoginCallback";
@@ -73,14 +85,14 @@
 
         if (RemoteError is not null)
         {
-            RedirectManager.RedirectToWithStatus("Account/Login", $"Error from external provider: {RemoteError}", HttpContext);
+            RedirectManager.RedirectToWithStatus("Account/Login", $"Error: el proveedor externo respondió: {RemoteError}", HttpContext);
             return;
         }
 
         var info = await SignInManager.GetExternalLoginInfoAsync();
         if (info is null)
         {
-            RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
+            RedirectManager.RedirectToWithStatus("Account/Login", "Error: no se pudieron leer los datos del acceso externo.", HttpContext);
             return;
         }
 
@@ -104,7 +116,7 @@
     {
         if (externalLoginInfo is null)
         {
-            RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information.", HttpContext);
+            RedirectManager.RedirectToWithStatus("Account/Login", "Error: no se pudieron leer los datos del acceso externo.", HttpContext);
             return;
         }
 
@@ -141,7 +153,7 @@
     {
         if (externalLoginInfo is null)
         {
-            RedirectManager.RedirectToWithStatus("Account/Login", "Error loading external login information during confirmation.", HttpContext);
+            RedirectManager.RedirectToWithStatus("Account/Login", "Error: no se pudieron leer los datos del acceso externo al confirmar.", HttpContext);
             return;
         }
 
@@ -182,7 +194,7 @@
         }
         else
         {
-            message = $"Error: {string.Join(",", result.Errors.Select(error => error.Description))}";
+            message = $"Error: {string.Join(" ", result.Errors.Select(error => error.Description))}";
         }
     }
 

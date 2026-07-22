@@ -1,17 +1,105 @@
 @page "/"
+@attribute [Authorize]
+
+@* Con [Authorize], quien no tiene sesion nunca ve esta pantalla: Routes.razor lo manda
+   al login y vuelve aqui al entrar. Antes el inicio era una pagina publica cuyo unico
+   contenido era un boton para iniciar sesion, o sea un paso de mas antes del paso real. *@
 
 <PageTitle>Inicio</PageTitle>
 
-<h1>Mini ERP</h1>
-
-<p class="lead">Sistema de gestion para microcomercios minoristas.</p>
-
 <AuthorizeView>
     <Authorized>
-        <p>Sesion iniciada como <strong>@context.User.Identity?.Name</strong>. Elige un modulo en el menu lateral.</p>
+        <header class="mb-4">
+            <h1 class="mb-1">Mini ERP</h1>
+            <p class="text-muted mb-0">
+                Sesión iniciada como <strong>@context.User.Identity?.Name</strong>. Elige por dónde empezar.
+            </p>
+        </header>
     </Authorized>
-    <NotAuthorized>
-        <p>Inicia sesion para acceder a los modulos del sistema.</p>
-        <a class="btn btn-primary" href="Account/Login">Iniciar sesion</a>
-    </NotAuthorized>
 </AuthorizeView>
+
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="modulo-icono">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.4 12.4a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 7H6" /></svg>
+                </span>
+                <h2 class="h6 mb-1">
+                    <a href="ventas" class="stretched-link text-decoration-none text-reset">Punto de venta</a>
+                </h2>
+                <p class="text-muted small mb-0">Cobrar, dar cambio y emitir la factura con su NCF.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="modulo-icono">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8" /></svg>
+                </span>
+                <h2 class="h6 mb-1">
+                    <a href="inventario" class="stretched-link text-decoration-none text-reset">Inventario</a>
+                </h2>
+                <p class="text-muted small mb-0">Productos, existencias, movimientos y alertas de reabastecimiento.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="modulo-icono">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l4 4v15a1 1 0 0 1-1.4.9L15 20l-2.5 1.9L10 20l-2.5 1.9L5 20l-.6.9A1 1 0 0 1 3 20V4a2 2 0 0 1 2-2z" /><path d="M8 8h7M8 12h7" /></svg>
+                </span>
+                <h2 class="h6 mb-1">
+                    <a href="ventas/facturas" class="stretched-link text-decoration-none text-reset">Facturas</a>
+                </h2>
+                <p class="text-muted small mb-0">Lo ya emitido, con su detalle, impresión y anulación.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="modulo-icono">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 3h13v10H1zM14 8h4l3 3v2h-7" /><circle cx="6" cy="18" r="1.6" /><circle cx="18" cy="18" r="1.6" /></svg>
+                </span>
+                <h2 class="h6 mb-1">
+                    <a href="compras" class="stretched-link text-decoration-none text-reset">Compras</a>
+                </h2>
+                <p class="text-muted small mb-0">Proveedores, órdenes y recepción de mercancía.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="modulo-icono">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2" /><path d="M3 20a6 6 0 0 1 12 0M16 5.5a3 3 0 0 1 0 5M21 20a5.5 5.5 0 0 0-4-5.3" /></svg>
+                </span>
+                <h2 class="h6 mb-1">
+                    <a href="clientes" class="stretched-link text-decoration-none text-reset">Clientes</a>
+                </h2>
+                <p class="text-muted small mb-0">Fichas, crédito, balances y cobros.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col">
+        <div class="card h-100">
+            <div class="card-body">
+                <span class="modulo-icono">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg>
+                </span>
+                <h2 class="h6 mb-1">
+                    <a href="finanzas" class="stretched-link text-decoration-none text-reset">Finanzas</a>
+                </h2>
+                <p class="text-muted small mb-0">Ingresos, egresos, rentabilidad y estado de la caja.</p>
+            </div>
+        </div>
+    </div>
+</div>

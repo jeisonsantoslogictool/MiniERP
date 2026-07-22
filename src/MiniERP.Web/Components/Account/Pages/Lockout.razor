@@ -1,8 +1,20 @@
-﻿@page "/Account/Lockout"
+@page "/Account/Lockout"
+@layout AuthLayout
 
-<PageTitle>Locked out</PageTitle>
+<PageTitle>Cuenta bloqueada · Mini ERP</PageTitle>
 
-<header>
-    <h1 class="text-danger">Locked out</h1>
-    <p class="text-danger" role="alert">This account has been locked out, please try again later.</p>
+<header class="auth-head">
+    <h1>Cuenta bloqueada</h1>
+    <p>Demasiados intentos seguidos.</p>
 </header>
+
+<div class="auth-note is-alerta" role="alert">
+    <p>
+        Esta cuenta quedó bloqueada por seguridad. Espera unos minutos y vuelve a intentarlo,
+        o pídele al administrador que la desbloquee.
+    </p>
+</div>
+
+<p class="auth-foot">
+    <a href="Account/Login">Volver a iniciar sesión</a>
+</p>

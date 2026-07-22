@@ -1,4 +1,5 @@
-﻿@page "/Account/LoginWithRecoveryCode"
+@page "/Account/LoginWithRecoveryCode"
+@layout AuthLayout
 
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
@@ -9,29 +10,40 @@
 @inject IdentityRedirectManager RedirectManager
 @inject ILogger<LoginWithRecoveryCode> Logger
 
-<PageTitle>Recovery code verification</PageTitle>
+<PageTitle>Código de recuperación · Mini ERP</PageTitle>
 
-<h1>Recovery code verification</h1>
-<hr />
+<header class="auth-head">
+    <h1>Código de recuperación</h1>
+    <p>Usa uno de los códigos que guardaste al activar la verificación en dos pasos.</p>
+</header>
+
 <StatusMessage Message="@message" />
-<p>
-    You have requested to log in with a recovery code. This login will not be remembered until you provide
-    an authenticator app code at log in or disable 2FA and log in again.
-</p>
-<div class="row">
-    <div class="col-md-4">
-        <EditForm Model="Input" FormName="login-with-recovery-code" OnValidSubmit="OnValidSubmitAsync" method="post">
-            <DataAnnotationsValidator />
-            <ValidationSummary class="text-danger" role="alert" />
-            <div class="form-floating mb-3">
-                <InputText @bind-Value="Input.RecoveryCode" id="Input.RecoveryCode" class="form-control" autocomplete="off" placeholder="RecoveryCode" />
-                <label for="Input.RecoveryCode" class="form-label">Recovery Code</label>
-                <ValidationMessage For="() => Input.RecoveryCode" class="text-danger" />
-            </div>
-            <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-        </EditForm>
+
+<EditForm Model="Input" FormName="login-with-recovery-code" OnValidSubmit="OnValidSubmitAsync" method="post">
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="Input.RecoveryCode" id="Input.RecoveryCode" class="form-control" autocomplete="off" placeholder="código de recuperación" />
+        <label for="Input.RecoveryCode" class="form-label">Código de recuperación</label>
+        <ValidationMessage For="() => Input.RecoveryCode" class="text-danger" />
     </div>
-</div>
+
+    <div class="auth-note">
+        <p>
+            Cada código sirve una sola vez, y esta sesión no se recordará hasta que vuelvas
+            a entrar con la aplicación de autenticación.
+        </p>
+    </div>
+
+    <div class="auth-sep"></div>
+
+    <button type="submit" class="w-100 btn btn-lg btn-primary">Entrar</button>
+
+    <p class="auth-foot">
+        <a href="Account/Login">Volver a iniciar sesión</a>
+    </p>
+</EditForm>
 
 @code {
     private string? message;
@@ -73,15 +85,15 @@
         else
         {
             Logger.LogWarning("Invalid recovery code entered for user with ID '{UserId}' ", userId);
-            message = "Error: Invalid recovery code entered.";
+            message = "Error: ese código de recuperación no es válido o ya se usó.";
         }
     }
 
     private sealed class InputModel
     {
-        [Required]
+        [Required(ErrorMessage = "Escribe un código de recuperación.")]
         [DataType(DataType.Text)]
-        [Display(Name = "Recovery Code")]
+        [Display(Name = "Código de recuperación")]
         public string RecoveryCode { get; set; } = "";
     }
 }
