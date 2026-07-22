@@ -1,0 +1,83 @@
+@page "/finanzas/flujo-caja"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IFlujoCajaService ServicioFlujo
+
+<PageTitle>Flujo de caja</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Flujo de caja</h1>
+    <a class="btn btn-outline-secondary" href="/finanzas">Volver</a>
+</div>
+
+<div class="row g-2 mb-4 align-items-end">
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Desde</label>
+        <input class="form-control" type="date" @bind="desde" @bind:after="Cargar" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label small text-muted">Hasta</label>
+        <input class="form-control" type="date" @bind="hasta" @bind:after="Cargar" />
+    </div>
+</div>
+
+@if (flujo is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table align-middle" style="max-width: 520px;">
+            <tbody>
+                <tr>
+                    <td>+ Ventas de contado</td>
+                    <td class="text-end">@Formato.Dinero(flujo.VentasContado)</td>
+                </tr>
+                <tr>
+                    <td>+ Cobros a clientes</td>
+                    <td class="text-end">@Formato.Dinero(flujo.Cobros)</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="fw-semibold">= Entradas</td>
+                    <td class="text-end fw-semibold">@Formato.Dinero(flujo.Entradas)</td>
+                </tr>
+                <tr>
+                    <td>− Egresos</td>
+                    <td class="text-end text-muted">@Formato.Dinero(flujo.Egresos)</td>
+                </tr>
+                <tr>
+                    <td>− Pagos a proveedor</td>
+                    <td class="text-end text-muted">@Formato.Dinero(flujo.Pagos)</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="fw-semibold">= Salidas</td>
+                    <td class="text-end fw-semibold">@Formato.Dinero(flujo.Salidas)</td>
+                </tr>
+                <tr class="table-group-divider">
+                    <td class="fw-bold fs-5">= Efectivo neto</td>
+                    <td class="text-end fw-bold fs-5 @(flujo.EfectivoNeto < 0 ? "text-danger" : "text-success")">
+                        @Formato.Dinero(flujo.EfectivoNeto)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <p class="text-muted small">
+        Mide el efectivo real, no la ganancia. No entran las ventas a crédito que aún no se han
+        cobrado: se venderá, pero todavía no es dinero en la gaveta.
+    </p>
+}
+
+@code {
+    private FlujoCaja? flujo;
+
+    private DateTime desde = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+    private DateTime hasta = DateTime.UtcNow.Date;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar() =>
+        flujo = await ServicioFlujo.ObtenerAsync(new FiltroPeriodo(desde, hasta));
+}
