@@ -126,11 +126,11 @@ los pagos. Antes de extenderlo, apropiátelo:
 |---|-------|------------------|
 | 1 | **Cobro a cliente** | ✅ Hecho. |
 | 2 | **Pago a proveedor** | ✅ Hecho. |
-| 3 | **Estado de cuenta del cliente** | Facturas a crédito, abonos y saldo. Es lo que hoy vive en el cuaderno de fiados. |
-| 4 | **Cuentas por cobrar** | Quién debe, cuánto y desde hace cuántos días. Usa `Cliente.DiasCredito` para marcar lo vencido. |
-| 5 | **Cuentas por pagar** | Lo mismo con los proveedores, usando `Proveedor.DiasCredito`. |
-| 6 | **Devolución a proveedor** | Se devuelve mercancía de una compra recibida, el inventario baja y el balance del proveedor se ajusta. `TipoMovimiento.DevolucionProveedor` ya existe y nadie lo usa. |
-| 7 | **Historial de compras del cliente** | En su ficha, para saber qué le vendes y con qué frecuencia. |
+| 3 | **Estado de cuenta del cliente** | ✅ Hecho. Facturas a crédito, abonos y saldo. |
+| 4 | **Cuentas por cobrar** | ✅ Hecho. Incluye días y monto vencido. |
+| 5 | **Cuentas por pagar** | ✅ Hecho. Incluye días y monto vencido. |
+| 6 | **Devolución a proveedor** | ✅ Hecho en `dionis/cierre-asignaciones`. Baja inventario, ajusta el saldo, deja rastro y tiene migración/UI/pruebas. Pendiente aplicar la migración y tomar capturas con SQL Server activo. |
+| 7 | **Historial de compras del cliente** | ✅ Hecho mediante el estado de cuenta/historial de su ficha. |
 
 ### Gate de Dionis
 

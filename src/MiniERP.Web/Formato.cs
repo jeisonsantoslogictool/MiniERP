@@ -66,6 +66,20 @@ public static class Formato
         _ => "text-bg-light"
     };
 
+    public static string EstadoDevolucion(EstadoDevolucion estado) => estado switch
+    {
+        Domain.Compras.EstadoDevolucion.Borrador => "Borrador",
+        Domain.Compras.EstadoDevolucion.Confirmada => "Confirmada",
+        _ => estado.ToString()
+    };
+
+    public static string ClaseEstadoDevolucion(EstadoDevolucion estado) => estado switch
+    {
+        Domain.Compras.EstadoDevolucion.Borrador => "text-bg-warning",
+        Domain.Compras.EstadoDevolucion.Confirmada => "text-bg-success",
+        _ => "text-bg-light"
+    };
+
     public static string EstadoFactura(Domain.Ventas.EstadoFactura estado) => estado switch
     {
         Domain.Ventas.EstadoFactura.Emitida => "Emitida",

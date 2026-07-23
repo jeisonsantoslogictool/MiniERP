@@ -13,9 +13,11 @@ public static partial class DependencyInjection
         services.AddScoped<IProveedorRepositorio, ProveedorRepositorio>();
         services.AddScoped<ICompraRepositorio, CompraRepositorio>();
         services.AddScoped<IPagosRepositorio, PagosRepositorio>();
+        services.AddScoped<IDevolucionCompraRepositorio, DevolucionCompraRepositorio>();
         services.AddScoped<IProveedorService, ProveedorService>();
         services.AddScoped<ICompraService, CompraService>();
         services.AddScoped<IPagosService, PagosService>();
+        services.AddScoped<IDevolucionCompraService, DevolucionCompraService>();
 
         return services;
     }

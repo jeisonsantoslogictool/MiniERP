@@ -110,3 +110,76 @@ public class LineaCompraConfiguration : IEntityTypeConfiguration<LineaCompra>
         builder.Ignore(l => l.Total);
     }
 }
+
+public class DevolucionCompraConfiguration : IEntityTypeConfiguration<DevolucionCompra>
+{
+    public void Configure(EntityTypeBuilder<DevolucionCompra> builder)
+    {
+        builder.ToTable("DevolucionesCompra");
+        builder.HasKey(d => d.Id);
+
+        builder.Property(d => d.Numero).IsRequired().HasMaxLength(20);
+        builder.Property(d => d.Motivo).IsRequired().HasMaxLength(500);
+        builder.Property(d => d.Estado).HasConversion<int>();
+        builder.Property(d => d.Subtotal).HasPrecision(18, 2);
+        builder.Property(d => d.Itbis).HasPrecision(18, 2);
+        builder.Property(d => d.Total).HasPrecision(18, 2);
+        builder.Property(d => d.BalanceAnterior).HasPrecision(18, 2);
+        builder.Property(d => d.BalanceResultante).HasPrecision(18, 2);
+        builder.Property(d => d.CreadoPor).HasMaxLength(450);
+        builder.Property(d => d.ModificadoPor).HasMaxLength(450);
+
+        builder.HasIndex(d => d.Numero).IsUnique();
+        builder.HasIndex(d => new { d.Estado, d.Fecha });
+        builder.HasIndex(d => new { d.CompraId, d.Estado });
+        builder.HasIndex(d => new { d.ProveedorId, d.Fecha });
+
+        builder.HasOne(d => d.Compra)
+            .WithMany()
+            .HasForeignKey(d => d.CompraId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(d => d.Proveedor)
+            .WithMany()
+            .HasForeignKey(d => d.ProveedorId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(d => d.Lineas)
+            .WithOne(l => l.Devolucion)
+            .HasForeignKey(l => l.DevolucionCompraId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.Ignore(d => d.EsEditable);
+    }
+}
+
+public class LineaDevolucionCompraConfiguration : IEntityTypeConfiguration<LineaDevolucionCompra>
+{
+    public void Configure(EntityTypeBuilder<LineaDevolucionCompra> builder)
+    {
+        builder.ToTable("LineasDevolucionCompra");
+        builder.HasKey(l => l.Id);
+
+        builder.Property(l => l.Descripcion).IsRequired().HasMaxLength(200);
+        builder.Property(l => l.Cantidad).HasPrecision(18, 3);
+        builder.Property(l => l.CostoUnitario).HasPrecision(18, 4);
+        builder.Property(l => l.TasaItbis).HasPrecision(5, 4);
+        builder.Property(l => l.CreadoPor).HasMaxLength(450);
+        builder.Property(l => l.ModificadoPor).HasMaxLength(450);
+
+        builder.HasOne(l => l.LineaCompra)
+            .WithMany()
+            .HasForeignKey(l => l.LineaCompraId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(l => l.Producto)
+            .WithMany()
+            .HasForeignKey(l => l.ProductoId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(l => l.LineaCompraId);
+        builder.Ignore(l => l.Subtotal);
+        builder.Ignore(l => l.Itbis);
+        builder.Ignore(l => l.Total);
+    }
+}

@@ -136,6 +136,8 @@ dotnet ef migrations add <Nombre> \
 ## Documentación
 
 - [Plan maestro](Docs/Plan-Maestro.md) — fases, gates, reparto del equipo y cronograma.
+- [Estado actual](Docs/Estado-Actual.md) — contraste entre la planificación y lo que
+  realmente existe en `main`, con pendientes y orden de cierre.
 
 ## Fuera de alcance
 

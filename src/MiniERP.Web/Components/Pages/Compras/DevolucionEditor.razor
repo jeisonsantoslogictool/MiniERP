@@ -1,0 +1,236 @@
+@page "/compras/devoluciones/nueva"
+@page "/compras/devoluciones/{Id:int}"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IDevolucionCompraService Servicio
+@inject NavigationManager Nav
+@inject AuthenticationStateProvider Auth
+
+<PageTitle>@(Id is null ? "Nueva devolución" : form.Numero)</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="mb-0">@(Id is null ? "Nueva devolución" : form.Numero)</h1>
+        @if (Id is not null)
+        {
+            <span class="badge @Formato.ClaseEstadoDevolucion(form.Estado)">
+                @Formato.EstadoDevolucion(form.Estado)
+            </span>
+        }
+    </div>
+    <a class="btn btn-outline-secondary" href="/compras/devoluciones">Volver</a>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+@if (aviso is not null)
+{
+    <div class="alert alert-success" role="alert">@aviso</div>
+}
+
+@if (cargando)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (noEncontrada)
+{
+    <div class="alert alert-warning">No se encontró la compra recibida o la devolución.</div>
+}
+else
+{
+    <div class="row g-3 mb-3">
+        <div class="col-md-2">
+            <label class="form-label">Número</label>
+            <input class="form-control" @bind="form.Numero" disabled="@(!form.EsEditable)" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Compra</label>
+            <input class="form-control" value="@form.CompraNumero" disabled />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label">Proveedor</label>
+            <input class="form-control" value="@form.ProveedorNombre" disabled />
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Motivo</label>
+            <input class="form-control" @bind="form.Motivo" disabled="@(!form.EsEditable)"
+                   placeholder="Ej.: producto vencido o dañado" />
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th class="text-end">Comprado</th>
+                    <th class="text-end">Devolvible</th>
+                    <th style="width: 180px">Cantidad</th>
+                    <th class="text-end">Costo</th>
+                    <th class="text-end">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var linea in form.Lineas)
+                {
+                    <tr>
+                        <td><code>@linea.Codigo</code> @linea.Descripcion</td>
+                        <td class="text-end">@Formato.Cantidad(linea.CantidadComprada, linea.PermiteDecimales) @linea.UnidadMedida</td>
+                        <td class="text-end">@Formato.Cantidad(linea.Devolvible, linea.PermiteDecimales) @linea.UnidadMedida</td>
+                        <td>
+                            @if (form.EsEditable)
+                            {
+                                <div class="input-group input-group-sm">
+                                    <input class="form-control" type="number" min="0" max="@linea.Devolvible"
+                                           step="@(linea.PermiteDecimales ? "0.001" : "1")"
+                                           value="@linea.Cantidad"
+                                           @onchange="e => CambiarCantidad(linea, e)" />
+                                    <span class="input-group-text">@linea.UnidadMedida</span>
+                                </div>
+                            }
+                            else
+                            {
+                                <span>@Formato.Cantidad(linea.Cantidad, linea.PermiteDecimales) @linea.UnidadMedida</span>
+                            }
+                        </td>
+                        <td class="text-end">@Formato.Dinero(linea.CostoUnitario)</td>
+                        <td class="text-end fw-semibold">@Formato.Dinero(linea.Total)</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="4"></td>
+                    <th class="text-end">Total</th>
+                    <th class="text-end fs-5">@Formato.Dinero(form.Total)</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="d-flex gap-2 mt-3">
+        @if (form.EsEditable)
+        {
+            <button class="btn btn-primary" @onclick="Guardar" disabled="@ocupado">
+                Guardar borrador
+            </button>
+            @if (Id is not null)
+            {
+                <button class="btn btn-success" @onclick="Confirmar" disabled="@ocupado">
+                    Confirmar devolución
+                </button>
+            }
+        }
+    </div>
+    <p class="form-text mt-2">
+        Confirmar baja la existencia, ajusta el saldo del proveedor y congela el documento.
+    </p>
+}
+
+@code {
+    [Parameter] public int? Id { get; set; }
+    [SupplyParameterFromQuery] public int? CompraId { get; set; }
+
+    private DevolucionCompraFormDto form = new();
+    private string? usuarioId;
+    private string? error;
+    private string? aviso;
+    private bool cargando = true;
+    private bool ocupado;
+    private bool noEncontrada;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+        var estadoAuth = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estadoAuth.User.Identity?.Name;
+
+        if (Id is { } id)
+        {
+            var existente = await Servicio.ObtenerParaVerAsync(id);
+            if (existente is null)
+                noEncontrada = true;
+            else
+                form = existente;
+        }
+        else if (CompraId is { } compraId)
+        {
+            var nueva = await Servicio.NuevaDesdeCompraAsync(compraId);
+            if (nueva.Fallo)
+            {
+                error = nueva.Error;
+                noEncontrada = true;
+            }
+            else
+                form = nueva.Valor!;
+        }
+        else
+            noEncontrada = true;
+
+        cargando = false;
+    }
+
+    private static void CambiarCantidad(LineaDevolucionFormDto linea, ChangeEventArgs e)
+    {
+        if (decimal.TryParse(e.Value?.ToString(), out var valor))
+            linea.Cantidad = valor;
+    }
+
+    private async Task Guardar()
+    {
+        error = aviso = null;
+        ocupado = true;
+        try
+        {
+            var resultado = await Servicio.GuardarAsync(form, usuarioId);
+            if (resultado.Fallo)
+            {
+                error = resultado.Error;
+                return;
+            }
+
+            if (Id is null)
+            {
+                Nav.NavigateTo($"/compras/devoluciones/{resultado.Valor}");
+                return;
+            }
+
+            aviso = "Borrador guardado.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
+
+    private async Task Confirmar()
+    {
+        error = aviso = null;
+        ocupado = true;
+        try
+        {
+            var guardado = await Servicio.GuardarAsync(form, usuarioId);
+            if (guardado.Fallo)
+            {
+                error = guardado.Error;
+                return;
+            }
+
+            var resultado = await Servicio.ConfirmarAsync(form.Id, usuarioId);
+            if (resultado.Fallo)
+            {
+                error = resultado.Error;
+                return;
+            }
+
+            form = (await Servicio.ObtenerParaVerAsync(form.Id))!;
+            aviso = "Devolución confirmada. Inventario y saldo del proveedor actualizados.";
+        }
+        finally
+        {
+            ocupado = false;
+        }
+    }
+}

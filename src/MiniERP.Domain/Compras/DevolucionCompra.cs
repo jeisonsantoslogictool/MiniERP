@@ -29,6 +29,13 @@ public class DevolucionCompra : EntidadBase
     public decimal Itbis { get; set; }
     public decimal Total { get; set; }
 
+    /// <summary>
+    /// Rastro del saldo del proveedor al confirmar. Un resultado negativo representa
+    /// un crédito a favor del comercio cuando la mercancía ya se había pagado.
+    /// </summary>
+    public decimal BalanceAnterior { get; set; }
+    public decimal BalanceResultante { get; set; }
+
     public ICollection<LineaDevolucionCompra> Lineas { get; set; } = [];
 
     public bool EsEditable => Estado == EstadoDevolucion.Borrador;

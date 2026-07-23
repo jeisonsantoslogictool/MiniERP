@@ -1,0 +1,123 @@
+@page "/compras/devoluciones"
+@attribute [Authorize]
+@rendermode InteractiveServer
+@inject IDevolucionCompraService Servicio
+
+<PageTitle>Devoluciones a proveedor</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="mb-0">Devoluciones a proveedor</h1>
+        <p class="text-muted mb-0">Se crean desde una compra recibida.</p>
+    </div>
+    <a class="btn btn-outline-secondary" href="/compras">Volver a compras</a>
+</div>
+
+<div class="row g-2 mb-3">
+    <div class="col-md-7">
+        <input class="form-control" placeholder="Buscar por devolución, compra, proveedor o motivo"
+               value="@texto" @oninput="CambiarTexto" />
+    </div>
+    <div class="col-md-3">
+        <select class="form-select" value="@(estado?.ToString() ?? "")" @onchange="CambiarEstado">
+            <option value="">Todos los estados</option>
+            <option value="@EstadoDevolucion.Borrador">Borrador</option>
+            <option value="@EstadoDevolucion.Confirmada">Confirmada</option>
+        </select>
+    </div>
+</div>
+
+@if (pagina is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (pagina.Total == 0)
+{
+    <div class="alert alert-secondary">No hay devoluciones que coincidan con los filtros.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Compra</th>
+                    <th>Proveedor</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Motivo</th>
+                    <th class="text-end">Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in pagina.Items)
+                {
+                    <tr>
+                        <td><code>@d.Numero</code></td>
+                        <td>@d.CompraNumero</td>
+                        <td>@d.Proveedor</td>
+                        <td class="text-nowrap">@Formato.FechaHora(d.Fecha)</td>
+                        <td>
+                            <span class="badge @Formato.ClaseEstadoDevolucion(d.Estado)">
+                                @Formato.EstadoDevolucion(d.Estado)
+                            </span>
+                        </td>
+                        <td>@d.Motivo</td>
+                        <td class="text-end fw-semibold">@Formato.Dinero(d.Total)</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-secondary" href="/compras/devoluciones/@d.Id">
+                                @(d.Estado == EstadoDevolucion.Borrador ? "Editar" : "Ver")
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center">
+        <small class="text-muted">@pagina.Total devolución(es)</small>
+        <div class="btn-group">
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(!pagina.HayAnterior)"
+                    @onclick="() => IrPagina(pagina.Pagina - 1)">Anterior</button>
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(!pagina.HaySiguiente)"
+                    @onclick="() => IrPagina(pagina.Pagina + 1)">Siguiente</button>
+        </div>
+    </div>
+}
+
+@code {
+    private PaginaDe<DevolucionCompraListaDto>? pagina;
+    private string? texto;
+    private EstadoDevolucion? estado;
+    private int paginaActual = 1;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar() =>
+        pagina = await Servicio.BuscarAsync(new FiltroDevoluciones(
+            Texto: texto, Estado: estado, Pagina: paginaActual));
+
+    private async Task CambiarTexto(ChangeEventArgs e)
+    {
+        texto = e.Value?.ToString();
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task CambiarEstado(ChangeEventArgs e)
+    {
+        var valor = e.Value?.ToString();
+        estado = string.IsNullOrEmpty(valor) ? null : Enum.Parse<EstadoDevolucion>(valor);
+        paginaActual = 1;
+        await Cargar();
+    }
+
+    private async Task IrPagina(int numero)
+    {
+        paginaActual = numero;
+        await Cargar();
+    }
+}

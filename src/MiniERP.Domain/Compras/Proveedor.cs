@@ -66,6 +66,24 @@ public class Proveedor : EntidadBase
     }
 
     /// <summary>
+    /// Aplica el crédito generado por una devolución. Puede dejar el saldo negativo:
+    /// eso representa crédito a favor del comercio por mercancía ya pagada.
+    /// </summary>
+    public void AplicarDevolucion(DevolucionCompra devolucion)
+    {
+        ArgumentNullException.ThrowIfNull(devolucion);
+
+        if (devolucion.Total <= 0)
+            throw new InvalidOperationException("El total de la devolución debe ser positivo.");
+
+        devolucion.BalanceAnterior = BalanceActual;
+        devolucion.BalanceResultante =
+            RetailConstants.RedondearImporte(BalanceActual - devolucion.Total);
+        devolucion.ProveedorId = Id;
+        BalanceActual = devolucion.BalanceResultante;
+    }
+
+    /// <summary>
     /// Valida el largo del documento segun su tipo. Un proveedor formal trae RNC;
     /// el que vende en la puerta puede traer solo cedula.
     /// </summary>

@@ -141,6 +141,11 @@ public class DevolucionCompraService(IDevolucionCompraRepositorio devoluciones) 
         try
         {
             var movimientos = devolucion.Confirmar(productos, devolvibleMaximo, usuarioId);
+
+            if (devolucion.Proveedor is null)
+                return Resultado.Falla("No se encontró el proveedor de la devolución.");
+
+            devolucion.Proveedor.AplicarDevolucion(devolucion);
             devoluciones.AgregarMovimientos(movimientos);
         }
         catch (InvalidOperationException ex)

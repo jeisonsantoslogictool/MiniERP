@@ -36,6 +36,8 @@ public class MiniErpDbContext(DbContextOptions<MiniErpDbContext> options)
     public DbSet<Compra> Compras => Set<Compra>();
     public DbSet<LineaCompra> LineasCompra => Set<LineaCompra>();
     public DbSet<Pago> Pagos => Set<Pago>();
+    public DbSet<DevolucionCompra> DevolucionesCompra => Set<DevolucionCompra>();
+    public DbSet<LineaDevolucionCompra> LineasDevolucionCompra => Set<LineaDevolucionCompra>();
 
     // Finanzas
     public DbSet<CategoriaEgreso> CategoriasEgreso => Set<CategoriaEgreso>();

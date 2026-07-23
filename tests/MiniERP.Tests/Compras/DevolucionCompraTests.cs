@@ -212,4 +212,32 @@ public class DevolucionCompraTests
 
         Assert.Equal(35, producto.Costo); // el costo vivo no cambia
     }
+
+    [Fact]
+    public void La_devolucion_baja_el_balance_del_proveedor_y_deja_rastro()
+    {
+        var proveedor = new Proveedor { Id = 1, BalanceActual = 500m };
+        var dev = Devolucion(3, costoUnitario: 100m);
+        dev.Recalcular();
+
+        proveedor.AplicarDevolucion(dev);
+
+        Assert.Equal(500m, dev.BalanceAnterior);
+        Assert.Equal(200m, dev.BalanceResultante);
+        Assert.Equal(200m, proveedor.BalanceActual);
+        Assert.Equal(proveedor.Id, dev.ProveedorId);
+    }
+
+    [Fact]
+    public void Una_devolucion_pagada_queda_como_credito_a_favor_del_comercio()
+    {
+        var proveedor = new Proveedor { Id = 1, BalanceActual = 0m };
+        var dev = Devolucion(1, costoUnitario: 118m);
+        dev.Recalcular();
+
+        proveedor.AplicarDevolucion(dev);
+
+        Assert.Equal(-118m, proveedor.BalanceActual);
+        Assert.Equal(-118m, dev.BalanceResultante);
+    }
 }

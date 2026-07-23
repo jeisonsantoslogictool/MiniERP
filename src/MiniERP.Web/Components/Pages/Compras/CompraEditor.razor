@@ -45,6 +45,11 @@ else
             Esta compra ya se recibió el @Formato.FechaHora(form.Fecha) y el inventario se movió.
             El documento queda congelado: para revertirla hay que registrar una devolución al proveedor.
         </div>
+        <div class="mb-3">
+            <a class="btn btn-outline-danger" href="/compras/devoluciones/nueva?compraId=@form.Id">
+                Devolver mercancía
+            </a>
+        </div>
     }
 
     <div class="row g-3 mb-3">
