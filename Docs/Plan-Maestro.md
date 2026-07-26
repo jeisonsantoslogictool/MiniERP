@@ -64,6 +64,7 @@ no en la ocho.
 | S5 | 17–23 ago | F2 | Compras · POS | Cierra Cap. III |
 | S6 | 24–30 ago | F3 | Finanzas · NCF y e-CF | Cap. IV: compras y POS |
 | S7 | 31 ago–6 sep | F3 | Finanzas · NCF y e-CF | Cap. IV: finanzas · Plan de pruebas (5.1) |
+| — | antes de F4 | Seg. | **Usuarios y permisos** · 3 ramas · [Seguridad-Permisos.md](Seguridad-Permisos.md) | Sección 4.8 |
 | S8 | 7–13 sep | F4 | Pruebas, integración, despliegue | Cierra Cap. IV |
 | S9 | 14–20 sep | F4 | Piloto en operación · soporte | Captura de indicadores · arranca Cap. V |
 | S10 | 21–27 sep | F5 | Congelado · solo correcciones | Cierra Cap. V · informe final · ensayo de defensa |
@@ -72,6 +73,13 @@ no en la ocho.
 > `dionis/cobros-pagos` — no en un solo track. El detalle por rama, con tareas y "gate",
 > está en [Asignaciones.md](Asignaciones.md); las fases de abajo ya dicen qué rama
 > construye cada módulo.
+
+> **Addendum — Seguridad y permisos (transversal, antes de F4).** La gestión de usuarios y
+> **permisos por usuario** se nos pasó en la planificación: hoy los roles están definidos
+> pero no gobiernan nada, y cualquier sesión llega a todo. Se reparte en tres ramas nuevas
+> —`jeison/seguridad`, `dionis/permisos` y `samuel/permisos`—: Jeison construye el núcleo
+> primero, y Dionis y Samuel gatean sus módulos después. Amplía la sección 4.8. Plan,
+> tareas y "gate" por rama en [Seguridad-Permisos.md](Seguridad-Permisos.md).
 
 ---
 
