@@ -1,5 +1,5 @@
 @page "/ventas/facturas/{Id:int}"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permisos.VentasVer)]
 @rendermode InteractiveServer
 @inject IVentaService ServicioVentas
 @inject IJSRuntime JS

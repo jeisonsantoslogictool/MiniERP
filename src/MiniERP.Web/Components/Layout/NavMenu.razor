@@ -1,4 +1,5 @@
 @implements IDisposable
+@using MiniERP.Domain.Core
 
 @inject NavigationManager NavigationManager
 
@@ -25,41 +26,61 @@
 
         <AuthorizeView>
             <Authorized>
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="inventario">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8" /></svg> Inventario
-                    </NavLink>
-                </div>
+                <AuthorizeView Policy="@Permisos.InventarioVer" Context="ctxInv">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="inventario">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8" /></svg> Inventario
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="ventas" Match="NavLinkMatch.All">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.4 12.4a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 7H6" /></svg> Punto de venta
-                    </NavLink>
-                </div>
+                <AuthorizeView Policy="@Permisos.VentasFacturar" Context="ctxPos">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="ventas" Match="NavLinkMatch.All">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.4 12.4a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L21 7H6" /></svg> Punto de venta
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="ventas/facturas">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l4 4v15a1 1 0 0 1-1.4.9L15 20l-2.5 1.9L10 20l-2.5 1.9L5 20l-.6.9A1 1 0 0 1 3 20V4a2 2 0 0 1 2-2z" /><path d="M8 8h7M8 12h7" /></svg> Facturas
-                    </NavLink>
-                </div>
+                <AuthorizeView Policy="@Permisos.VentasVer" Context="ctxFac">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="ventas/facturas">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l4 4v15a1 1 0 0 1-1.4.9L15 20l-2.5 1.9L10 20l-2.5 1.9L5 20l-.6.9A1 1 0 0 1 3 20V4a2 2 0 0 1 2-2z" /><path d="M8 8h7M8 12h7" /></svg> Facturas
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="compras">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 3h13v10H1zM14 8h4l3 3v2h-7" /><circle cx="6" cy="18" r="1.6" /><circle cx="18" cy="18" r="1.6" /></svg> Compras
-                    </NavLink>
-                </div>
+                <AuthorizeView Policy="@Permisos.ComprasVer" Context="ctxCom">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="compras">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 3h13v10H1zM14 8h4l3 3v2h-7" /><circle cx="6" cy="18" r="1.6" /><circle cx="18" cy="18" r="1.6" /></svg> Compras
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="clientes">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2" /><path d="M3 20a6 6 0 0 1 12 0M16 5.5a3 3 0 0 1 0 5M21 20a5.5 5.5 0 0 0-4-5.3" /></svg> Clientes
-                    </NavLink>
-                </div>
+                <AuthorizeView Policy="@Permisos.ClientesVer" Context="ctxCli">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="clientes">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2" /><path d="M3 20a6 6 0 0 1 12 0M16 5.5a3 3 0 0 1 0 5M21 20a5.5 5.5 0 0 0-4-5.3" /></svg> Clientes
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
 
-                <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="finanzas">
-                        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg> Finanzas
-                    </NavLink>
-                </div>
+                <AuthorizeView Policy="@Permisos.FinanzasVer" Context="ctxFin">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="finanzas">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" /></svg> Finanzas
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
+
+                <AuthorizeView Policy="@Permisos.SistemaUsuarios" Context="permisoUsuarios">
+                    <div class="nav-item px-3">
+                        <NavLink class="nav-link" href="usuarios">
+                            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="7" r="3.2" /><path d="M2 21a7 7 0 0 1 14 0M17 11l2 2 4-4" /></svg> Usuarios
+                        </NavLink>
+                    </div>
+                </AuthorizeView>
             </Authorized>
         </AuthorizeView>
 

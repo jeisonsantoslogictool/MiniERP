@@ -1,5 +1,5 @@
 @page "/ventas/ncf"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permisos.VentasNcf)]
 @rendermode InteractiveServer
 @inject ISecuenciaNcfService ServicioSecuencias
 @inject AuthenticationStateProvider Auth

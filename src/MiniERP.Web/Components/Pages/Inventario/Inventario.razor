@@ -1,5 +1,5 @@
 @page "/inventario"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permisos.InventarioVer)]
 @rendermode InteractiveServer
 @inject IProductoService ServicioProductos
 

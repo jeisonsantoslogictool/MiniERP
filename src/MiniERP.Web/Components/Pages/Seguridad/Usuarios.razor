@@ -1,0 +1,126 @@
+@page "/usuarios"
+@attribute [Authorize(Policy = Permisos.SistemaUsuarios)]
+@rendermode InteractiveServer
+@inject IGestionUsuariosService Servicio
+
+<PageTitle>Usuarios</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Usuarios</h1>
+    <a class="btn btn-primary" href="/usuarios/nuevo">Nuevo usuario</a>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+@if (claveNueva is not null)
+{
+    <div class="alert alert-success" role="alert">
+        <strong>Clave restablecida para @claveNuevaUsuario.</strong>
+        Entrégasela ahora — no se vuelve a mostrar:
+        <code class="fs-5 ms-2">@claveNueva</code>
+    </div>
+}
+
+@if (usuarios is null)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (usuarios.Count == 0)
+{
+    <div class="alert alert-secondary">No hay usuarios registrados.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in usuarios)
+                {
+                    <tr class="@(u.Activo ? "" : "opacity-50")">
+                        <td>@u.Nombre</td>
+                        <td class="small">@u.Email</td>
+                        <td>@(string.IsNullOrEmpty(u.Rol) ? "—" : u.Rol)</td>
+                        <td>
+                            @if (u.Activo)
+                            {
+                                <span class="badge text-bg-success">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="badge text-bg-secondary">Inactivo</span>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-primary me-1" href="/usuarios/@u.Id/permisos">Permisos</a>
+                            <a class="btn btn-sm btn-outline-secondary me-1" href="/usuarios/@u.Id">Editar</a>
+                            <button class="btn btn-sm btn-outline-secondary me-1" @onclick="() => Resetear(u)">Resetear clave</button>
+                            @if (u.Activo)
+                            {
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => CambiarEstado(u, false)">Desactivar</button>
+                            }
+                            else
+                            {
+                                <button class="btn btn-sm btn-outline-success" @onclick="() => CambiarEstado(u, true)">Activar</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private IReadOnlyList<UsuarioListaDto>? usuarios;
+    private string? error;
+    private string? claveNueva;
+    private string? claveNuevaUsuario;
+
+    protected override async Task OnInitializedAsync() => await Cargar();
+
+    private async Task Cargar() => usuarios = await Servicio.ListarAsync();
+
+    private async Task CambiarEstado(UsuarioListaDto u, bool activar)
+    {
+        error = null;
+        claveNueva = null;
+
+        var resultado = await Servicio.CambiarEstadoAsync(u.Id, activar);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+            return;
+        }
+
+        await Cargar();
+    }
+
+    private async Task Resetear(UsuarioListaDto u)
+    {
+        error = null;
+        claveNueva = null;
+
+        var resultado = await Servicio.ResetearClaveAsync(u.Id);
+
+        if (resultado.Fallo)
+        {
+            error = resultado.Error;
+            return;
+        }
+
+        claveNueva = resultado.Valor;
+        claveNuevaUsuario = u.Nombre;
+    }
+}

@@ -1,0 +1,143 @@
+@page "/usuarios/nuevo"
+@page "/usuarios/{Id}"
+@attribute [Authorize(Policy = Permisos.SistemaUsuarios)]
+@rendermode InteractiveServer
+@inject IGestionUsuariosService Servicio
+@inject NavigationManager Nav
+
+<PageTitle>@(EsNuevo ? "Nuevo usuario" : "Editar usuario")</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">@(EsNuevo ? "Nuevo usuario" : form.Nombre)</h1>
+    <a class="btn btn-outline-secondary" href="/usuarios">Volver</a>
+</div>
+
+@if (error is not null)
+{
+    <div class="alert alert-danger" role="alert">@error</div>
+}
+
+@if (cargando)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (noEncontrado)
+{
+    <div class="alert alert-warning">El usuario no existe.</div>
+}
+else
+{
+    <EditForm Model="form" OnValidSubmit="Guardar">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Nombre</label>
+                <input class="form-control" @bind="form.Nombre" />
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Correo</label>
+                <input class="form-control" type="email" @bind="form.Email" disabled="@(!EsNuevo)" />
+                @if (!EsNuevo)
+                {
+                    <div class="form-text">El correo identifica la cuenta y no se cambia aquí.</div>
+                }
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Rol (plantilla de permisos)</label>
+                <select class="form-select" @bind="form.Rol">
+                    @foreach (var rol in roles)
+                    {
+                        <option value="@rol">@rol</option>
+                    }
+                </select>
+                @if (EsNuevo)
+                {
+                    <div class="form-text">
+                        Al crear, se le asignan los permisos por defecto del rol. Luego los afinas en «Permisos».
+                    </div>
+                }
+            </div>
+            @if (EsNuevo)
+            {
+                <div class="col-md-6">
+                    <label class="form-label">Clave inicial</label>
+                    <input class="form-control" type="text" @bind="form.Clave" />
+                    <div class="form-text">Debe tener mayúscula, minúscula, dígito y símbolo.</div>
+                </div>
+            }
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" type="submit" disabled="@guardando">
+                @(guardando ? "Guardando..." : "Guardar")
+            </button>
+            <a class="btn btn-outline-secondary" href="/usuarios">Cancelar</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public string? Id { get; set; }
+
+    private UsuarioFormDto form = new();
+    private IReadOnlyList<string> roles = [];
+    private string? error;
+    private bool cargando = true;
+    private bool guardando;
+    private bool noEncontrado;
+
+    // La ruta literal "/usuarios/nuevo" gana sobre "/usuarios/{Id}", pero se blinda por si acaso.
+    private bool EsNuevo => string.IsNullOrEmpty(Id) || Id == "nuevo";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+        noEncontrado = false;
+        roles = Servicio.RolesDisponibles();
+
+        if (!EsNuevo)
+        {
+            var existente = await Servicio.ObtenerParaEditarAsync(Id!);
+
+            if (existente is null)
+            {
+                noEncontrado = true;
+                cargando = false;
+                return;
+            }
+
+            form = existente;
+        }
+        else
+        {
+            form = new UsuarioFormDto();
+        }
+
+        cargando = false;
+    }
+
+    private async Task Guardar()
+    {
+        error = null;
+        guardando = true;
+
+        try
+        {
+            var resultado = EsNuevo
+                ? await Servicio.CrearAsync(form)
+                : await Servicio.ActualizarAsync(form);
+
+            if (resultado.Fallo)
+            {
+                error = resultado.Error;
+                return;
+            }
+
+            Nav.NavigateTo("/usuarios");
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+}

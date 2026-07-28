@@ -1,5 +1,5 @@
 @page "/inventario/categorias"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permisos.InventarioEditar)]
 @rendermode InteractiveServer
 @inject ICategoriaService ServicioCategorias
 @inject AuthenticationStateProvider Auth

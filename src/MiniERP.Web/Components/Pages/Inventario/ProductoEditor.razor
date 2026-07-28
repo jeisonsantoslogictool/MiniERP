@@ -1,6 +1,6 @@
 @page "/inventario/productos/nuevo"
 @page "/inventario/productos/{Id:int}"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permisos.InventarioEditar)]
 @rendermode InteractiveServer
 @inject IProductoService ServicioProductos
 @inject ICategoriaService ServicioCategorias

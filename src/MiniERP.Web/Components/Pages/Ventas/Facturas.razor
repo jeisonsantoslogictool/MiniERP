@@ -1,5 +1,5 @@
 @page "/ventas/facturas"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permisos.VentasVer)]
 @rendermode InteractiveServer
 @inject IVentaService ServicioVentas
 

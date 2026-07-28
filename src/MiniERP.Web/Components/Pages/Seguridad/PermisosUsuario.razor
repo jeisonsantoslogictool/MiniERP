@@ -1,0 +1,140 @@
+@page "/usuarios/{Id}/permisos"
+@attribute [Authorize(Policy = Permisos.SistemaUsuarios)]
+@rendermode InteractiveServer
+@inject IGestionUsuariosService Servicio
+
+<PageTitle>Permisos del usuario</PageTitle>
+
+@if (cargando)
+{
+    <p class="text-muted">Cargando...</p>
+}
+else if (dto is null)
+{
+    <div class="alert alert-warning">El usuario no existe. <a href="/usuarios">Volver</a></div>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-1">
+        <h1 class="mb-0">Permisos</h1>
+        <a class="btn btn-outline-secondary" href="/usuarios">Volver</a>
+    </div>
+    <p class="text-muted">@dto.Nombre · @dto.Email · rol @(string.IsNullOrEmpty(dto.Rol) ? "—" : dto.Rol)</p>
+
+    @if (error is not null)
+    {
+        <div class="alert alert-danger" role="alert">@error</div>
+    }
+    @if (aviso is not null)
+    {
+        <div class="alert alert-success" role="alert">@aviso</div>
+    }
+
+    @if (dto.EsAdministrador)
+    {
+        <div class="alert alert-info">
+            Este usuario es <strong>Administrador</strong>: tiene acceso total por regla.
+            La matriz es informativa y no se le aplica.
+        </div>
+    }
+    else
+    {
+        <div class="d-flex flex-wrap gap-2 mb-3">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="CargarPreset">
+                Cargar preset del rol @dto.Rol
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="QuitarTodos">Quitar todos</button>
+        </div>
+
+        <div class="row g-3">
+            @foreach (var modulo in Permisos.Catalogo)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="border rounded p-3 h-100">
+                        <h2 class="h6 mb-3">@modulo.Nombre</h2>
+                        @foreach (var permiso in modulo.Permisos)
+                        {
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="chk-@permiso.Clave"
+                                       checked="@seleccion.Contains(permiso.Clave)"
+                                       @onchange="e => Alternar(permiso.Clave, e)" />
+                                <label class="form-check-label" for="chk-@permiso.Clave">@permiso.Etiqueta</label>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-primary" @onclick="Guardar" disabled="@guardando">
+                @(guardando ? "Guardando..." : "Guardar permisos")
+            </button>
+            <a class="btn btn-outline-secondary" href="/usuarios">Cancelar</a>
+        </div>
+    }
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+    private PermisosUsuarioDto? dto;
+    private HashSet<string> seleccion = new(StringComparer.Ordinal);
+    private string? error;
+    private string? aviso;
+    private bool cargando = true;
+    private bool guardando;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        cargando = true;
+        dto = await Servicio.ObtenerPermisosAsync(Id);
+
+        if (dto is not null)
+            seleccion = new HashSet<string>(dto.Permisos, StringComparer.Ordinal);
+
+        cargando = false;
+    }
+
+    private void Alternar(string permiso, ChangeEventArgs e)
+    {
+        if ((bool?)e.Value == true)
+            seleccion.Add(permiso);
+        else
+            seleccion.Remove(permiso);
+    }
+
+    private void CargarPreset()
+    {
+        if (dto is null)
+            return;
+
+        seleccion = new HashSet<string>(Permisos.PorDefectoDeRol(dto.Rol), StringComparer.Ordinal);
+    }
+
+    private void QuitarTodos() => seleccion.Clear();
+
+    private async Task Guardar()
+    {
+        error = aviso = null;
+        guardando = true;
+
+        try
+        {
+            var resultado = await Servicio.GuardarPermisosAsync(Id, seleccion.ToList());
+
+            if (resultado.Fallo)
+            {
+                error = resultado.Error;
+                return;
+            }
+
+            aviso = "Permisos guardados.";
+        }
+        finally
+        {
+            guardando = false;
+        }
+    }
+}
