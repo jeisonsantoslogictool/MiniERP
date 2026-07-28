@@ -1,5 +1,5 @@
 @page "/compras"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "compras.ver")]
 @rendermode InteractiveServer
 @inject ICompraService ServicioCompras
 
@@ -9,7 +9,9 @@
     <h1 class="mb-0">Compras</h1>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-secondary" href="/compras/proveedores">Proveedores</a>
-        <a class="btn btn-primary" href="/compras/nueva">Nueva compra</a>
+        <AuthorizeView Policy="compras.recibir">
+            <a class="btn btn-primary" href="/compras/nueva">Nueva compra</a>
+        </AuthorizeView>
     </div>
 </div>
 
@@ -72,9 +74,11 @@ else
                         <td class="text-end text-muted">@Formato.Dinero(c.Itbis)</td>
                         <td class="text-end fw-semibold">@Formato.Dinero(c.Total)</td>
                         <td class="text-end">
-                            <a class="btn btn-sm btn-outline-secondary" href="/compras/@c.Id">
-                                @(c.Estado == EstadoCompra.Borrador ? "Editar" : "Ver")
-                            </a>
+                            <AuthorizeView Policy="compras.recibir">
+                                <a class="btn btn-sm btn-outline-secondary" href="/compras/@c.Id">
+                                    @(c.Estado == EstadoCompra.Borrador ? "Editar" : "Ver")
+                                </a>
+                            </AuthorizeView>
                         </td>
                     </tr>
                 }

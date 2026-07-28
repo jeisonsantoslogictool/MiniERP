@@ -1,5 +1,5 @@
 @page "/clientes/{ClienteId:int}/cobro"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "clientes.cobrar")]
 @rendermode InteractiveServer
 @inject IClienteService ServicioClientes
 @inject ICobrosService ServicioCobros
@@ -52,9 +52,11 @@
 
                         <div class="d-flex justify-content-between">
                             <a href="/clientes" class="btn btn-outline-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-success btn-lg" disabled="@(form.Monto <= 0 || form.Monto > cliente.BalanceActual)">
-                                Registrar Cobro
-                            </button>
+                            <AuthorizeView Policy="clientes.cobrar" Context="estadoAutorizacion">
+                                <button type="submit" class="btn btn-success btn-lg" disabled="@(form.Monto <= 0 || form.Monto > cliente.BalanceActual)">
+                                    Registrar Cobro
+                                </button>
+                            </AuthorizeView>
                         </div>
                     </EditForm>
                 }

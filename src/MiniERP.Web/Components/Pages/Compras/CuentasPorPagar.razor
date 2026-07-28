@@ -1,5 +1,5 @@
 @page "/compras/cuentas-por-pagar"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "compras.ver")]
 @rendermode InteractiveServer
 @inject IProveedorService ServicioProveedores
 
@@ -114,12 +114,16 @@ else
                         </td>
                         
                         <td class="text-end text-nowrap">
-                            <a class="btn btn-sm btn-outline-success me-1" href="/proveedores/@p.ProveedorId/pago">
-                                <i class="bi bi-cash"></i> Pagar
-                            </a>
-                            <a class="btn btn-sm btn-outline-secondary" href="/compras/proveedores/@p.ProveedorId">
-                                Historial
-                            </a>
+                            <AuthorizeView Policy="compras.pagar">
+                                <a class="btn btn-sm btn-outline-success me-1" href="/proveedores/@p.ProveedorId/pago">
+                                    <i class="bi bi-cash"></i> Pagar
+                                </a>
+                            </AuthorizeView>
+                            <AuthorizeView Policy="compras.recibir">
+                                <a class="btn btn-sm btn-outline-secondary" href="/compras/proveedores/@p.ProveedorId">
+                                    Historial
+                                </a>
+                            </AuthorizeView>
                         </td>
                     </tr>
                 }

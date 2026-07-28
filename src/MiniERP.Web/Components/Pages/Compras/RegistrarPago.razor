@@ -1,5 +1,5 @@
 @page "/proveedores/{ProveedorId:int}/pago"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "compras.pagar")]
 @rendermode InteractiveServer
 @inject IProveedorService ServicioProveedores
 @inject IPagosService ServicioPagos
@@ -52,9 +52,11 @@
 
                         <div class="d-flex justify-content-between">
                             <a href="/compras" class="btn btn-outline-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-success btn-lg" disabled="@(form.Monto <= 0 || form.Monto > proveedor.BalanceActual)">
-                                Registrar Pago
-                            </button>
+                            <AuthorizeView Policy="compras.pagar" Context="estadoAutorizacion">
+                                <button type="submit" class="btn btn-success btn-lg" disabled="@(form.Monto <= 0 || form.Monto > proveedor.BalanceActual)">
+                                    Registrar Pago
+                                </button>
+                            </AuthorizeView>
                         </div>
                     </EditForm>
                 }
