@@ -4,6 +4,7 @@ using MiniERP.Infrastructure;
 using MiniERP.Infrastructure.Persistence;
 using MiniERP.Web.Components;
 using MiniERP.Web.Components.Account;
+using MiniERP.Web.Seguridad;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,10 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+
+// ANDAMIO PROVISIONAL — se quita cuando entre el nucleo de permisos de Jeison
+// (jeison/seguridad). Ver Docs/Andamio-Permisos.md.
+builder.Services.AddAndamioDePermisos();
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
