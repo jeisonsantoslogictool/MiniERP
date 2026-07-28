@@ -1,6 +1,6 @@
 @page "/compras/nueva"
 @page "/compras/{Id:int}"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "compras.recibir")]
 @rendermode InteractiveServer
 @inject ICompraService ServicioCompras
 @inject IProveedorService ServicioProveedores
@@ -202,18 +202,22 @@ else
     <div class="mt-4 d-flex gap-2">
         @if (form.EsEditable)
         {
-            <button class="btn btn-primary" @onclick="Guardar" disabled="@ocupado">
-                @(ocupado ? "Guardando..." : "Guardar borrador")
-            </button>
+            <AuthorizeView Policy="compras.recibir">
+                <button class="btn btn-primary" @onclick="Guardar" disabled="@ocupado">
+                    @(ocupado ? "Guardando..." : "Guardar borrador")
+                </button>
+            </AuthorizeView>
 
             @if (!EsNueva)
             {
-                <button class="btn btn-success" @onclick="Recibir" disabled="@ocupado">
-                    Recibir mercancía
-                </button>
-                <button class="btn btn-outline-danger ms-auto" @onclick="Anular" disabled="@ocupado">
-                    Anular
-                </button>
+                <AuthorizeView Policy="compras.recibir">
+                    <button class="btn btn-success" @onclick="Recibir" disabled="@ocupado">
+                        Recibir mercancía
+                    </button>
+                    <button class="btn btn-outline-danger ms-auto" @onclick="Anular" disabled="@ocupado">
+                        Anular
+                    </button>
+                </AuthorizeView>
             }
         }
     </div>

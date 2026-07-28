@@ -1,5 +1,5 @@
 @page "/clientes"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "clientes.ver")]
 @rendermode InteractiveServer
 @inject IClienteService ServicioClientes
 
@@ -9,7 +9,9 @@
     <h1 class="mb-0">Clientes</h1>
     <div class="d-flex gap-2">
         <a class="btn btn-outline-danger" href="/clientes/cuentas-por-cobrar">Cuentas por cobrar</a>
-        <a class="btn btn-primary" href="/clientes/nuevo">Nuevo cliente</a>
+        <AuthorizeView Policy="clientes.editar">
+            <a class="btn btn-primary" href="/clientes/nuevo">Nuevo cliente</a>
+        </AuthorizeView>
     </div>
 </div>
 
@@ -141,11 +143,15 @@ else
                             }
                         </td>
                         <td class="text-end text-nowrap">
-                            @if (c.BalanceActual > 0)
-                            {
-                                <a class="btn btn-sm btn-success me-1" href="/clientes/@c.Id/cobro">Cobrar</a>
-                            }
-                            <a class="btn btn-sm btn-outline-secondary" href="/clientes/@c.Id">Editar</a>
+                            <AuthorizeView Policy="clientes.cobrar">
+                                @if (c.BalanceActual > 0)
+                                {
+                                    <a class="btn btn-sm btn-success me-1" href="/clientes/@c.Id/cobro">Cobrar</a>
+                                }
+                            </AuthorizeView>
+                            <AuthorizeView Policy="clientes.editar">
+                                <a class="btn btn-sm btn-outline-secondary" href="/clientes/@c.Id">Editar</a>
+                            </AuthorizeView>
                         </td>
                     </tr>
                 }

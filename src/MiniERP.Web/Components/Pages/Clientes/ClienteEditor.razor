@@ -1,6 +1,6 @@
 @page "/clientes/nuevo"
 @page "/clientes/{Id:int}"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "clientes.editar")]
 @rendermode InteractiveServer
 @inject IClienteService ServicioClientes
 @inject NavigationManager Nav
@@ -138,9 +138,11 @@ else
         </div>
 
         <div class="mt-4 d-flex gap-2">
-            <button class="btn btn-primary" type="submit" disabled="@guardando">
-                @(guardando ? "Guardando..." : "Guardar")
-            </button>
+            <AuthorizeView Policy="clientes.editar" Context="estadoAutorizacion">
+                <button class="btn btn-primary" type="submit" disabled="@guardando">
+                    @(guardando ? "Guardando..." : "Guardar")
+                </button>
+            </AuthorizeView>
             <a class="btn btn-outline-secondary" href="/clientes">Cancelar</a>
         </div>
     </EditForm>

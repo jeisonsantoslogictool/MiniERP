@@ -1,5 +1,5 @@
 @page "/compras/proveedores"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "compras.ver")]
 @rendermode InteractiveServer
 @inject IProveedorService ServicioProveedores
 
@@ -10,7 +10,9 @@
     <div class="d-flex gap-2">
         <a class="btn btn-outline-danger" href="/compras/cuentas-por-pagar">Cuentas por pagar</a>
         <a class="btn btn-outline-secondary" href="/compras">Volver a compras</a>
-        <a class="btn btn-primary" href="/compras/proveedores/nuevo">Nuevo proveedor</a>
+        <AuthorizeView Policy="compras.recibir">
+            <a class="btn btn-primary" href="/compras/proveedores/nuevo">Nuevo proveedor</a>
+        </AuthorizeView>
     </div>
 </div>
 
@@ -81,11 +83,15 @@ else
                             @Formato.Dinero(p.BalanceActual)
                         </td>
                         <td class="text-end text-nowrap">
-                            @if (p.BalanceActual > 0)
-                            {
-                                <a class="btn btn-sm btn-success me-1" href="/proveedores/@p.Id/pago">Pagar</a>
-                            }
-                            <a class="btn btn-sm btn-outline-secondary" href="/compras/proveedores/@p.Id">Editar</a>
+                            <AuthorizeView Policy="compras.pagar">
+                                @if (p.BalanceActual > 0)
+                                {
+                                    <a class="btn btn-sm btn-success me-1" href="/proveedores/@p.Id/pago">Pagar</a>
+                                }
+                            </AuthorizeView>
+                            <AuthorizeView Policy="compras.recibir">
+                                <a class="btn btn-sm btn-outline-secondary" href="/compras/proveedores/@p.Id">Editar</a>
+                            </AuthorizeView>
                         </td>
                     </tr>
                 }

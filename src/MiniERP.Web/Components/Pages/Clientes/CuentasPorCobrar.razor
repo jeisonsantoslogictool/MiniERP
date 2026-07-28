@@ -1,5 +1,5 @@
 @page "/clientes/cuentas-por-cobrar"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "clientes.ver")]
 @rendermode InteractiveServer
 @inject IClienteService ServicioClientes
 
@@ -107,12 +107,16 @@ else
                         </td>
                         
                         <td class="text-end text-nowrap">
-                            <a class="btn btn-sm btn-outline-primary me-1" href="/clientes/@c.ClienteId/cobro">
-                                <i class="bi bi-cash"></i> Cobrar
-                            </a>
-                            <a class="btn btn-sm btn-outline-secondary" href="/clientes/@c.ClienteId">
-                                Historial
-                            </a>
+                            <AuthorizeView Policy="clientes.cobrar">
+                                <a class="btn btn-sm btn-outline-primary me-1" href="/clientes/@c.ClienteId/cobro">
+                                    <i class="bi bi-cash"></i> Cobrar
+                                </a>
+                            </AuthorizeView>
+                            <AuthorizeView Policy="clientes.editar">
+                                <a class="btn btn-sm btn-outline-secondary" href="/clientes/@c.ClienteId">
+                                    Historial
+                                </a>
+                            </AuthorizeView>
                         </td>
                     </tr>
                 }

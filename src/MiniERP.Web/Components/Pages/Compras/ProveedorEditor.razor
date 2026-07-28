@@ -1,6 +1,6 @@
 @page "/compras/proveedores/nuevo"
 @page "/compras/proveedores/{Id:int}"
-@attribute [Authorize]
+@attribute [Authorize(Policy = "compras.recibir")]
 @rendermode InteractiveServer
 @inject IProveedorService ServicioProveedores
 @inject NavigationManager Nav
@@ -99,9 +99,11 @@ else
         </div>
 
         <div class="mt-4 d-flex gap-2">
-            <button class="btn btn-primary" type="submit" disabled="@guardando">
-                @(guardando ? "Guardando..." : "Guardar")
-            </button>
+            <AuthorizeView Policy="compras.recibir" Context="estadoAutorizacion">
+                <button class="btn btn-primary" type="submit" disabled="@guardando">
+                    @(guardando ? "Guardando..." : "Guardar")
+                </button>
+            </AuthorizeView>
             <a class="btn btn-outline-secondary" href="/compras/proveedores">Cancelar</a>
         </div>
     </EditForm>
