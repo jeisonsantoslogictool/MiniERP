@@ -1,3 +1,6 @@
 @* Usings del módulo Finanzas. Añade aquí los @using de tu módulo, no en el _Imports raíz. *@
 @using MiniERP.Application.Finanzas.Dtos
 @using MiniERP.Application.Finanzas.Services
+@* Permisos vive en Domain.Core, que el _Imports raíz no trae (solo trae los Domain de
+   módulo). Se declara aquí para poder gatear las pantallas por permiso. *@
+@using MiniERP.Domain.Core

@@ -1,5 +1,5 @@
 @page "/finanzas/rentabilidad"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permisos.FinanzasVer)]
 @rendermode InteractiveServer
 @inject IReporteRentabilidadService ServicioRentabilidad
 

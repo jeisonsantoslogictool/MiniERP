@@ -1,5 +1,5 @@
 @page "/finanzas/ingresos"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permisos.FinanzasVer)]
 @rendermode InteractiveServer
 @inject IReporteIngresosService ServicioIngresos
 

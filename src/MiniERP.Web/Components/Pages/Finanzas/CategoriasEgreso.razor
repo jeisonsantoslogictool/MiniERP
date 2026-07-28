@@ -1,5 +1,5 @@
 @page "/finanzas/egresos/categorias"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permisos.FinanzasVer)]
 @rendermode InteractiveServer
 @inject ICategoriaEgresoService ServicioCategorias
 @inject AuthenticationStateProvider Auth
@@ -16,19 +16,23 @@
     <div class="alert alert-danger" role="alert">@error</div>
 }
 
-<div class="row g-2 mb-4 align-items-end">
-    <div class="col-md-4">
-        <label class="form-label">Nombre</label>
-        <input class="form-control" @bind="nombreNueva" placeholder="Ej. Publicidad" />
+@* Crear una categoría es modificar el catálogo de gastos: pide finanzas.egreso.
+   Quien solo consulta ve la lista, no el formulario. *@
+<AuthorizeView Policy="@Permisos.FinanzasEgreso">
+    <div class="row g-2 mb-4 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label">Nombre</label>
+            <input class="form-control" @bind="nombreNueva" placeholder="Ej. Publicidad" />
+        </div>
+        <div class="col-md-5">
+            <label class="form-label">Descripción</label>
+            <input class="form-control" @bind="descripcionNueva" placeholder="Opcional" />
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-primary w-100" @onclick="Crear">Agregar categoría</button>
+        </div>
     </div>
-    <div class="col-md-5">
-        <label class="form-label">Descripción</label>
-        <input class="form-control" @bind="descripcionNueva" placeholder="Opcional" />
-    </div>
-    <div class="col-md-3">
-        <button class="btn btn-primary w-100" @onclick="Crear">Agregar categoría</button>
-    </div>
-</div>
+</AuthorizeView>
 
 @if (pagina is null)
 {
@@ -83,15 +87,17 @@ else
                                 }
                             </td>
                             <td class="text-end text-nowrap">
-                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => Editar(c)">Editar</button>
-                                @if (c.Activo)
-                                {
-                                    <button class="btn btn-sm btn-outline-warning" @onclick="() => CambiarEstado(c.Id, false)">Desactivar</button>
-                                }
-                                else
-                                {
-                                    <button class="btn btn-sm btn-outline-success" @onclick="() => CambiarEstado(c.Id, true)">Activar</button>
-                                }
+                                <AuthorizeView Policy="@Permisos.FinanzasEgreso">
+                                    <button class="btn btn-sm btn-outline-secondary" @onclick="() => Editar(c)">Editar</button>
+                                    @if (c.Activo)
+                                    {
+                                        <button class="btn btn-sm btn-outline-warning" @onclick="() => CambiarEstado(c.Id, false)">Desactivar</button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-outline-success" @onclick="() => CambiarEstado(c.Id, true)">Activar</button>
+                                    }
+                                </AuthorizeView>
                             </td>
                         }
                     </tr>

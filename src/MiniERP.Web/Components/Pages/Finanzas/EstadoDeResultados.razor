@@ -1,5 +1,5 @@
 @page "/finanzas/estado-resultados"
-@attribute [Authorize]
+@attribute [Authorize(Policy = Permisos.FinanzasVer)]
 @rendermode InteractiveServer
 @inject IEstadoResultadosService ServicioEstado
 
