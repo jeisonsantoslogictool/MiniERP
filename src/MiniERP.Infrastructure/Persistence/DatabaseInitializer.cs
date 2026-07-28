@@ -156,7 +156,8 @@ public class DatabaseInitializer(
         {
             UserName = _config.AdminEmail,
             Email = _config.AdminEmail,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            Nombre = _config.AdminNombre
         };
 
         var resultado = await usuarios.CreateAsync(admin, clave);

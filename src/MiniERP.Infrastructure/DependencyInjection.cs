@@ -51,6 +51,7 @@ public static partial class DependencyInjection
             .AddClientes()
             .AddVentas()
             .AddCompras()
-            .AddFinanzas();
+            .AddFinanzas()
+            .AddSeguridad();
     }
 }
