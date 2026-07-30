@@ -22,7 +22,14 @@ public interface IDevolucionCompraService
 /// <summary>
 /// Casos de uso de la devolucion a proveedor.
 /// </summary>
-public class DevolucionCompraService(IDevolucionCompraRepositorio devoluciones) : IDevolucionCompraService
+/// <remarks>
+/// Limitacion conocida: este caso de uso aun no se registra en DI ni cuenta con
+/// repositorio EF, DbSet, migracion o pantallas. No debe exponerse hasta completar
+/// esas piezas; la confirmacion ya contiene la regla requerida para ajustar la deuda.
+/// </remarks>
+public class DevolucionCompraService(
+    IDevolucionCompraRepositorio devoluciones,
+    IProveedorRepositorio proveedores) : IDevolucionCompraService
 {
     public Task<PaginaDe<DevolucionCompraListaDto>> BuscarAsync(FiltroDevoluciones filtro, CancellationToken ct = default) =>
         devoluciones.BuscarAsync(filtro, ct);
@@ -129,6 +136,15 @@ public class DevolucionCompraService(IDevolucionCompraRepositorio devoluciones) 
         if (devolucion is null)
             return Resultado.Falla("La devolución no existe.");
 
+        Proveedor? proveedor = null;
+        if (devolucion.Compra?.Condicion == Domain.Shared.CondicionPago.Credito)
+        {
+            proveedor = await proveedores.ObtenerPorIdAsync(devolucion.ProveedorId, ct);
+
+            if (proveedor is null)
+                return Resultado.Falla("El proveedor de la compra no existe.");
+        }
+
         var productos = await devoluciones.ObtenerProductosDeAsync(devolucion, ct);
         var comprado = await devoluciones.ObtenerCompradoPorLineaCompraAsync(devolucion.CompraId, ct);
         var yaDevuelto = await devoluciones.ObtenerDevueltoPorLineaCompraAsync(devolucion.CompraId, ct);
@@ -150,6 +166,13 @@ public class DevolucionCompraService(IDevolucionCompraRepositorio devoluciones) 
 
         devolucion.FechaModificacion = DateTime.UtcNow;
         devolucion.ModificadoPor = usuarioId;
+
+        if (proveedor is not null)
+        {
+            // Solo se reduce deuda existente. Si la compra ya se pago, el eventual
+            // reembolso/credito a favor requiere un modulo contable que hoy no existe.
+            proveedor.BalanceActual = Math.Max(0, proveedor.BalanceActual - devolucion.Total);
+        }
 
         await devoluciones.GuardarAsync(ct);
 

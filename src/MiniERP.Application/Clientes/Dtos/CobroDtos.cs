@@ -15,6 +15,7 @@ public record CobroListaDto(
 
 public class CobroFormDto
 {
+    public DateTime Fecha { get; set; } = DateTime.Today;
     public int ClienteId { get; set; }
     public string ClienteNombre { get; set; } = string.Empty;
     public decimal BalanceActual { get; set; }

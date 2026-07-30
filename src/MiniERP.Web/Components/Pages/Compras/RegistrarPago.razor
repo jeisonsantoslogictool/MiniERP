@@ -4,6 +4,7 @@
 @inject IProveedorService ServicioProveedores
 @inject IPagosService ServicioPagos
 @inject NavigationManager Navegacion
+@inject AuthenticationStateProvider Auth
 
 <PageTitle>Registrar Pago</PageTitle>
 
@@ -39,6 +40,12 @@
                         <DataAnnotationsValidator />
 
                         <div class="mb-3">
+                            <label class="form-label fw-semibold">Fecha</label>
+                            <InputDate @bind-Value="form.Fecha" class="form-control" />
+                            <ValidationMessage For="() => form.Fecha" />
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label fw-semibold">Monto a Pagar (RD$)</label>
                             <InputNumber @bind-Value="form.Monto" class="form-control form-control-lg text-end" placeholder="0.00" />
                             <ValidationMessage For="() => form.Monto" />
@@ -72,9 +79,13 @@
     private MiniERP.Application.Compras.Dtos.ProveedorFormDto? proveedor;
     private PagoFormDto form = new();
     private string? mensajeError;
+    private string? usuarioId;
 
     protected override async Task OnInitializedAsync()
     {
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+
         proveedor = await ServicioProveedores.ObtenerParaEditarAsync(ProveedorId);
         if (proveedor is null)
         {
@@ -92,7 +103,7 @@
     {
         mensajeError = null;
 
-        var resultado = await ServicioPagos.RegistrarPagoAsync(form, "Dionis");
+        var resultado = await ServicioPagos.RegistrarPagoAsync(form, usuarioId);
         if (resultado.Exito)
         {
             Navegacion.NavigateTo("/compras");

@@ -15,6 +15,7 @@ public record PagoListaDto(
 
 public class PagoFormDto
 {
+    public DateTime Fecha { get; set; } = DateTime.Today;
     public int ProveedorId { get; set; }
     public string ProveedorNombre { get; set; } = string.Empty;
     public decimal BalanceActual { get; set; }

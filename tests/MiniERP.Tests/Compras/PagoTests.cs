@@ -6,6 +6,15 @@ namespace MiniERP.Tests.Compras;
 public class PagoTests
 {
     [Fact]
+    public void Pago_ConservaLaFechaIndicada()
+    {
+        var fecha = new DateTime(2026, 7, 28);
+        var pago = new Pago { Fecha = fecha };
+
+        Assert.Equal(fecha, pago.Fecha);
+    }
+
+    [Fact]
     public void AplicarPago_DeberiaReducirBalanceYAsignarRastro()
     {
         // Arrange

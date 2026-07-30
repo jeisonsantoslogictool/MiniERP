@@ -41,6 +41,7 @@ public class CobrosService(
 
         var cobro = new Cobro
         {
+            Fecha = form.Fecha,
             Monto = form.Monto,
             Observacion = form.Observacion?.Trim(),
             UsuarioId = usuarioId,
