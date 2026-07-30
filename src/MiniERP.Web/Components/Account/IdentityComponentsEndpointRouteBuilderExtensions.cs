@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
-using MiniERP.Web.Components.Account.Pages;
 using MiniERP.Web.Components.Account.Pages.Manage;
 using MiniERP.Infrastructure.Persistence;
 
@@ -22,24 +20,9 @@ internal static class IdentityComponentsEndpointRouteBuilderExtensions
 
         var accountGroup = endpoints.MapGroup("/Account");
 
-        accountGroup.MapPost("/PerformExternalLogin", (
-            HttpContext context,
-            [FromServices] SignInManager<ApplicationUser> signInManager,
-            [FromForm] string provider,
-            [FromForm] string returnUrl) =>
-        {
-            IEnumerable<KeyValuePair<string, StringValues>> query = [
-                new("ReturnUrl", returnUrl),
-                new("Action", ExternalLogin.LoginCallbackAction)];
-
-            var redirectUrl = UriHelper.BuildRelative(
-                context.Request.PathBase,
-                "/Account/ExternalLogin",
-                QueryString.Create(query));
-
-            var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-            return TypedResults.Challenge(properties, [provider]);
-        });
+        // No hay endpoint para iniciar un acceso externo: ese flujo daba de alta la cuenta
+        // por su cuenta, sin rol ni permisos. Las cuentas se crean en /usuarios/nuevo.
+        // Enlazar un proveedor a una cuenta que YA existe si sigue vivo, mas abajo.
 
         accountGroup.MapPost("/Logout", async (
             ClaimsPrincipal user,

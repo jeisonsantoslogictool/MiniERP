@@ -143,7 +143,8 @@ public class DatabaseInitializer(
 
     /// <summary>
     /// Crea el primer administrador. Sin el, nadie podria entrar a un sistema recien
-    /// instalado, porque el registro publico no otorga rol de administrador.
+    /// instalado: no hay autorregistro, y las demas cuentas las crea el administrador
+    /// desde /usuarios/nuevo. Es el unico usuario que nace sin que alguien lo cree.
     /// </summary>
     private async Task SembrarAdministradorAsync()
     {

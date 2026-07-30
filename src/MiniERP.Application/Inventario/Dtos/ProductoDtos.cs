@@ -36,6 +36,12 @@ public class ProductoFormDto
 
     public int UnidadMedidaId { get; set; }
 
+    /// <summary>
+    /// Costo inicial del producto. Solo se lee al crear: de ahi en adelante es el costo
+    /// promedio ponderado que recalcula <c>Compra.CalcularCostoPromedio</c> al recibir
+    /// mercancia, y al editar se ignora. La pantalla lo muestra de solo lectura para poder
+    /// calcular el margen.
+    /// </summary>
     public decimal Costo { get; set; }
 
     public decimal PrecioVenta { get; set; }

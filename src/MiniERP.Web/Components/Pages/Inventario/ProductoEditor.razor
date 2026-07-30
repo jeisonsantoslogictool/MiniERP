@@ -86,8 +86,21 @@ else
             </div>
 
             <div class="col-md-3">
-                <label class="form-label">Costo</label>
-                <input class="form-control" type="number" step="0.0001" @bind="form.Costo" />
+                @if (EsNuevo)
+                {
+                    <label class="form-label">Costo inicial</label>
+                    <input class="form-control" type="number" step="0.0001" @bind="form.Costo" />
+                    <div class="form-text">Después lo promedia cada compra recibida.</div>
+                }
+                else
+                {
+                    @* El costo es el promedio ponderado, no un dato que se teclee: se muestra
+                       de solo lectura para calcular el margen. Editarlo a mano moveria la base
+                       del margen de todas las ventas siguientes sin dejar rastro. *@
+                    <label class="form-label">Costo promedio</label>
+                    <input class="form-control" value="@Formato.Dinero(form.Costo)" readonly />
+                    <div class="form-text">Se actualiza al recibir compras, no se edita aquí.</div>
+                }
             </div>
             <div class="col-md-3">
                 <label class="form-label">Precio de venta</label>

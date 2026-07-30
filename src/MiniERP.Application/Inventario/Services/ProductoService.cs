@@ -120,7 +120,6 @@ public class ProductoService(
         producto.Descripcion = form.Descripcion.Trim();
         producto.CategoriaId = form.CategoriaId;
         producto.UnidadMedidaId = form.UnidadMedidaId;
-        producto.Costo = form.Costo;
         producto.PrecioVenta = form.PrecioVenta;
         producto.TasaItbis = form.TasaItbis;
         producto.ExistenciaMinima = form.ExistenciaMinima;
@@ -129,7 +128,11 @@ public class ProductoService(
         producto.FechaModificacion = DateTime.UtcNow;
         producto.ModificadoPor = usuarioId;
 
-        // La existencia no se toca aqui a proposito: solo cambia por movimiento.
+        // Ni la existencia ni el costo se tocan aqui a proposito. La existencia solo cambia
+        // por movimiento; el costo es el promedio ponderado que recalcula
+        // Compra.CalcularCostoPromedio al recibir mercancia. Aceptar form.Costo al editar
+        // dejaria que una correccion de la descripcion pisara la base del margen de todas
+        // las ventas siguientes, sin ningun asiento que lo explique.
         await productos.GuardarAsync(ct);
 
         return Resultado.Ok();

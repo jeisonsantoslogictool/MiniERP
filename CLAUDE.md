@@ -95,14 +95,20 @@ NCF `B0200000001`, total 114.00 y cambio 86.00.
 
 ### Huecos conocidos
 
-- **No existe el e-CF.** No hay XML de comprobante electrónico ni QR. Es lo último de F3 que
-  falta en Ventas, y **se construye simulado** (ver "El e-CF se simula" más abajo).
-- **Las pruebas son todas del dominio.** Servicios, repositorios y pantallas se verifican
-  a mano. Falta prueba de integración de la transacción de emisión: nada demuestra
-  automáticamente que un rollback libera el NCF reservado. Las cuatro pantallas nuevas de
-  Ventas —facturas emitidas, impresión, anulación y secuencias— tampoco tienen prueba.
-- **Ventas e Inventario no tienen su sección del Capítulo IV.** Cuatro tareas cerradas y
-  ninguna escrita. `Docs/CapituloIV/` solo tiene `Egresos.md`.
+- **El e-CF se genera pero no se guarda.** El XML sí existe: `EcfService` lo arma con su
+  e-NCF derivado, su código de seguridad y su QR, y `/ventas/facturas/{id}/ecf` lo muestra
+  y lo deja descargar con el rótulo `DOCUMENTO SIMULADO — NO VÁLIDO ANTE LA DGII`
+  (ver "El e-CF se simula" más abajo). Lo que falta es **persistencia y estado**: no hay
+  `DbSet` de comprobante electrónico, así que el documento se rearma en cada visita en vez
+  de recuperarse, y el ciclo *Generado → Enviado → Aceptado* no está en ninguna parte.
+- **Las pruebas son casi todas del dominio.** Fuera del dominio solo hay pruebas de
+  `EcfService` y de `ProductoService`; repositorios y pantallas se verifican a mano. Falta
+  prueba de integración de la transacción de emisión: nada demuestra automáticamente que un
+  rollback libera el NCF reservado. Las cuatro pantallas de Ventas —facturas emitidas,
+  impresión, anulación y secuencias— tampoco tienen prueba.
+- **No hay servicio de correo.** `IdentityNoOpEmailSender` no envía nada, así que
+  "¿Olvidaste tu contraseña?" no llega a ningún buzón. Mientras siga así, la vía real es que
+  el administrador resetee la clave desde `/usuarios`, que sí funciona y muestra la nueva.
 
 Cerrados desde la última revisión: la pantalla de facturas emitidas (ya no da 404, con
 impresión y anulación), y los balances, que ahora bajan con `Cobro` y `Pago`.
@@ -159,7 +165,7 @@ Visual Studio 2026 (por el formato `.slnx`).
 
 ```bash
 dotnet build MiniERP.slnx
-dotnet test                    # 100 pruebas del dominio
+dotnet test                    # 185 pruebas, sin SQL Server
 ```
 
 ---
@@ -195,6 +201,11 @@ anteproyecto exige.
 - **Ningún saldo se edita.** Existencia, balance de cliente y balance de proveedor solo
   cambian por una operación que deja rastro. Incluso la existencia inicial de un producto
   entra como movimiento de apertura.
+- **Nadie se crea su propia cuenta.** No hay autorregistro: las cuentas nacen en
+  `/usuarios/nuevo`, creadas por alguien con `sistema.usuarios`, y salen con rol y con los
+  permisos de su plantilla. Un usuario autenticado sin rol es un usuario que el sistema no
+  sabe qué puede hacer; si vuelve a aparecer una página de registro, esto es lo que la
+  contradice.
 - **Todo lo que el sistema necesite para arrancar se siembra** en `DatabaseInitializer`.
   Nunca se documenta como paso manual.
 - **Sin contraseñas en el repositorio.** Autenticación de Windows para SQL Server.
@@ -302,6 +313,13 @@ dicho al final de este documento, y es el mismo criterio.
 costo en 35. Con último costo quedaría en 40, inflando el costo y escondiendo el margen
 real. El anteproyecto habla de no conocer *"los costos reales de adquisición"*: esto es lo
 que responde esa pregunta. Vive en `Compra.CalcularCostoPromedio`.
+
+**Y por eso el costo no se teclea.** `Producto.Costo` se captura una sola vez, como costo
+inicial al dar de alta el producto; de ahí en adelante lo mueve la recepción de compras y
+nada más. Al editar un producto se muestra de solo lectura y `ProductoService.ActualizarAsync`
+ignora lo que venga en el formulario: si corregir una tilde de la descripción pudiera pisar el
+costo promedio, se movería la base del margen de todas las ventas siguientes sin ningún
+asiento que lo explique. Es el mismo trato que recibe la existencia.
 
 **El costo se congela en la línea de factura.** `LineaFactura.CostoUnitario` guarda el
 costo al momento de vender. Sin eso, una compra posterior cambiaría retroactivamente el
