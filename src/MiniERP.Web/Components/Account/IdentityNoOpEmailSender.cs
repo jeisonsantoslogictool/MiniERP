@@ -4,7 +4,8 @@ using MiniERP.Infrastructure.Persistence;
 
 namespace MiniERP.Web.Components.Account;
 
-// Remove the "else if (EmailSender is IdentityNoOpEmailSender)" block from RegisterConfirmation.razor after updating with a real implementation.
+// Remitente que no envia nada: el alcance no cubre un servicio de correo. Al conectar uno
+// de verdad, esta clase se reemplaza y no hace falta tocar ninguna pantalla.
 internal sealed class IdentityNoOpEmailSender : IEmailSender<ApplicationUser>
 {
     private readonly IEmailSender emailSender = new NoOpEmailSender();

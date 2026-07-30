@@ -10,7 +10,6 @@
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
-@inject NavigationManager NavigationManager
 @inject IdentityRedirectManager RedirectManager
 
 <PageTitle>Iniciar sesión · Mini ERP</PageTitle>
@@ -54,11 +53,11 @@
         Entrar con clave de acceso
     </PasskeySubmit>
 
+    @* Nadie se crea su propia cuenta: el dueño da de alta a sus empleados en /usuarios/nuevo,
+       con rol y permisos. Ofrecer aqui un "crear cuenta" seria una puerta al lado de la
+       puerta con llave. *@
     <p class="auth-foot">
-        ¿No tienes cuenta?
-        <a href="@(NavigationManager.GetUriWithQueryParameters("Account/Register", new Dictionary<string, object?> { ["ReturnUrl"] = ReturnUrl }))">Crear una</a>
-        <span class="auth-dot">·</span>
-        <a href="Account/ResendEmailConfirmation">Reenviar confirmación</a>
+        ¿No tienes cuenta? Pídesela al encargado del comercio.
     </p>
 </EditForm>
 

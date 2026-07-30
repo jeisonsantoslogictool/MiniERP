@@ -100,7 +100,12 @@ public class Factura : EntidadBase
                 CostoUnitario = producto.Costo,
                 Motivo = $"Factura {ncf}",
                 ReferenciaTipo = "FACTURA",
-                ReferenciaId = Id,
+                // ReferenciaId se queda vacio aqui a proposito. Emitir corre sobre una
+                // factura que todavia no se ha guardado, asi que su Id vale 0: ponerlo
+                // ahora escribiria un cero en cada movimiento y ninguno podria rastrearse
+                // hasta su documento. Lo enlaza el caso de uso al guardar, cuando el Id ya
+                // existe. En Recibir y en Anular si se asigna, porque ahi el documento ya
+                // esta en la base.
                 UsuarioId = usuarioId,
                 CreadoPor = usuarioId
             };

@@ -139,11 +139,23 @@ public class VentaService(
             }
 
             ventas.Agregar(factura);
-            ventas.AgregarMovimientos(movimientos);
 
             if (form.Condicion == CondicionPago.Credito && cliente is not null)
                 cliente.BalanceActual += factura.Total;
 
+            // Son dos guardados a proposito, y este es el orden que importa. Los
+            // movimientos tienen que decir de que factura salieron, y ese Id no existe
+            // hasta que la fila esta escrita. Guardar primero el documento y enlazarlos
+            // despues es lo unico que evita grabar un cero: si no, "por que bajo el arroz
+            // el martes" solo se responde leyendo el texto del motivo.
+            // Los dos guardados van dentro de EnTransaccionAsync, asi que la venta sigue
+            // siendo un solo hecho: o queda entera con su rastro, o no queda nada.
+            await ventas.GuardarAsync(ct);
+
+            foreach (var movimiento in movimientos)
+                movimiento.ReferenciaId = factura.Id;
+
+            ventas.AgregarMovimientos(movimientos);
             await ventas.GuardarAsync(ct);
 
             return Resultado.Ok(new FacturaEmitidaDto(

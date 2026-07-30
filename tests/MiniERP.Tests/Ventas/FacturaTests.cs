@@ -60,8 +60,21 @@ public class FacturaTests
         Assert.Equal("cajero", factura.UsuarioId);
     }
 
+    /// <summary>
+    /// Emitir no puede enlazar el movimiento con su factura, y no debe fingir que si.
+    /// </summary>
+    /// <remarks>
+    /// La version anterior de esta prueba afirmaba <c>Equal(factura.Id, ReferenciaId)</c>
+    /// y pasaba en verde, porque el ayudante construye la factura con Id = 5. En
+    /// produccion no ocurre nunca: al emitir, la factura es nueva y su Id vale 0, asi que
+    /// todos los movimientos de venta quedaban con ReferenciaId = 0 y ninguna salida de
+    /// mercancia podia rastrearse hasta su documento. La prueba estaba probando un
+    /// escenario imposible. Ahora fija lo contrario: aqui el movimiento sale sin
+    /// referencia, y quien la pone es el caso de uso una vez la factura tiene Id
+    /// (ver <c>VentaServiceTests</c>).
+    /// </remarks>
     [Fact]
-    public void El_movimiento_apunta_a_la_factura_que_lo_origino()
+    public void El_movimiento_sale_sin_referencia_porque_la_factura_aun_no_tiene_Id()
     {
         var producto = Producto();
         var factura = Factura(cantidad: 3);
@@ -71,7 +84,7 @@ public class FacturaTests
         var movimiento = Assert.Single(movimientos);
         Assert.Equal(TipoMovimiento.Salida, movimiento.Tipo);
         Assert.Equal("FACTURA", movimiento.ReferenciaTipo);
-        Assert.Equal(factura.Id, movimiento.ReferenciaId);
+        Assert.Null(movimiento.ReferenciaId);
         Assert.Equal("Factura B0200000001", movimiento.Motivo);
     }
 
