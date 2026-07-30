@@ -7,7 +7,10 @@ namespace MiniERP.Application.Compras.Contracts;
 
 public interface IDevolucionCompraRepositorio
 {
-    /// <summary>Trae la devolucion con sus lineas, con seguimiento, para poder confirmarla.</summary>
+    /// <summary>
+    /// Trae la devolucion con sus lineas y su compra, con seguimiento, para poder
+    /// confirmar y determinar si corresponde ajustar la deuda del proveedor.
+    /// </summary>
     Task<DevolucionCompra?> ObtenerConLineasAsync(int id, CancellationToken ct = default);
 
     Task<PaginaDe<DevolucionCompraListaDto>> BuscarAsync(FiltroDevoluciones filtro, CancellationToken ct = default);

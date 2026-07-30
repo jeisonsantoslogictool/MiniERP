@@ -4,6 +4,7 @@
 @inject IClienteService ServicioClientes
 @inject ICobrosService ServicioCobros
 @inject NavigationManager Navegacion
+@inject AuthenticationStateProvider Auth
 
 <PageTitle>Registrar Cobro</PageTitle>
 
@@ -39,6 +40,12 @@
                         <DataAnnotationsValidator />
 
                         <div class="mb-3">
+                            <label class="form-label fw-semibold">Fecha</label>
+                            <InputDate @bind-Value="form.Fecha" class="form-control" />
+                            <ValidationMessage For="() => form.Fecha" />
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label fw-semibold">Monto a Cobrar (RD$)</label>
                             <InputNumber @bind-Value="form.Monto" class="form-control form-control-lg text-end" placeholder="0.00" />
                             <ValidationMessage For="() => form.Monto" />
@@ -72,9 +79,13 @@
     private ClienteFormDto? cliente;
     private CobroFormDto form = new();
     private string? mensajeError;
+    private string? usuarioId;
 
     protected override async Task OnInitializedAsync()
     {
+        var estado = await Auth.GetAuthenticationStateAsync();
+        usuarioId = estado.User.Identity?.Name;
+
         cliente = await ServicioClientes.ObtenerParaEditarAsync(ClienteId);
         if (cliente is null)
         {
@@ -92,7 +103,7 @@
     {
         mensajeError = null;
 
-        var resultado = await ServicioCobros.RegistrarCobroAsync(form, "Dionis");
+        var resultado = await ServicioCobros.RegistrarCobroAsync(form, usuarioId);
         if (resultado.Exito)
         {
             Navegacion.NavigateTo("/clientes");

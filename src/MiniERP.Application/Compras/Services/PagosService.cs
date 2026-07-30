@@ -41,6 +41,7 @@ public class PagosService(
 
         var pago = new Pago
         {
+            Fecha = form.Fecha,
             Monto = form.Monto,
             Observacion = form.Observacion?.Trim(),
             UsuarioId = usuarioId,

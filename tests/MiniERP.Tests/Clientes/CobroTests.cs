@@ -6,6 +6,15 @@ namespace MiniERP.Tests.Clientes;
 public class CobroTests
 {
     [Fact]
+    public void Cobro_ConservaLaFechaIndicada()
+    {
+        var fecha = new DateTime(2026, 7, 28);
+        var cobro = new Cobro { Fecha = fecha };
+
+        Assert.Equal(fecha, cobro.Fecha);
+    }
+
+    [Fact]
     public void AplicarCobro_DeberiaReducirBalanceYAsignarRastro()
     {
         // Arrange
