@@ -2,10 +2,20 @@
 @attribute [Authorize(Policy = Permisos.VentasVer)]
 @rendermode InteractiveServer
 @inject IVentaService ServicioVentas
+@inject DatosEmisor Comercio
 @inject IJSRuntime JS
 @inject AuthenticationStateProvider Auth
 
 <PageTitle>@(factura?.Numero ?? "Factura")</PageTitle>
+
+@* El tamano del papel no se puede fijar desde la hoja de estilos compartida: `@@page`
+   vale para el documento entero y esta aplicacion tambien imprime reportes en carta.
+   Declarado aqui, el rollo de 88 mm existe solo mientras esta pagina esta abierta. *@
+<HeadContent>
+    <style>
+        @@page { size: 88mm auto; margin: 0; }
+    </style>
+</HeadContent>
 
 <div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
     <div>
@@ -74,18 +84,100 @@ else
         </div>
     }
 
-    @* Encabezado que solo aparece en el papel: da forma de documento fiscal. *@
-    <div class="d-none d-print-block text-center mb-4">
-        <h2 class="mb-1">FACTURA</h2>
-        <div>@Formato.Comprobante(factura.TipoComprobante)</div>
-        <div>NCF: <strong>@(factura.Ncf ?? "—")</strong> · No. @factura.Numero</div>
-        <div class="small">@Formato.FechaHora(factura.Fecha)</div>
+    @* En papel la factura no es una hoja: es un rollo termico de 88 mm. Lo que se ve en
+       pantalla —dos tarjetas y una tabla de seis columnas— no entra en ese ancho, asi que
+       el ticket se arma aparte y solo existe al imprimir. El orden es el que el cliente
+       lee: quien vende, que comprobante es, que se llevo y cuanto pago. *@
+    <div class="ticket d-none d-print-block">
+
+        @* El emisor sale de la seccion "Comercio" de configuracion, la misma que firma el
+           e-CF: un solo sitio para los datos fiscales del que vende. *@
+        <div class="tk-comercio">@NombreDelComercio</div>
+        @if (MuestraRazonSocial)
+        {
+            <div class="tk-centro">@Comercio.RazonSocial</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Comercio.Rnc))
+        {
+            <div class="tk-centro">RNC: @Comercio.Rnc</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Comercio.Direccion))
+        {
+            <div class="tk-centro">@Comercio.Direccion</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Comercio.Telefono))
+        {
+            <div class="tk-centro">Tel: @Comercio.Telefono</div>
+        }
+
+        <div class="tk-sep"></div>
+
+        @* El NCF es lo que la DGII busca de un vistazo: va solo, grande y espaciado. *@
+        <div class="tk-centro">@Formato.Comprobante(factura.TipoComprobante)</div>
+        <div class="tk-ncf">@(factura.Ncf ?? "—")</div>
+        <div class="tk-centro">No. @factura.Numero</div>
+        <div class="tk-centro">@Formato.FechaHora(factura.Fecha)</div>
+
         @if (factura.Estado == EstadoFactura.Anulada)
         {
-            <div class="fw-bold mt-1">
-                *** ANULADA ***@(string.IsNullOrWhiteSpace(factura.MotivoAnulacion) ? "" : $" — {factura.MotivoAnulacion}")
+            @* Un ticket anulado que no lo diga circula como si valiera. *@
+            <div class="tk-anulada">*** ANULADA ***</div>
+            @if (!string.IsNullOrWhiteSpace(factura.MotivoAnulacion))
+            {
+                <div class="tk-centro">@factura.MotivoAnulacion</div>
+            }
+        }
+
+        <div class="tk-sep"></div>
+
+        <div>Cliente: <strong>@factura.ClienteNombre</strong></div>
+        @if (!string.IsNullOrWhiteSpace(factura.ClienteDocumento))
+        {
+            <div>RNC/Ced.: <strong>@factura.ClienteDocumento</strong></div>
+        }
+        <div>Pago: <strong>@(factura.Condicion == CondicionPago.Contado ? "Contado" : "Crédito")</strong></div>
+        @if (!string.IsNullOrWhiteSpace(factura.UsuarioId))
+        {
+            <div class="tk-nota-izq">Cajero: @factura.UsuarioId</div>
+        }
+
+        <div class="tk-sep"></div>
+
+        @* La descripcion se lleva su propia linea: a 88 mm no cabe al lado de la cantidad
+           y el importe sin partirse por la mitad. Debajo va el renglon del calculo. *@
+        @foreach (var l in factura.Lineas)
+        {
+            <div class="tk-linea">
+                <div class="tk-desc">@l.Descripcion</div>
+                <div class="tk-fila">
+                    <span>@Formato.Cantidad(l.Cantidad, l.PermiteDecimales) @l.UnidadMedida x @Formato.Dinero(l.PrecioUnitario)</span>
+                    <span>@Formato.Dinero(l.Total)</span>
+                </div>
+                @if (l.TasaItbis == 0)
+                {
+                    <div class="tk-nota">Exento de ITBIS</div>
+                }
+                else
+                {
+                    <div class="tk-nota">ITBIS: @Formato.Dinero(l.Itbis)</div>
+                }
             </div>
         }
+
+        <div class="tk-sep"></div>
+
+        <div class="tk-fila"><span>Subtotal</span><span>@Formato.Dinero(factura.Subtotal)</span></div>
+        <div class="tk-fila"><span>ITBIS</span><span>@Formato.Dinero(factura.Itbis)</span></div>
+        <div class="tk-fila tk-total"><span>TOTAL</span><span>@Formato.Dinero(factura.Total)</span></div>
+        @if (factura.Condicion == CondicionPago.Contado)
+        {
+            <div class="tk-fila"><span>Recibido</span><span>@Formato.Dinero(factura.MontoRecibido)</span></div>
+            <div class="tk-fila"><span>Cambio</span><span>@Formato.Dinero(factura.Cambio)</span></div>
+        }
+
+        <div class="tk-sep"></div>
+
+        <div class="tk-centro tk-gracias">Gracias por su compra</div>
     </div>
 
     @if (factura.Estado == EstadoFactura.Anulada)
@@ -99,7 +191,7 @@ else
         </div>
     }
 
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-4 d-print-none">
         <div class="col-md-6">
             <div class="border rounded p-3 h-100">
                 <h2 class="h6 text-muted">Comprobante</h2>
@@ -133,7 +225,7 @@ else
         </div>
     </div>
 
-    <div class="table-responsive">
+    <div class="table-responsive d-print-none">
         <table class="table align-middle">
             <thead>
                 <tr>
@@ -170,7 +262,7 @@ else
         </table>
     </div>
 
-    <div class="row justify-content-end">
+    <div class="row justify-content-end d-print-none">
         <div class="col-md-5 col-lg-4">
             <dl class="row mb-0 border-top pt-3">
                 <dt class="col-6 fw-normal text-muted">Subtotal</dt>
@@ -204,6 +296,19 @@ else
     private bool anulando;
     private string? error;
     private string? aviso;
+
+    /// <summary>
+    /// El rotulo del ticket: el nombre con que se conoce el negocio, y la razon social
+    /// debajo solo si no es la misma. En un rollo cada linea cuesta papel.
+    /// </summary>
+    private string NombreDelComercio =>
+        string.IsNullOrWhiteSpace(Comercio.NombreComercial)
+            ? Comercio.RazonSocial
+            : Comercio.NombreComercial;
+
+    private bool MuestraRazonSocial =>
+        !string.IsNullOrWhiteSpace(Comercio.RazonSocial)
+        && !string.Equals(Comercio.RazonSocial, NombreDelComercio, StringComparison.OrdinalIgnoreCase);
 
     protected override async Task OnParametersSetAsync()
     {

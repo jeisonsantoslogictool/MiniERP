@@ -439,4 +439,50 @@ code { color: var(--muted); }
     .table-responsive { border: 0 !important; max-height: none !important; }
     .table > thead th, .table > tfoot > * > * { background: transparent !important; }
     .table > thead th { border-bottom-color: #999 !important; }
+
+    /* -- La factura en papel: ticket termico de 88 mm ----------------------
+       El comercio imprime en rollo, no en hoja. El ancho manda sobre todo lo
+       demas: a 88 mm no entra una tabla de seis columnas, asi que en papel la
+       factura es el bloque `.ticket` —que en pantalla no existe— y no la
+       pantalla recortada. El tamano del papel lo declara la propia pagina de
+       la factura, en su HeadContent, para que ningun otro reporte lo herede.
+
+       Monoespaciada porque en un ticket las columnas se alinean solas, y
+       porque es el aspecto que el comerciante reconoce como comprobante. */
+    .ticket {
+        width: 88mm;
+        padding: 3mm;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 11px;
+        line-height: 1.35;
+        color: #000;
+    }
+
+    /* El rollo no tiene alto: la hoja mide lo que mida la venta. Un alto
+       heredado del layout saca una segunda pagina en blanco. */
+    .ticket, .ticket * { max-height: none !important; }
+
+    .tk-centro { text-align: center; }
+    .tk-comercio { text-align: center; font-weight: bold; font-size: 13px; }
+    .tk-ncf { text-align: center; font-weight: bold; font-size: 13px; letter-spacing: 1px; }
+    .tk-anulada { text-align: center; font-weight: bold; margin-top: 2px; }
+
+    /* La linea de puntos es la del papel termico, no un adorno: separa bloques
+       sin gastar el alto que gastaria un margen. */
+    .tk-sep { border-top: 1px dashed #000; margin: 4px 0; }
+
+    .tk-linea { margin: 3px 0; }
+    .tk-desc { font-weight: bold; }
+    .tk-fila { display: flex; justify-content: space-between; gap: 6px; }
+    .tk-fila > span:last-child { white-space: nowrap; }
+    .tk-nota { text-align: right; font-size: 10px; }
+    .tk-nota-izq { font-size: 10px; }
+    .tk-total {
+        font-weight: bold;
+        font-size: 13px;
+        border-top: 1px solid #000;
+        margin-top: 3px;
+        padding-top: 3px;
+    }
+    .tk-gracias { margin-top: 4px; }
 }
