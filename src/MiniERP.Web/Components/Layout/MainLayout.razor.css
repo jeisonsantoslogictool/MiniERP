@@ -11,6 +11,10 @@ main {
 .sidebar {
     background: #FBF9F7;
     border-right: 1px solid #E8E2DC;
+    /* El menu no flota sobre el contenido, se apoya a su lado: la sombra va al canto
+       derecho y muy corta. Con el borde solo, sobre un lienzo beige, la columna se
+       fundia con la pagina y el modulo activo perdia su marco. */
+    box-shadow: 3px 0 8px -6px rgba(28, 25, 23, .16);
 }
 
 .top-row {
@@ -67,6 +71,9 @@ main {
         position: sticky;
         top: 0;
         z-index: 1;
+        /* Solo aqui: pegada, el contenido le pasa por debajo y sin sombra el texto
+           choca contra ella. En movil la barra no es sticky y no la necesita. */
+        box-shadow: var(--shadow-sticky);
     }
 
     .top-row.auth ::deep a:first-child {
@@ -87,7 +94,7 @@ main {
     border-top: 1px solid #FBDFC9;
     color: #1C1917;
     bottom: 0;
-    box-shadow: 0 -1px 2px rgba(28, 25, 23, 0.12);
+    box-shadow: var(--shadow-sticky-up);
     box-sizing: border-box;
     display: none;
     left: 0;

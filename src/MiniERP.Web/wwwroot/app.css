@@ -10,8 +10,41 @@
     --field:#FFFFFF; --field-border:#D8CEC4; --field-border-hover:#BFB2A5; --label:#5A524B;
     --ok:#1B7F46; --ok-bg:#E7F2EB; --danger:#C0392B; --danger-bg:#FBE9E6;
     --radius:14px; --radius-sm:10px;
-    --shadow-sm:0 1px 2px rgba(28,25,23,.06);
-    --shadow:0 1px 2px rgba(28,25,23,.05), 0 14px 34px -18px rgba(28,25,23,.22);
+
+    /* Elevacion. Una sola capa de sombra aplana todo por igual: el ojo necesita el
+       contacto —el punto oscuro pegado al borde, que apoya la pieza sobre el papel— y
+       aparte la difusa, que es la que dice a que altura esta. Por eso cada nivel lleva
+       dos. El tinte es el gris calido de la tinta (28,25,23), nunca negro: sobre un
+       lienzo beige el negro ensucia y tira a azul.
+
+       La escala se elige por funcion, no por gusto:
+         xs  lo que apenas se despega del papel
+         sm  paneles en reposo: tarjetas y tablas
+         md  lo que flota sobre el contenido: sugerencias del POS, tarjeta bajo el cursor
+         lg  lo que interrumpe: el aviso de reconexion
+       Si hace falta un nivel nuevo, sube el desenfoque y baja la opacidad: mientras mas
+       alto flota una pieza, mas grande y mas debil es su sombra. */
+    --shadow-xs:0 1px 1px rgba(28,25,23,.05);
+    --shadow-sm:0 1px 1px rgba(28,25,23,.04), 0 3px 8px -4px rgba(28,25,23,.10);
+    --shadow-md:0 1px 2px rgba(28,25,23,.05), 0 10px 22px -12px rgba(28,25,23,.20);
+    --shadow-lg:0 2px 4px rgba(28,25,23,.06), 0 22px 44px -20px rgba(28,25,23,.28);
+    /* Nombre anterior de --shadow-md; se conserva para no romper las ramas en curso. */
+    --shadow:var(--shadow-md);
+
+    /* Lo que queda pegado —cabecera de tabla, barra superior— no se eleva: proyecta
+       hacia abajo, para que las filas pasen por debajo y se vea que pasan. Sin esto el
+       texto que sube choca contra la cabecera y por un instante parece parte de ella.
+       La version `-up` es para lo pegado al borde inferior, que proyecta al reves. */
+    --shadow-sticky:0 6px 8px -8px rgba(28,25,23,.28);
+    --shadow-sticky-up:0 -2px 4px -3px rgba(28,25,23,.10), 0 -12px 22px -16px rgba(28,25,23,.22);
+
+    /* El naranja proyecta su propio color: una sombra gris bajo un boton naranja lo
+       apaga. Tenue en reposo, mas alta al pasar el cursor. */
+    --shadow-brand:0 4px 10px -5px rgba(242,109,33,.45);
+    --shadow-brand-strong:0 8px 18px -8px rgba(242,109,33,.6);
+
+    --ring-focus:0 0 0 3px rgba(242,109,33,.22);
+    --shadow-field:inset 0 1px 2px rgba(28,25,23,.05);
 
     /* Bootstrap re-mapeado al naranja cálido */
     --bs-primary:#F26D21; --bs-primary-rgb:242,109,33;
@@ -47,16 +80,35 @@ a, .btn-link {
     --bs-btn-disabled-bg: var(--orange);
     --bs-btn-disabled-border-color: var(--orange);
     color: #fff;
-    box-shadow: 0 8px 18px -8px rgba(242, 109, 33, .6);
+    box-shadow: var(--shadow-brand);
+    transition: box-shadow .15s ease, transform .15s ease;
 }
+
+/* Se levanta al pasar el cursor y se hunde al pulsar. El boton de cobrar se pulsa mil
+   veces al dia: que responda al tacto es lo que evita la segunda pulsacion por duda. */
+.btn-primary:hover:not(:disabled) {
+    box-shadow: var(--shadow-brand-strong);
+    transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) {
+    box-shadow: var(--shadow-xs);
+    transform: translateY(0);
+}
+.btn-primary:disabled { box-shadow: none; }
 
 /* El foco tiene que verse a un metro de distancia: en una caja se navega con Tab y con
    el teclado numerico, sin mirar la pantalla entre golpe y golpe. El halo anterior era
    naranja al 6%, invisible sobre el lienzo. */
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus,
 .form-control:focus, .form-select:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 3px rgba(242, 109, 33, .22);
+  box-shadow: var(--ring-focus);
   border-color: var(--orange);
+}
+
+/* El anillo no puede borrar la elevacion: box-shadow es una sola propiedad, asi que si
+   el foco la reescribe entero el boton se desinfla justo al enfocarlo. Se pintan las dos. */
+.btn-primary:focus, .btn-primary:active:focus {
+  box-shadow: var(--ring-focus), var(--shadow-brand);
 }
 
 .content {
@@ -152,21 +204,113 @@ h1:focus {
 .rounded { border-radius: var(--radius-sm) !important; }
 .bg-body-secondary { background-color: var(--surface) !important; }
 
-/* tablas */
+/* tablas
+
+   Una lista es la pantalla donde mas rato pasa el usuario, y era la unica que no
+   tenia superficie propia. Bootstrap pinta cada celda con --bs-table-bg, que apunta
+   a --bs-body-bg: el mismo beige del lienzo. Una tabla del mismo color que el fondo,
+   con separadores de dos puntos de contraste, no se lee como tabla —se lee como
+   texto suelto flotando— y en una fila de ocho columnas el ojo se cae a mitad de
+   camino. La cura es la de los formularios: papel blanco, marco y una cabecera que
+   se vea que es cabecera. */
+
+/* El panel se cuelga del contenedor de scroll, que las 24 tablas del sistema ya
+   traen. Asi ninguna pagina cambia su marcado y ningun modulo pisa el de otro. */
+.table-responsive {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Dentro de un panel que ya tiene marco, la tabla no dibuja el suyo: dos marcos
+   concentricos a dos milimetros no separan nada, solo hacen ruido. */
+.card .table-responsive {
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
 .table {
-    --bs-table-hover-bg: #FCFAF8;
+    /* El blanco del papel, no el beige del lienzo. */
+    --bs-table-bg: var(--card);
+    --bs-table-border-color: var(--border-soft);
+    /* El hover anterior (#FCFAF8) era un punto sobre el blanco: no marcaba nada. */
+    --bs-table-hover-bg: var(--orange-50);
     font-variant-numeric: tabular-nums;
 }
+
+/* El panel ya pone el aire de abajo; la tabla no aporta el suyo. */
+.table-responsive > .table { margin-bottom: 0; }
+
+/* La cabecera manda sobre las columnas: fondo propio, texto legible y una linea
+   que la separa. Antes era gris claro sobre transparente y se leia como una fila mas. */
 .table > thead th {
+    background-color: var(--surface);
+    color: var(--label);
     text-transform: uppercase;
     font-size: .72rem;
     letter-spacing: .06em;
-    color: var(--faint);
     font-weight: 700;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
 }
+
 .table > :not(caption) > * > * {
     border-bottom-color: var(--border-soft);
     padding: .7rem .75rem;
+}
+
+/* El contenido no toca el marco. */
+.table > :not(caption) > * > *:first-child { padding-left: 1rem; }
+.table > :not(caption) > * > *:last-child { padding-right: 1rem; }
+
+.table-sm > :not(caption) > * > * { padding-top: .4rem; padding-bottom: .4rem; }
+
+/* La franja alterna es lo que sostiene la mirada de una punta a otra de la fila.
+   Bootstrap 5.3 pinta el color de la celda con una sombra interior, asi que el tono
+   va por variable y no por background-color: de esa forma el hover sigue ganando
+   por encima de la franja en lugar de pelearse con ella. */
+.table > tbody > tr:nth-of-type(even) > * { --bs-table-bg-type: #FAF8F5; }
+
+/* La ultima fila no necesita raya: ahi termina el papel. */
+.table > tbody:last-child > tr:last-child > * { border-bottom: 0; }
+
+/* Donde esta parado el usuario: ademas del tinte, una marca naranja en el canto
+   izquierdo. En una fila ancha el tinte solo se pierde de vista al llegar al total. */
+.table-hover > tbody > tr:hover > *:first-child {
+    box-shadow: inset 3px 0 0 var(--orange),
+                inset 0 0 0 9999px var(--bs-table-bg-state, transparent);
+}
+
+/* Bootstrap pinta este separador con el color del texto: dos puntos de negro justo
+   encima de la barra de totales. Con el gris del marco alcanza. */
+.table > .table-group-divider { border-top-color: var(--border); }
+
+/* Los totales cierran la hoja: mismo gris de la cabecera, para que la tabla se lea
+   entre dos barras. */
+.table > tfoot > * > * {
+    background-color: var(--surface);
+    border-top: 1px solid var(--border);
+    color: var(--ink);
+    font-weight: 700;
+}
+
+/* Opcional, para listados largos (facturas, productos, egresos): agregando
+   `table-sticky` junto a `table-responsive`, la cabecera se queda fija mientras se
+   baja por las filas y las columnas nunca quedan huerfanas. */
+.table-responsive.table-sticky {
+    max-height: calc(100vh - 15rem);
+    overflow-y: auto;
+}
+.table-sticky > .table > thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    /* Al hacerse sticky, la celda se lleva por delante su borde inferior. La primera
+       linea lo redibuja; la segunda es la sombra bajo la que pasan las filas, que es lo
+       que hace evidente que la cabecera esta por encima y no es una fila mas. */
+    box-shadow: 0 1px 0 var(--border), var(--shadow-sticky);
 }
 
 /* formularios */
@@ -179,7 +323,7 @@ h1:focus {
     border-color: var(--field-border);
     border-radius: 10px;
     color: var(--ink);
-    box-shadow: inset 0 1px 2px rgba(28, 25, 23, .05);
+    box-shadow: var(--shadow-field);
 }
 
 .form-control:hover:not(:disabled):not([readonly]),
@@ -187,8 +331,11 @@ h1:focus {
     border-color: var(--field-border-hover);
 }
 
+/* El campo enfocado conserva su hundido: si el anillo lo reemplaza, el hueco se aplana
+   justo cuando el usuario esta escribiendo dentro. */
 .form-control:focus, .form-select:focus {
     background-color: var(--field);
+    box-shadow: var(--ring-focus), var(--shadow-field);
 }
 
 /* La pista dentro del campo no puede competir con lo que el usuario escribe. */
@@ -216,7 +363,13 @@ h1:focus {
 .form-text { color: var(--muted); }
 .input-group-text { background: var(--surface); border-color: var(--field-border); color: var(--muted); }
 
-/* listas (sugerencias del POS) */
+/* listas (sugerencias del POS)
+   La lista aparece y desaparece mientras se teclea. Elevada se lee como algo que flota
+   sobre la pagina —y que se va a ir— y no como un bloque mas que empuja al carrito. */
+.list-group {
+    --bs-list-group-border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+}
 .list-group-item { border-color: var(--border-soft); }
 .list-group-item-action:hover { background: var(--orange-50); }
 
@@ -260,10 +413,30 @@ code { color: var(--muted); }
 /* foco accesible */
 :focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
 
+/* Quien pide menos movimiento conserva la sombra, que informa, y pierde el
+   desplazamiento, que solo decora. */
+@media (prefers-reduced-motion: reduce) {
+    .btn-primary,
+    .btn-primary:hover:not(:disabled),
+    .btn-primary:active:not(:disabled) {
+        transform: none;
+        transition: none;
+    }
+}
+
 /* impresión (se conserva del módulo de facturas) */
 @media print {
     .sidebar, .top-row, #blazor-error-ui, .d-print-none { display: none !important; }
     .page { display: block !important; }
     main, .content { width: 100% !important; padding: 0 !important; margin: 0 !important; }
     body { background: #fff !important; }
+
+    /* En papel una sombra no es profundidad: es una mancha gris que la impresora
+       trama. Fuera todas, no solo las de la tabla. */
+    *, *::before, *::after { box-shadow: none !important; }
+
+    /* Y el marco del panel tambien sobra: la hoja ya es el marco. */
+    .table-responsive { border: 0 !important; max-height: none !important; }
+    .table > thead th, .table > tfoot > * > * { background: transparent !important; }
+    .table > thead th { border-bottom-color: #999 !important; }
 }

@@ -41,7 +41,7 @@
     display: grid;
     place-items: center;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px -4px rgba(242, 109, 33, .7);
+    box-shadow: var(--shadow-brand);
 }
 
     .marca-logo svg {
@@ -111,7 +111,7 @@
     .nav-item ::deep a.active {
         background-color: #F26D21;
         color: #FFFFFF;
-        box-shadow: 0 6px 16px -7px rgba(242, 109, 33, .9);
+        box-shadow: var(--shadow-brand-strong);
     }
 
         .nav-item ::deep a.active svg {

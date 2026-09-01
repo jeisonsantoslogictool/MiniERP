@@ -23,10 +23,17 @@
 }
 
 .card {
-    transition: border-color .15s ease, box-shadow .15s ease;
+    transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
 
+/* La tarjeta entera es un boton: al pasar el cursor sube un nivel y se despega un
+   pixel. Es la unica pista de que se puede pulsar en cualquier punto de ella. */
 .card:hover {
     border-color: var(--orange-100);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .card, .card:hover { transform: none; transition: none; }
 }
