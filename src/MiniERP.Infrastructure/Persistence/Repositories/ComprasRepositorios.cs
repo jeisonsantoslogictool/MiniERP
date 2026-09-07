@@ -122,7 +122,7 @@ public class ProveedorRepositorio(MiniErpDbContext contexto) : IProveedorReposit
         var pagosPorProveedor = pagos.ToDictionary(p => p.ProveedorId, p => p.TotalPagado);
 
         var resultado = new List<CuentasPorPagarDto>(proveedoresConDeuda.Count);
-        var fechaActual = DateTime.UtcNow.Date;
+        var fechaActual = RelojSimulado.UtcNow.Date;
 
         foreach (var p in proveedoresConDeuda)
         {

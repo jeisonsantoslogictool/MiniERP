@@ -68,7 +68,7 @@ public class CategoriaService(ICategoriaRepositorio categorias) : ICategoriaServ
         categoria.Nombre = nombre;
         categoria.Descripcion = descripcion?.Trim();
         categoria.Activo = activo;
-        categoria.FechaModificacion = DateTime.UtcNow;
+        categoria.FechaModificacion = RelojSimulado.UtcNow;
         categoria.ModificadoPor = usuarioId;
 
         await categorias.GuardarAsync(ct);

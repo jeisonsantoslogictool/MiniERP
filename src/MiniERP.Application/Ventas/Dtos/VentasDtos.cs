@@ -157,5 +157,5 @@ public class RegistrarSecuenciaDto
     public string Prefijo { get; set; } = string.Empty;
     public long Desde { get; set; } = 1;
     public long Hasta { get; set; }
-    public DateTime FechaVencimiento { get; set; } = DateTime.UtcNow.Date.AddYears(1);
+    public DateTime FechaVencimiento { get; set; } = RelojSimulado.UtcNow.Date.AddYears(1);
 }

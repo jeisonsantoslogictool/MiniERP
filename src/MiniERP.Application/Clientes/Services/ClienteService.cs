@@ -119,7 +119,7 @@ public class ClienteService(IClienteRepositorio clientes) : IClienteService
         cliente.LimiteCredito = form.LimiteCredito;
         cliente.DiasCredito = form.DiasCredito;
         cliente.Activo = form.Activo;
-        cliente.FechaModificacion = DateTime.UtcNow;
+        cliente.FechaModificacion = RelojSimulado.UtcNow;
         cliente.ModificadoPor = usuarioId;
 
         // El balance no se toca: lo mueven las ventas a credito y los cobros.

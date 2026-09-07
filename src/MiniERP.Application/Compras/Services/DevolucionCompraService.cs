@@ -93,7 +93,7 @@ public class DevolucionCompraService(
             // reconciliar renglon por renglon para ahorrar unos INSERT.
             devoluciones.EliminarLineas(devolucion.Lineas.ToList());
             devolucion.Lineas.Clear();
-            devolucion.FechaModificacion = DateTime.UtcNow;
+            devolucion.FechaModificacion = RelojSimulado.UtcNow;
             devolucion.ModificadoPor = usuarioId;
         }
 
@@ -164,7 +164,7 @@ public class DevolucionCompraService(
             return Resultado.Falla(ex.Message);
         }
 
-        devolucion.FechaModificacion = DateTime.UtcNow;
+        devolucion.FechaModificacion = RelojSimulado.UtcNow;
         devolucion.ModificadoPor = usuarioId;
 
         if (proveedor is not null)

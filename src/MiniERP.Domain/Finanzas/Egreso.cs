@@ -8,7 +8,7 @@ namespace MiniERP.Domain.Finanzas;
 /// </summary>
 public class Egreso : EntidadBase
 {
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = RelojSimulado.UtcNow;
 
     public int CategoriaEgresoId { get; set; }
     public CategoriaEgreso? CategoriaEgreso { get; set; }

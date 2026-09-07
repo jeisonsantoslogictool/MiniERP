@@ -17,7 +17,7 @@ public class DevolucionCompra : EntidadBase
     public int ProveedorId { get; set; }
     public Proveedor? Proveedor { get; set; }
 
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = RelojSimulado.UtcNow;
 
     /// <summary>Por que se devuelve. Obligatorio: una salida discrecional exige explicacion.</summary>
     public string Motivo { get; set; } = string.Empty;

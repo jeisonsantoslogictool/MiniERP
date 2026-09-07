@@ -58,7 +58,7 @@ public class DatabaseInitializer(
         if (await contexto.SecuenciasNcf.AnyAsync(ct))
             return;
 
-        var vence = DateTime.UtcNow.Date.AddYears(1);
+        var vence = RelojSimulado.UtcNow.Date.AddYears(1);
 
         (TipoComprobante Tipo, string Prefijo)[] rangos =
         [

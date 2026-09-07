@@ -68,7 +68,7 @@ public class CompraFormDto
     public string Numero { get; set; } = string.Empty;
     public int ProveedorId { get; set; }
     public string? ProveedorNombre { get; set; }
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = RelojSimulado.UtcNow;
     public string? NcfProveedor { get; set; }
     public EstadoCompra Estado { get; set; } = EstadoCompra.Borrador;
     public CondicionPago Condicion { get; set; } = CondicionPago.Contado;

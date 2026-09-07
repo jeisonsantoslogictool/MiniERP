@@ -15,7 +15,7 @@ public record EgresoListaDto(
 public class EgresoFormDto
 {
     public int Id { get; set; }
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = RelojSimulado.UtcNow;
     public int CategoriaEgresoId { get; set; }
     public decimal Monto { get; set; }
     public string? Descripcion { get; set; }

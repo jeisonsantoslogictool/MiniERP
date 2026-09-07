@@ -69,8 +69,8 @@ else
 @code {
     private ResumenRentabilidad? resumen;
 
-    private DateTime desde = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
-    private DateTime hasta = DateTime.UtcNow.Date;
+    private DateTime desde = new(RelojSimulado.UtcNow.Year, RelojSimulado.UtcNow.Month, 1);
+    private DateTime hasta = RelojSimulado.UtcNow.Date;
 
     protected override async Task OnInitializedAsync() => await Cargar();
 

@@ -28,7 +28,7 @@ public class Factura : EntidadBase
 
     public string? ClienteDocumento { get; set; }
 
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = RelojSimulado.UtcNow;
 
     public EstadoFactura Estado { get; set; } = EstadoFactura.Emitida;
 
@@ -189,7 +189,7 @@ public class Factura : EntidadBase
 
         Estado = EstadoFactura.Anulada;
         MotivoAnulacion = motivo.Trim();
-        FechaModificacion = DateTime.UtcNow;
+        FechaModificacion = RelojSimulado.UtcNow;
         ModificadoPor = usuarioId;
 
         return movimientos;

@@ -16,7 +16,7 @@ public class Cobro : EntidadBase
     public int ClienteId { get; set; }
     public Cliente? Cliente { get; set; }
 
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = RelojSimulado.UtcNow;
 
     /// <summary>Monto abonado, siempre positivo.</summary>
     public decimal Monto { get; set; }

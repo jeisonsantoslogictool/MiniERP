@@ -29,7 +29,7 @@ public class UnidadMedidaConfiguration : IEntityTypeConfiguration<UnidadMedida>
         // primer dia, cubriendo venta por unidad y por peso.
         //
         // La fecha va fija a proposito. EntidadBase inicializa FechaCreacion con
-        // DateTime.UtcNow, y un valor dinamico dentro de HasData haria que el modelo
+        // RelojSimulado.UtcNow, y un valor dinamico dentro de HasData haria que el modelo
         // cambiara en cada compilacion y las migraciones nunca cerraran.
         var semilla = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 

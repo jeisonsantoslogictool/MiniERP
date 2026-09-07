@@ -40,7 +40,7 @@ public class CompraService(
         compras.BuscarProductosAsync(texto, 15, ct);
 
     public async Task<CompraFormDto> NuevaAsync(CancellationToken ct = default) =>
-        new() { Numero = await compras.SugerirNumeroAsync(ct), Fecha = DateTime.UtcNow };
+        new() { Numero = await compras.SugerirNumeroAsync(ct), Fecha = RelojSimulado.UtcNow };
 
     public async Task<Resultado<int>> GuardarAsync(CompraFormDto form, string? usuarioId, CancellationToken ct = default)
     {
@@ -71,7 +71,7 @@ public class CompraService(
             // pena reconciliar renglon por renglon para ahorrar unos INSERT.
             compras.EliminarLineas(compra.Lineas.ToList());
             compra.Lineas.Clear();
-            compra.FechaModificacion = DateTime.UtcNow;
+            compra.FechaModificacion = RelojSimulado.UtcNow;
             compra.ModificadoPor = usuarioId;
         }
 
@@ -140,7 +140,7 @@ public class CompraService(
             proveedor.BalanceActual += compra.Total;
         }
 
-        compra.FechaModificacion = DateTime.UtcNow;
+        compra.FechaModificacion = RelojSimulado.UtcNow;
         compra.ModificadoPor = usuarioId;
 
         await compras.GuardarAsync(ct);
@@ -164,7 +164,7 @@ public class CompraService(
             return Resultado.Falla(ex.Message);
         }
 
-        compra.FechaModificacion = DateTime.UtcNow;
+        compra.FechaModificacion = RelojSimulado.UtcNow;
         compra.ModificadoPor = usuarioId;
 
         await compras.GuardarAsync(ct);

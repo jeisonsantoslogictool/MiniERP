@@ -20,7 +20,7 @@ public class PanelFinanzasService(
 {
     public async Task<PanelFinanzasDto> ObtenerAsync(CancellationToken ct = default)
     {
-        var hoy = DateTime.UtcNow.Date;
+        var hoy = RelojSimulado.UtcNow.Date;
         var inicioMes = new DateTime(hoy.Year, hoy.Month, 1);
 
         var ventasDia = await ingresos.ObtenerAsync(new FiltroReporteIngresos(hoy, hoy), ct);

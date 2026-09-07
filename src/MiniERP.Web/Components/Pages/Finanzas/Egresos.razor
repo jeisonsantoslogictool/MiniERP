@@ -157,7 +157,7 @@ else
     private PaginaDe<EgresoListaDto>? pagina;
     private decimal total;
 
-    private EgresoFormDto form = new() { Fecha = DateTime.UtcNow.Date };
+    private EgresoFormDto form = new() { Fecha = RelojSimulado.UtcNow.Date };
     private bool guardando;
 
     private DateTime? filtroDesde;
@@ -268,7 +268,7 @@ else
     }
 
     private void LimpiarForm() =>
-        form = new EgresoFormDto { Fecha = DateTime.UtcNow.Date };
+        form = new EgresoFormDto { Fecha = RelojSimulado.UtcNow.Date };
 
     private async Task IrAPagina(int numero)
     {

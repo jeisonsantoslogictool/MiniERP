@@ -15,7 +15,7 @@ public class Pago : EntidadBase
     public int ProveedorId { get; set; }
     public Proveedor? Proveedor { get; set; }
 
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = RelojSimulado.UtcNow;
 
     /// <summary>Monto pagado, siempre positivo.</summary>
     public decimal Monto { get; set; }

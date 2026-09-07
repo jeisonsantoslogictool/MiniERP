@@ -69,7 +69,7 @@ public class CategoriaEgresoService(ICategoriaEgresoRepositorio categorias) : IC
         }
         else
         {
-            categoria.FechaModificacion = DateTime.UtcNow;
+            categoria.FechaModificacion = RelojSimulado.UtcNow;
             categoria.ModificadoPor = usuarioId;
         }
 
@@ -90,7 +90,7 @@ public class CategoriaEgresoService(ICategoriaEgresoRepositorio categorias) : IC
             return Resultado.Falla("La categoría no existe.");
 
         categoria.Activo = activo;
-        categoria.FechaModificacion = DateTime.UtcNow;
+        categoria.FechaModificacion = RelojSimulado.UtcNow;
         categoria.ModificadoPor = usuarioId;
 
         await categorias.GuardarAsync(ct);

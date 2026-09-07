@@ -83,7 +83,7 @@ public class EgresoService(
         egreso.CategoriaEgresoId = form.CategoriaEgresoId;
         egreso.Monto = form.Monto;
         egreso.Descripcion = string.IsNullOrWhiteSpace(form.Descripcion) ? null : form.Descripcion.Trim();
-        egreso.FechaModificacion = DateTime.UtcNow;
+        egreso.FechaModificacion = RelojSimulado.UtcNow;
         egreso.ModificadoPor = usuarioId;
 
         await egresos.GuardarAsync(ct);

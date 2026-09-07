@@ -13,7 +13,7 @@ public class Compra : EntidadBase
     public int ProveedorId { get; set; }
     public Proveedor? Proveedor { get; set; }
 
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = RelojSimulado.UtcNow;
 
     public DateTime? FechaRecepcion { get; set; }
 
@@ -103,7 +103,7 @@ public class Compra : EntidadBase
         }
 
         Estado = EstadoCompra.Recibida;
-        FechaRecepcion = DateTime.UtcNow;
+        FechaRecepcion = RelojSimulado.UtcNow;
 
         return movimientos;
     }

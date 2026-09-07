@@ -91,7 +91,7 @@ public class VentaService(
                 var secuencia = await secuencias.ObtenerPorTipoAsync(tipoComprobante, ct);
 
                 return Resultado.Falla<FacturaEmitidaDto>(
-                    secuencia?.MotivoNoDisponible(DateTime.UtcNow)
+                    secuencia?.MotivoNoDisponible(RelojSimulado.UtcNow)
                     ?? $"No hay secuencia de comprobantes configurada para {tipoComprobante}. " +
                        "Registra el rango que te autorizo la DGII.");
             }
@@ -103,7 +103,7 @@ public class VentaService(
                 ClienteId = cliente?.Id,
                 ClienteNombre = cliente?.Nombre ?? "Cliente de contado",
                 ClienteDocumento = cliente?.NumeroDocumento,
-                Fecha = DateTime.UtcNow,
+                Fecha = RelojSimulado.UtcNow,
                 Condicion = form.Condicion,
                 MontoRecibido = form.Condicion == CondicionPago.Contado ? form.MontoRecibido : 0,
                 CreadoPor = usuarioId

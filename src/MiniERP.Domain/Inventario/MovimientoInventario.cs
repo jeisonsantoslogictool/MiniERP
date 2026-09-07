@@ -16,7 +16,7 @@ public class MovimientoInventario : EntidadBase
     public int ProductoId { get; set; }
     public Producto? Producto { get; set; }
 
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = RelojSimulado.UtcNow;
 
     public TipoMovimiento Tipo { get; set; }
 

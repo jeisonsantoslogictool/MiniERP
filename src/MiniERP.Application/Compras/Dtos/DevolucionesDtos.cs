@@ -27,7 +27,7 @@ public class DevolucionCompraFormDto
     public int ProveedorId { get; set; }
     public string? ProveedorNombre { get; set; }
 
-    public DateTime Fecha { get; set; } = DateTime.UtcNow;
+    public DateTime Fecha { get; set; } = RelojSimulado.UtcNow;
 
     public string Motivo { get; set; } = string.Empty;
 

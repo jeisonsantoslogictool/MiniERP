@@ -36,7 +36,7 @@ public class SecuenciaNcfRepositorio(MiniErpDbContext contexto) : ISecuenciaNcfR
     /// </remarks>
     public async Task<string?> AsignarSiguienteAsync(TipoComprobante tipo, CancellationToken ct = default)
     {
-        var hoy = DateTime.UtcNow.Date;
+        var hoy = RelojSimulado.UtcNow.Date;
 
         // Se elige la secuencia primero para conocer su prefijo, y el UPDATE se hace
         // contra ese Id concreto. El prefijo no cambia, asi que leerlo antes es seguro;

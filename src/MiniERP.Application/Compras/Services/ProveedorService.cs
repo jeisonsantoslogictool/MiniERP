@@ -112,7 +112,7 @@ public class ProveedorService(IProveedorRepositorio proveedores) : IProveedorSer
         proveedor.Contacto = Normalizar(form.Contacto);
         proveedor.DiasCredito = form.DiasCredito;
         proveedor.Activo = form.Activo;
-        proveedor.FechaModificacion = DateTime.UtcNow;
+        proveedor.FechaModificacion = RelojSimulado.UtcNow;
         proveedor.ModificadoPor = usuarioId;
 
         // El balance no se toca: lo mueven las compras a credito y los pagos.

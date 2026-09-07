@@ -23,7 +23,7 @@ public class SecuenciaNcfService(ISecuenciaNcfRepositorio secuencias) : ISecuenc
 {
     public async Task<IReadOnlyList<SecuenciaNcfDto>> ObtenerTodasAsync(CancellationToken ct = default)
     {
-        var hoy = DateTime.UtcNow.Date;
+        var hoy = RelojSimulado.UtcNow.Date;
 
         var todas = await secuencias.ObtenerTodasAsync(ct);
 
@@ -49,7 +49,7 @@ public class SecuenciaNcfService(ISecuenciaNcfRepositorio secuencias) : ISecuenc
         if (form.Hasta <= form.Desde)
             return Resultado.Falla("El numero final debe ser mayor que el inicial.");
 
-        if (form.FechaVencimiento.Date <= DateTime.UtcNow.Date)
+        if (form.FechaVencimiento.Date <= RelojSimulado.UtcNow.Date)
             return Resultado.Falla("La fecha de vencimiento debe ser futura.");
 
         // Dos rangos del mismo prefijo que se solapen producirian dos comprobantes con el

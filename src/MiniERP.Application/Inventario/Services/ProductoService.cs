@@ -125,7 +125,7 @@ public class ProductoService(
         producto.ExistenciaMinima = form.ExistenciaMinima;
         producto.ManejaInventario = form.ManejaInventario;
         producto.Activo = form.Activo;
-        producto.FechaModificacion = DateTime.UtcNow;
+        producto.FechaModificacion = RelojSimulado.UtcNow;
         producto.ModificadoPor = usuarioId;
 
         // Ni la existencia ni el costo se tocan aqui a proposito. La existencia solo cambia

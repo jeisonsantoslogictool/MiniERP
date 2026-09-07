@@ -226,7 +226,7 @@ public class ClienteRepositorio(MiniErpDbContext contexto) : IClienteRepositorio
         var cobrosPorCliente = cobros.ToDictionary(c => c.ClienteId, c => c.TotalCobrado);
 
         var resultado = new List<CuentasPorCobrarDto>(clientesConDeuda.Count);
-        var fechaActual = DateTime.UtcNow.Date;
+        var fechaActual = RelojSimulado.UtcNow.Date;
 
         foreach (var c in clientesConDeuda)
         {
