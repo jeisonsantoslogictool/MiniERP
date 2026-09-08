@@ -28,8 +28,17 @@ public static partial class DependencyInjection
             ?? throw new InvalidOperationException(
                 "No se encontro la cadena de conexion 'DefaultConnection' en la configuracion.");
 
-        services.AddDbContext<MiniErpDbContext>(options =>
+        // En Blazor Server el scope de inyeccion dura lo que dura el circuito, no una
+        // peticion: un DbContext scoped vive horas, sirve entidades cacheadas de hace rato y
+        // revienta con "A second operation was started" si el usuario dispara dos consultas a
+        // la vez. Con la fabrica, cada lectura puede abrir un contexto de vida corta y verlo
+        // todo fresco; el registro scoped se conserva porque Identity y los repositorios que
+        // participan en una misma transaccion necesitan compartir instancia.
+        services.AddDbContextFactory<MiniErpDbContext>(options =>
             options.UseSqlServer(connectionString));
+
+        services.AddScoped(sp =>
+            sp.GetRequiredService<IDbContextFactory<MiniErpDbContext>>().CreateDbContext());
 
         services.AddIdentityCore<ApplicationUser>(options =>
             {

@@ -30,8 +30,21 @@ public class ClienteRepositorio(MiniErpDbContext contexto) : IClienteRepositorio
             c.BalanceActual > c.LimiteCredito,
             c.Activo);
 
-    public Task<Cliente?> ObtenerPorIdAsync(int id, CancellationToken ct = default) =>
-        contexto.Clientes.FirstOrDefaultAsync(c => c.Id == id, ct);
+    /// <summary>
+    /// Trae el cliente con seguimiento, para cargarle una venta a credito o aplicarle un
+    /// cobro. Se recarga si ya venia seguido del circuito: el balance tiene que ser el de
+    /// ahora, no el que vio esta ventana la primera vez.
+    /// </summary>
+    public async Task<Cliente?> ObtenerPorIdAsync(int id, CancellationToken ct = default)
+    {
+        var seguido = contexto.ChangeTracker.Entries<Cliente>()
+            .FirstOrDefault(e => e.Entity.Id == id);
+
+        if (seguido is not null)
+            await seguido.ReloadAsync(ct);
+
+        return await contexto.Clientes.FirstOrDefaultAsync(c => c.Id == id, ct);
+    }
 
     public async Task<PaginaDe<ClienteListaDto>> BuscarAsync(FiltroClientes filtro, CancellationToken ct = default)
     {

@@ -306,6 +306,16 @@ public class CompraRepositorio(MiniErpDbContext contexto) : ICompraRepositorio
     {
         var ids = compra.Lineas.Select(l => l.ProductoId).Distinct().ToList();
 
+        // El mismo cuidado que en la venta, en la direccion contraria: recibir mercancia
+        // promedia el costo y suma existencia sobre lo que diga esta instancia. Si viene
+        // cacheada del circuito, la recepcion pisa las ventas que el cajero hizo entre medio.
+        foreach (var seguido in contexto.ChangeTracker.Entries<Producto>()
+                     .Where(e => ids.Contains(e.Entity.Id))
+                     .ToList())
+        {
+            await seguido.ReloadAsync(ct);
+        }
+
         return await contexto.Productos
             .Where(p => ids.Contains(p.Id))
             .ToDictionaryAsync(p => p.Id, ct);

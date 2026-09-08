@@ -40,8 +40,22 @@ public class ProductoRepositorio(MiniErpDbContext contexto) : IProductoRepositor
             p.ManejaInventario && p.Existencia <= 0,
             p.Activo);
 
-    public Task<Producto?> ObtenerPorIdAsync(int id, CancellationToken ct = default) =>
-        contexto.Productos.FirstOrDefaultAsync(p => p.Id == id, ct);
+    /// <summary>
+    /// Trae el producto con seguimiento, para editarlo o ajustarle la existencia. Si el
+    /// contexto ya lo tenia seguido de una operacion anterior del mismo circuito, se recarga
+    /// primero: de lo contrario el ajuste partiria de una existencia vieja y borraria lo que
+    /// otra ventana haya movido entre medio.
+    /// </summary>
+    public async Task<Producto?> ObtenerPorIdAsync(int id, CancellationToken ct = default)
+    {
+        var seguido = contexto.ChangeTracker.Entries<Producto>()
+            .FirstOrDefault(e => e.Entity.Id == id);
+
+        if (seguido is not null)
+            await seguido.ReloadAsync(ct);
+
+        return await contexto.Productos.FirstOrDefaultAsync(p => p.Id == id, ct);
+    }
 
     public Task<Producto?> ObtenerPorCodigoAsync(string codigo, CancellationToken ct = default) =>
         contexto.Productos.FirstOrDefaultAsync(p => p.Codigo == codigo, ct);

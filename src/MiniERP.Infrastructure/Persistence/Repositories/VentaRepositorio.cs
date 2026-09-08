@@ -8,7 +8,21 @@ using MiniERP.Domain.Ventas;
 
 namespace MiniERP.Infrastructure.Persistence.Repositories;
 
-public class VentaRepositorio(MiniErpDbContext contexto) : IVentaRepositorio
+/// <summary>
+/// Datos del punto de venta.
+/// </summary>
+/// <remarks>
+/// Recibe dos cosas a proposito. El <c>contexto</c> compartido del circuito es el que
+/// escribe: la emision necesita que la factura, el NCF y el movimiento entren en la MISMA
+/// transaccion, y eso solo se sostiene si comparten instancia. Las lecturas puras, en
+/// cambio, abren su propio contexto con la <c>fabrica</c>: el buscador del POS dispara una
+/// consulta por cada tecla —un escaner escribe el codigo entero en milisegundos— y dos de
+/// esas consultas sobre el mismo contexto revientan con "A second operation was started on
+/// this context instance", que es el error que le salta al cajero a mitad de una venta.
+/// </remarks>
+public class VentaRepositorio(
+    MiniErpDbContext contexto,
+    IDbContextFactory<MiniErpDbContext> fabrica) : IVentaRepositorio
 {
     private static readonly Expression<Func<Producto, ProductoParaVentaDto>> ProyeccionProducto =
         p => new ProductoParaVentaDto(
@@ -29,7 +43,9 @@ public class VentaRepositorio(MiniErpDbContext contexto) : IVentaRepositorio
 
         texto = texto.Trim();
 
-        return await contexto.Productos
+        await using var db = await fabrica.CreateDbContextAsync(ct);
+
+        return await db.Productos
             .AsNoTracking()
             .Where(p => p.Activo && (
                 p.Codigo.Contains(texto) ||
@@ -45,13 +61,17 @@ public class VentaRepositorio(MiniErpDbContext contexto) : IVentaRepositorio
     /// Coincidencia exacta y no parcial: lo que llega del escaner es el codigo completo,
     /// y una busqueda parcial podria devolver el producto equivocado.
     /// </summary>
-    public Task<ProductoParaVentaDto?> ObtenerPorCodigoBarrasAsync(
-        string codigoBarras, CancellationToken ct = default) =>
-        contexto.Productos
+    public async Task<ProductoParaVentaDto?> ObtenerPorCodigoBarrasAsync(
+        string codigoBarras, CancellationToken ct = default)
+    {
+        await using var db = await fabrica.CreateDbContextAsync(ct);
+
+        return await db.Productos
             .AsNoTracking()
             .Where(p => p.Activo && p.CodigoBarras == codigoBarras)
             .Select(ProyeccionProducto)
             .FirstOrDefaultAsync(ct);
+    }
 
     public async Task<IReadOnlyList<ClienteParaVentaDto>> BuscarClientesAsync(
         string texto, int maximo = 10, CancellationToken ct = default)
@@ -62,7 +82,9 @@ public class VentaRepositorio(MiniErpDbContext contexto) : IVentaRepositorio
         texto = texto.Trim();
         var sinGuiones = texto.Replace("-", string.Empty);
 
-        return await contexto.Clientes
+        await using var db = await fabrica.CreateDbContextAsync(ct);
+
+        return await db.Clientes
             .AsNoTracking()
             .Where(c => c.Activo && (
                 c.Codigo.Contains(texto) ||
@@ -81,7 +103,9 @@ public class VentaRepositorio(MiniErpDbContext contexto) : IVentaRepositorio
 
     public async Task<PaginaDe<FacturaListaDto>> BuscarAsync(FiltroFacturas filtro, CancellationToken ct = default)
     {
-        var consulta = contexto.Facturas.AsNoTracking();
+        await using var db = await fabrica.CreateDbContextAsync(ct);
+
+        var consulta = db.Facturas.AsNoTracking();
 
         if (filtro.Estado is { } estado)
             consulta = consulta.Where(f => f.Estado == estado);
@@ -117,7 +141,9 @@ public class VentaRepositorio(MiniErpDbContext contexto) : IVentaRepositorio
 
     public async Task<FacturaDetalleDto?> ObtenerDetalleAsync(int id, CancellationToken ct = default)
     {
-        var factura = await contexto.Facturas
+        await using var db = await fabrica.CreateDbContextAsync(ct);
+
+        var factura = await db.Facturas
             .AsNoTracking()
             .Include(f => f.Lineas)
                 .ThenInclude(l => l.Producto)
@@ -167,6 +193,19 @@ public class VentaRepositorio(MiniErpDbContext contexto) : IVentaRepositorio
     {
         var lista = ids.Distinct().ToList();
 
+        // Esta es la lectura de la que depende el cobro: valida la existencia y luego la
+        // reescribe. Como el contexto vive lo que dure el circuito, un producto puede llevar
+        // horas seguido con la existencia de la venta anterior, y una consulta con seguimiento
+        // devuelve esa instancia cacheada descartando lo que acaba de leer de la base. Con eso
+        // el cajero cobraba contra un inventario viejo y, al guardar, borraba la mercancia que
+        // el almacen habia registrado entre medio. Se recarga cada uno antes de leer.
+        foreach (var seguido in contexto.ChangeTracker.Entries<Producto>()
+                     .Where(e => lista.Contains(e.Entity.Id))
+                     .ToList())
+        {
+            await seguido.ReloadAsync(ct);
+        }
+
         return await contexto.Productos
             .Where(p => lista.Contains(p.Id))
             .ToDictionaryAsync(p => p.Id, ct);
@@ -209,6 +248,19 @@ public class VentaRepositorio(MiniErpDbContext contexto) : IVentaRepositorio
             if (resultado is Resultado r && r.Fallo)
             {
                 await transaccion.RollbackAsync(ct);
+
+                // La base revirtio; el contexto del circuito no. Los productos que la venta
+                // alcanzo a descontar antes de fallar siguen en memoria con la existencia
+                // rebajada, y el siguiente guardado de esta misma ventana los escribiria: una
+                // merma que nadie registro. Se los devuelve a lo que dice la base, y lo que
+                // solo existia en memoria —la factura que no llego a nacer— queda descartado.
+                foreach (var entrada in contexto.ChangeTracker.Entries()
+                             .Where(e => e.State is EntityState.Modified or EntityState.Added)
+                             .ToList())
+                {
+                    await entrada.ReloadAsync(ct);
+                }
+
                 return resultado;
             }
 
