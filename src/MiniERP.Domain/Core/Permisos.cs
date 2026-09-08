@@ -111,7 +111,9 @@ public static class Permisos
     public static IReadOnlyList<string> PorDefectoDeRol(string rol) => rol switch
     {
         Roles.Administrador => Todos,
-        Roles.Cajero => [VentasFacturar, VentasVer, InventarioVer, ClientesVer],
+        // El cajero cobra el abono del cliente en el mismo mostrador donde le factura:
+        // sin ClientesCobrar habria que llamar al administrador para recibir un pago de contado.
+        Roles.Cajero => [VentasFacturar, VentasVer, InventarioVer, ClientesVer, ClientesCobrar],
         Roles.Almacen => [InventarioVer, InventarioEditar, InventarioAjustar, ComprasVer, ComprasRecibir, ComprasDevolver],
         Roles.Supervisor => [VentasVer, InventarioVer, ComprasVer, ClientesVer, FinanzasVer],
         _ => [],
