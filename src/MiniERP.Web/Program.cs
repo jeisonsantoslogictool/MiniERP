@@ -23,13 +23,12 @@ builder.Services.AddAuthentication(options =>
     })
     .AddIdentityCookies();
 
-// Probar el sistema exige a veces dos instancias abiertas a la vez, una por usuario. El
-// navegador NO separa las cookies por puerto: localhost:5099 y localhost:5100 comparten el
-// mismo tarro, asi que ambas guardaban su sesion con el mismo nombre y la segunda desalojaba
-// a la primera; no habia manera de tener al administrador y al cajero abiertos al tiempo.
-// Metiendo el puerto en el nombre, cada instancia guarda la suya. Solo en desarrollo: en
-// produccion hay una sola instancia y cambiar el nombre cerraria las sesiones vivas.
-if (builder.Environment.IsDevelopment())
+// Dos instancias en la misma maquina —una por caja, o una por usuario mientras se prueba—
+// se pisaban la sesion: el navegador NO separa las cookies por puerto, asi que localhost:5099
+// y localhost:5100 comparten el mismo tarro y, con el mismo nombre de cookie, entrar en una
+// cerraba la otra. Servirlas en distinto nombre de host no basta, porque cada instancia
+// responde igual por localhost que por 127.0.0.1. Metiendo el puerto en el nombre, cada una
+// guarda la suya. Se aplica en cualquier entorno: el comercio abre dos cajas de verdad.
 {
     var direccion = (builder.Configuration["urls"] ?? builder.Configuration["ASPNETCORE_URLS"])
         ?.Split(';', StringSplitOptions.RemoveEmptyEntries)
