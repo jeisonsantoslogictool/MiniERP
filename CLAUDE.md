@@ -101,11 +101,16 @@ NCF `B0200000001`, total 114.00 y cambio 86.00.
   (ver "El e-CF se simula" más abajo). Lo que falta es **persistencia y estado**: no hay
   `DbSet` de comprobante electrónico, así que el documento se rearma en cada visita en vez
   de recuperarse, y el ciclo *Generado → Enviado → Aceptado* no está en ninguna parte.
-- **Las pruebas son casi todas del dominio.** Fuera del dominio solo hay pruebas de
-  `EcfService` y de `ProductoService`; repositorios y pantallas se verifican a mano. Falta
-  prueba de integración de la transacción de emisión: nada demuestra automáticamente que un
-  rollback libera el NCF reservado. Las cuatro pantallas de Ventas —facturas emitidas,
-  impresión, anulación y secuencias— tampoco tienen prueba.
+- **Ya hay una prueba de punta a punta, pero se detiene en la frontera de datos.**
+  `tests/MiniERP.Tests/Integracion/` simula un día de operación del comercio por los cinco
+  módulos —compra recibida, venta de contado y a crédito, cobro, pago y gasto— sobre un
+  almacén en memoria, y comprueba el costo promedio, el costo congelado, el kardex y los
+  dos reportes. Lo que **no** cubre es el SQL: la transacción real de emisión y el `UPDATE
+  ... OUTPUT` que asigna el NCF se sustituyen por dobles, así que sigue sin haber nada que
+  demuestre automáticamente que un rollback libera el NCF reservado. Los siete servicios de
+  `Finanzas/` tienen prueba propia, y fuera de ahí hay pruebas de `EcfService` y
+  `ProductoService`; los repositorios y las cuatro pantallas de Ventas —facturas emitidas,
+  impresión, anulación y secuencias— se siguen verificando a mano.
 - **No hay servicio de correo.** `IdentityNoOpEmailSender` no envía nada, así que
   "¿Olvidaste tu contraseña?" no llega a ningún buzón. Mientras siga así, la vía real es que
   el administrador resetee la clave desde `/usuarios`, que sí funciona y muestra la nueva.
@@ -165,7 +170,7 @@ Visual Studio 2026 (por el formato `.slnx`).
 
 ```bash
 dotnet build MiniERP.slnx
-dotnet test                    # 185 pruebas, sin SQL Server
+dotnet test                    # 267 pruebas, sin SQL Server
 ```
 
 ---
