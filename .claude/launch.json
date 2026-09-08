@@ -6,6 +6,13 @@
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "src/MiniERP.Web", "--launch-profile", "http"],
       "port": 5099
+    },
+    {
+      "name": "minierp-caja2",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/MiniERP.Web", "--launch-profile", "http", "--urls", "http://127.0.0.1:5100"],
+      "port": 5100,
+      "url": "http://127.0.0.1:5100"
     }
   ]
 }
