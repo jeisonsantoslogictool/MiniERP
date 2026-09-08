@@ -1,0 +1,126 @@
+@inject DatosEmisor Comercio
+
+@* El comprobante tal como sale por el rollo termico de 88 mm. Vive aparte porque lo
+   imprimen dos pantallas —el punto de venta al cobrar y el detalle de la factura— y un
+   ticket que se imprime distinto segun desde donde se pidio no es el mismo documento.
+   Por defecto solo existe al imprimir; el punto de venta lo muestra tambien en pantalla
+   para que el cajero vea lo que va a salir. *@
+    <div class="ticket @ClaseVisibilidad">
+
+        @* El emisor sale de la seccion "Comercio" de configuracion, la misma que firma el
+           e-CF: un solo sitio para los datos fiscales del que vende. *@
+        <div class="tk-comercio">@NombreDelComercio</div>
+        @if (MuestraRazonSocial)
+        {
+            <div class="tk-centro">@Comercio.RazonSocial</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Comercio.Rnc))
+        {
+            <div class="tk-centro">RNC: @Comercio.Rnc</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Comercio.Direccion))
+        {
+            <div class="tk-centro">@Comercio.Direccion</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Comercio.Telefono))
+        {
+            <div class="tk-centro">Tel: @Comercio.Telefono</div>
+        }
+
+        <div class="tk-sep"></div>
+
+        @* El NCF es lo que la DGII busca de un vistazo: va solo, grande y espaciado. *@
+        <div class="tk-centro">@Formato.Comprobante(Factura.TipoComprobante)</div>
+        <div class="tk-ncf">@(Factura.Ncf ?? "—")</div>
+        <div class="tk-centro">No. @Factura.Numero</div>
+        <div class="tk-centro">@Formato.FechaHora(Factura.Fecha)</div>
+
+        @if (Factura.Estado == EstadoFactura.Anulada)
+        {
+            @* Un ticket anulado que no lo diga circula como si valiera. *@
+            <div class="tk-anulada">*** ANULADA ***</div>
+            @if (!string.IsNullOrWhiteSpace(Factura.MotivoAnulacion))
+            {
+                <div class="tk-centro">@Factura.MotivoAnulacion</div>
+            }
+        }
+
+        <div class="tk-sep"></div>
+
+        <div>Cliente: <strong>@Factura.ClienteNombre</strong></div>
+        @if (!string.IsNullOrWhiteSpace(Factura.ClienteDocumento))
+        {
+            <div>RNC/Ced.: <strong>@Factura.ClienteDocumento</strong></div>
+        }
+        <div>Pago: <strong>@(Factura.Condicion == CondicionPago.Contado ? "Contado" : "Crédito")</strong></div>
+        @if (!string.IsNullOrWhiteSpace(Factura.UsuarioId))
+        {
+            <div class="tk-nota-izq">Cajero: @Factura.UsuarioId</div>
+        }
+
+        <div class="tk-sep"></div>
+
+        @* La descripcion se lleva su propia linea: a 88 mm no cabe al lado de la cantidad
+           y el importe sin partirse por la mitad. Debajo va el renglon del calculo. *@
+        @foreach (var l in Factura.Lineas)
+        {
+            <div class="tk-linea">
+                <div class="tk-desc">@l.Descripcion</div>
+                <div class="tk-fila">
+                    <span>@Formato.Cantidad(l.Cantidad, l.PermiteDecimales) @l.UnidadMedida x @Formato.Dinero(l.PrecioUnitario)</span>
+                    <span>@Formato.Dinero(l.Total)</span>
+                </div>
+                @if (l.TasaItbis == 0)
+                {
+                    <div class="tk-nota">Exento de ITBIS</div>
+                }
+                else
+                {
+                    <div class="tk-nota">ITBIS: @Formato.Dinero(l.Itbis)</div>
+                }
+            </div>
+        }
+
+        <div class="tk-sep"></div>
+
+        <div class="tk-fila"><span>Subtotal</span><span>@Formato.Dinero(Factura.Subtotal)</span></div>
+        <div class="tk-fila"><span>ITBIS</span><span>@Formato.Dinero(Factura.Itbis)</span></div>
+        <div class="tk-fila tk-total"><span>TOTAL</span><span>@Formato.Dinero(Factura.Total)</span></div>
+        @if (Factura.Condicion == CondicionPago.Contado)
+        {
+            <div class="tk-fila"><span>Recibido</span><span>@Formato.Dinero(Factura.MontoRecibido)</span></div>
+            <div class="tk-fila"><span>Cambio</span><span>@Formato.Dinero(Factura.Cambio)</span></div>
+        }
+
+        <div class="tk-sep"></div>
+
+        <div class="tk-centro tk-gracias">Gracias por su compra</div>
+    </div>
+
+@code {
+    /// <summary>La factura ya emitida que se va a imprimir.</summary>
+    [Parameter, EditorRequired]
+    public FacturaDetalleDto Factura { get; set; } = default!;
+
+    /// <summary>
+    /// Mostrarlo tambien en pantalla. El detalle de la factura no lo necesita —ya dibuja
+    /// la venta en tarjetas— pero el punto de venta si, para confirmar el vuelto.
+    /// </summary>
+    [Parameter]
+    public bool VisibleEnPantalla { get; set; }
+
+    private string ClaseVisibilidad => VisibleEnPantalla ? "d-print-block" : "d-none d-print-block";
+
+    /// <summary>
+    /// El rotulo del ticket: el nombre con que se conoce el negocio, y la razon social
+    /// debajo solo si no es la misma. En un rollo cada linea cuesta papel.
+    /// </summary>
+    private string NombreDelComercio =>
+        string.IsNullOrWhiteSpace(Comercio.NombreComercial)
+            ? Comercio.RazonSocial
+            : Comercio.NombreComercial;
+
+    private bool MuestraRazonSocial =>
+        !string.IsNullOrWhiteSpace(Comercio.RazonSocial)
+        && !string.Equals(Comercio.RazonSocial, NombreDelComercio, StringComparison.OrdinalIgnoreCase);
+}

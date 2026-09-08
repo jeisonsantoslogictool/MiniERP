@@ -4,8 +4,18 @@
 @inject IVentaService ServicioVentas
 @inject NavigationManager Nav
 @inject AuthenticationStateProvider Auth
+@inject IJSRuntime JS
 
 <PageTitle>Punto de venta</PageTitle>
+
+@* El mismo rollo de 88 mm que declara la pantalla de la factura: el POS tambien imprime
+   el comprobante, y `@@page` vale para el documento entero, asi que vive aqui mientras
+   la caja esta abierta. *@
+<HeadContent>
+    <style>
+        @@page { size: 88mm auto; margin: 0; }
+    </style>
+</HeadContent>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Punto de venta</h1>
@@ -35,11 +45,21 @@
                 </div>
             </div>
             <div class="d-flex gap-2">
-                <a class="btn btn-sm btn-success" href="/ventas/facturas/@emitida.Id">Ver factura</a>
+                <button class="btn btn-sm btn-success" @onclick="Imprimir" disabled="@(facturaImpresa is null)">
+                    Imprimir
+                </button>
+                <a class="btn btn-sm btn-outline-success" href="/ventas/facturas/@emitida.Id">Ver factura</a>
                 <button class="btn btn-sm btn-outline-success" @onclick="NuevaVenta">Nueva venta (F2)</button>
             </div>
         </div>
     </div>
+}
+
+@* El comprobante de la venta recien cobrada. No se ve en pantalla —el aviso de arriba ya
+   dice el total y el cambio— pero es lo que sale por la impresora. *@
+@if (facturaImpresa is not null)
+{
+    <TicketFactura Factura="facturaImpresa" />
 }
 
 <div class="row g-3">
@@ -256,6 +276,8 @@
     private IReadOnlyList<ClienteParaVentaDto> clientes = [];
     private ClienteParaVentaDto? clienteElegido;
     private FacturaEmitidaDto? emitida;
+    private FacturaDetalleDto? facturaImpresa;
+    private bool imprimirAlRenderizar;
 
     private ElementReference cajaBusqueda;
     private string? busqueda;
@@ -277,6 +299,21 @@
         // El cajero debe poder escanear sin tocar el mouse.
         if (primeraVez)
             await cajaBusqueda.FocusAsync();
+
+        // La impresion se pide aqui y no dentro de Cobrar: alli el ticket todavia no se ha
+        // pintado, y el navegador imprimiria la pagina sin el comprobante.
+        if (imprimirAlRenderizar)
+        {
+            imprimirAlRenderizar = false;
+            await Imprimir();
+        }
+    }
+
+    /// <summary>Abre el dialogo de impresion del navegador con el comprobante en pantalla.</summary>
+    private async Task Imprimir()
+    {
+        if (facturaImpresa is not null)
+            await JS.InvokeVoidAsync("window.print");
     }
 
     private async Task OnBuscar(ChangeEventArgs e)
@@ -389,7 +426,17 @@
                 return;
             }
 
-            emitida = resultado.Valor;
+            var cobrada = resultado.Valor!;
+            emitida = cobrada;
+
+            // El resumen que devuelve la emision no alcanza para el papel (no trae las
+            // lineas), asi que se pide el comprobante completo. Se imprime solo al contado:
+            // en una venta fiada el cliente no se lleva ticket de caja, y abrir el dialogo
+            // del navegador en cada venta a credito seria un estorbo para el cajero.
+            facturaImpresa = await ServicioVentas.ObtenerDetalleAsync(cobrada.Id);
+            imprimirAlRenderizar = facturaImpresa is not null
+                && facturaImpresa.Condicion == CondicionPago.Contado;
+
             carrito = new VentaFormDto();
             clienteElegido = null;
             busqueda = busquedaCliente = null;
@@ -407,6 +454,7 @@
         carrito = new VentaFormDto();
         clienteElegido = null;
         emitida = null;
+        facturaImpresa = null;
         error = null;
         busqueda = busquedaCliente = null;
         sugerencias = [];
