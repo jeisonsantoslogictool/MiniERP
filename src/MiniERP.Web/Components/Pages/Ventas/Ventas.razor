@@ -17,14 +17,14 @@
     </style>
 </HeadContent>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-3 d-print-none">
     <h1 class="mb-0">Punto de venta</h1>
     <a class="btn btn-outline-secondary" href="/ventas/facturas">Facturas emitidas</a>
 </div>
 
 @if (error is not null)
 {
-    <div class="alert alert-danger alert-dismissible" role="alert">
+    <div class="alert alert-danger alert-dismissible d-print-none" role="alert">
         @error
         <button type="button" class="btn-close" @onclick="() => error = null"></button>
     </div>
@@ -32,7 +32,7 @@
 
 @if (emitida is not null)
 {
-    <div class="alert alert-success" role="alert">
+    <div class="alert alert-success d-print-none" role="alert">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
             <div>
                 <strong class="fs-5">Venta cobrada — @emitida.Ncf</strong>
@@ -62,7 +62,7 @@
     <TicketFactura Factura="facturaImpresa" />
 }
 
-<div class="row g-3">
+<div class="row g-3 d-print-none">
     <div class="col-lg-8">
         <div class="mb-3">
             <label class="form-label">Buscar producto</label>
