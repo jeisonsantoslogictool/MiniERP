@@ -93,6 +93,12 @@ public class Factura : EntidadBase
             // y debe ser el que el producto tenia al momento exacto de la venta.
             linea.CostoUnitario = producto.Costo;
 
+            // Un servicio (recarga, fotocopia) se factura y lleva costo, pero no tiene
+            // kardex. AplicarMovimiento lo ignoraria sin asignarle ProductoId, y persistir
+            // ese movimiento huerfano viola la clave foranea y tumba la venta entera (D-01).
+            if (!producto.ManejaInventario)
+                continue;
+
             var movimiento = new MovimientoInventario
             {
                 Tipo = TipoMovimiento.Salida,
@@ -170,6 +176,10 @@ public class Factura : EntidadBase
             if (!productos.TryGetValue(linea.ProductoId, out var producto))
                 throw new InvalidOperationException(
                     $"Falta el producto de la linea '{linea.Descripcion}'.");
+
+            // Un servicio no salio del inventario al emitir, asi que no hay nada que reponer.
+            if (!producto.ManejaInventario)
+                continue;
 
             var movimiento = new MovimientoInventario
             {

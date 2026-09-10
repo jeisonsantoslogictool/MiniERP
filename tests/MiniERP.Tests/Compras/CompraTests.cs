@@ -138,6 +138,47 @@ public class CompraTests
         Assert.Equal(0, producto.Existencia);
     }
 
+    /// <summary>
+    /// Recibir un servicio actualiza su costo y congela la compra, pero no puede devolver
+    /// un movimiento: sin ProductoId asignado, la clave foranea lo rechazaria y la
+    /// recepcion entera fallaria (mismo defecto que D-01 en ventas).
+    /// </summary>
+    [Fact]
+    public void Recibir_un_servicio_no_genera_movimiento_de_inventario()
+    {
+        var producto = Producto(existencia: 0, costo: 5);
+        producto.ManejaInventario = false;
+        var compra = Compra(10, 30);
+
+        var movimientos = compra.Recibir(Catalogo(producto), "tester");
+
+        Assert.Empty(movimientos);
+        Assert.Equal(EstadoCompra.Recibida, compra.Estado);
+    }
+
+    [Fact]
+    public void Al_recibir_mercancia_y_servicio_juntos_solo_la_mercancia_mueve_kardex()
+    {
+        var arroz = Producto(existencia: 0);
+        var flete = new Producto
+        {
+            Id = 2, Codigo = "SRV-FLETE", Descripcion = "Flete", Costo = 0, ManejaInventario = false
+        };
+        var compra = Compra(10, 30);
+        compra.Lineas.Add(new LineaCompra
+        {
+            ProductoId = 2, Descripcion = "Flete", Cantidad = 1, CostoUnitario = 500, TasaItbis = 0
+        });
+        var catalogo = new Dictionary<int, Producto> { [1] = arroz, [2] = flete };
+
+        var movimientos = compra.Recibir(catalogo, "tester");
+
+        var unico = Assert.Single(movimientos);
+        Assert.Equal(arroz.Id, unico.ProductoId);
+        Assert.Equal(10, arroz.Existencia);
+        Assert.Equal(500, flete.Costo);
+    }
+
     [Fact]
     public void Una_compra_no_se_recibe_dos_veces()
     {

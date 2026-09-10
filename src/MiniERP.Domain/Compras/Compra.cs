@@ -86,6 +86,11 @@ public class Compra : EntidadBase
             // necesita saber cuanto habia y a que costo, y AplicarMovimiento ya cambio eso.
             producto.Costo = CalcularCostoPromedio(producto, linea);
 
+            // Un servicio se compra y actualiza su costo, pero no tiene kardex. Persistir
+            // un movimiento sin ProductoId viola la clave foranea y tumba la recepcion (D-01).
+            if (!producto.ManejaInventario)
+                continue;
+
             var movimiento = new MovimientoInventario
             {
                 Tipo = TipoMovimiento.Entrada,

@@ -316,4 +316,71 @@ public class FacturaTests
         Assert.Equal(95m, factura.Subtotal);                    // 2.375 * 40
         Assert.Equal(73.32m, factura.CostoTotal);               // 2.375 * 30.8729 = 73.3231 -> 73.32
     }
+
+    // ---------- Servicios (D-01) ----------
+
+    /// <summary>
+    /// Una recarga o una fotocopia se factura, pero no sale de ningun estante. Antes,
+    /// Emitir devolvia igual un movimiento para el servicio; como AplicarMovimiento lo
+    /// ignoraba sin asignarle ProductoId, la capa de datos intentaba guardar un movimiento
+    /// huerfano, la clave foranea lo rechazaba y la venta entera se perdia.
+    /// </summary>
+    [Fact]
+    public void Un_servicio_se_factura_sin_generar_movimiento_de_inventario()
+    {
+        var servicio = Producto(existencia: 0, costo: 20, precio: 25);
+        servicio.ManejaInventario = false;
+        var factura = Factura(cantidad: 2, precio: 25);
+
+        var movimientos = factura.Emitir(Catalogo(servicio), "B0200000001", "cajero");
+
+        Assert.Empty(movimientos);
+        Assert.Equal(0, servicio.Existencia);
+        Assert.Equal("B0200000001", factura.Ncf);
+        Assert.Equal(50m, factura.Subtotal);
+        Assert.Equal(40m, factura.CostoTotal);                  // el costo si se congela: hay margen
+    }
+
+    [Fact]
+    public void Ningun_movimiento_sale_sin_producto_al_mezclar_servicio_y_mercancia()
+    {
+        var arroz = Producto(existencia: 10);
+        var recarga = new Producto
+        {
+            Id = 2,
+            Codigo = "REC-001",
+            Descripcion = "Recarga Claro",
+            Costo = 95,
+            PrecioVenta = 100,
+            ManejaInventario = false
+        };
+        var factura = Factura(cantidad: 3);
+        factura.Lineas.Add(new LineaFactura
+        {
+            ProductoId = 2, Descripcion = "Recarga Claro", Cantidad = 1, PrecioUnitario = 100
+        });
+        var catalogo = new Dictionary<int, Producto> { [1] = arroz, [2] = recarga };
+
+        var movimientos = factura.Emitir(catalogo, "B0200000001", "cajero");
+
+        var unico = Assert.Single(movimientos);
+        Assert.Equal(arroz.Id, unico.ProductoId);
+        Assert.All(movimientos, m => Assert.NotEqual(0, m.ProductoId));
+        Assert.Equal(7, arroz.Existencia);
+    }
+
+    [Fact]
+    public void Anular_una_venta_de_servicio_no_repone_nada()
+    {
+        var servicio = Producto(existencia: 0, costo: 20, precio: 25);
+        servicio.ManejaInventario = false;
+        var factura = Factura(cantidad: 2, precio: 25);
+        factura.Emitir(Catalogo(servicio), "B0200000001", "cajero");
+
+        var movimientos = factura.Anular(Catalogo(servicio), "Cliente se arrepintio", "cajero");
+
+        Assert.Empty(movimientos);
+        Assert.Equal(0, servicio.Existencia);
+        Assert.Equal(EstadoFactura.Anulada, factura.Estado);
+    }
 }
