@@ -5,6 +5,7 @@
 @inject DatosEmisor Comercio
 @inject IJSRuntime JS
 @inject AuthenticationStateProvider Auth
+@inject IAuthorizationService Autorizacion
 
 <PageTitle>@(factura?.Numero ?? "Factura")</PageTitle>
 
@@ -26,9 +27,14 @@
         }
     </div>
     <div class="d-flex gap-2">
+        @* Ver la factura (ventas.ver) no es lo mismo que poder anularla (ventas.anular):
+           un cajero o un supervisor consultan, pero deshacer una venta emitida es del
+           administrador o de quien tenga ese permiso concedido en su matriz. *@
         @if (factura is not null && factura.Estado == EstadoFactura.Emitida)
         {
-            <button class="btn btn-outline-danger" @onclick="MostrarAnular">Anular</button>
+            <AuthorizeView Policy="@Permisos.VentasAnular" Context="permisoAnular">
+                <button class="btn btn-outline-danger" @onclick="MostrarAnular">Anular</button>
+            </AuthorizeView>
         }
         @if (factura is not null)
         {
@@ -65,23 +71,25 @@ else
 
     @if (mostrandoAnular)
     {
-        <div class="card border-danger mb-4 d-print-none">
-            <div class="card-body">
-                <h2 class="h6 text-danger mb-2">Anular esta factura</h2>
-                <p class="small text-muted mb-2">
-                    Se repone el inventario y, si fue a crédito, baja la deuda del cliente. El NCF queda
-                    como comprobante anulado ante la DGII. <strong>No se puede deshacer.</strong>
-                </p>
-                <textarea class="form-control mb-2" rows="2" placeholder="Motivo de la anulación"
-                          @bind="motivo" @bind:event="oninput"></textarea>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-danger" @onclick="ConfirmarAnular" disabled="@anulando">
-                        @(anulando ? "Anulando..." : "Confirmar anulación")
-                    </button>
-                    <button class="btn btn-outline-secondary" @onclick="CancelarAnular" disabled="@anulando">Cancelar</button>
+        <AuthorizeView Policy="@Permisos.VentasAnular" Context="permisoAnular">
+            <div class="card border-danger mb-4 d-print-none">
+                <div class="card-body">
+                    <h2 class="h6 text-danger mb-2">Anular esta factura</h2>
+                    <p class="small text-muted mb-2">
+                        Se repone el inventario y, si fue a crédito, baja la deuda del cliente. El NCF queda
+                        como comprobante anulado ante la DGII. <strong>No se puede deshacer.</strong>
+                    </p>
+                    <textarea class="form-control mb-2" rows="2" placeholder="Motivo de la anulación"
+                              @bind="motivo" @bind:event="oninput"></textarea>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-danger" @onclick="ConfirmarAnular" disabled="@anulando">
+                            @(anulando ? "Anulando..." : "Confirmar anulación")
+                        </button>
+                        <button class="btn btn-outline-secondary" @onclick="CancelarAnular" disabled="@anulando">Cancelar</button>
+                    </div>
                 </div>
             </div>
-        </div>
+        </AuthorizeView>
     }
 
     @* En papel la factura no es una hoja: es un rollo termico de 88 mm. Lo que se ve en
@@ -321,10 +329,32 @@ else
         cargando = false;
     }
 
-    private void MostrarAnular()
+    /// <summary>
+    /// Segunda barrera, del lado del servidor. El AuthorizeView solo decide que se dibuja;
+    /// los manejadores de un circuito de Blazor Server corren en el servidor y son el
+    /// unico punto por el que la anulacion llega al servicio, asi que aqui se vuelve a
+    /// preguntar. Si a un usuario le quitan el permiso con la pagina abierta, el circuito
+    /// aun tiene el principal viejo hasta la proxima revalidacion: este chequeo lo cubre.
+    /// </summary>
+    private async Task<bool> PuedeAnularAsync()
     {
-        mostrandoAnular = true;
+        var estado = await Auth.GetAuthenticationStateAsync();
+        var decision = await Autorizacion.AuthorizeAsync(estado.User, Permisos.VentasAnular);
+
+        return decision.Succeeded;
+    }
+
+    private async Task MostrarAnular()
+    {
         error = aviso = null;
+
+        if (!await PuedeAnularAsync())
+        {
+            error = "No tienes permiso para anular facturas.";
+            return;
+        }
+
+        mostrandoAnular = true;
     }
 
     private void CancelarAnular()
@@ -337,6 +367,13 @@ else
     private async Task ConfirmarAnular()
     {
         error = null;
+
+        if (!await PuedeAnularAsync())
+        {
+            error = "No tienes permiso para anular facturas.";
+            mostrandoAnular = false;
+            return;
+        }
 
         if (string.IsNullOrWhiteSpace(motivo))
         {
