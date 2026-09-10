@@ -109,9 +109,10 @@
                 return;
             }
 
-            // This doesn't count login failures towards account lockout
-            // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-            result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            // Cada clave equivocada cuenta: al llegar al tope (Lockout.MaxFailedAccessAttempts,
+            // en DependencyInjection.cs) la cuenta queda bloqueada el tiempo configurado.
+            // Sin esto, probar claves contra el login de la caja no tiene ningun freno.
+            result = await SignInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: true);
         }
 
         if (result.Succeeded)
@@ -127,7 +128,9 @@
         }
         else if (result.IsLockedOut)
         {
-            Logger.LogWarning("User account locked out.");
+            // Se registra el correo: es lo minimo para que el administrador sepa a quien
+            // le estan probando claves, o quien se equivoco cinco veces seguidas.
+            Logger.LogWarning("Cuenta bloqueada por intentos fallidos: {Email}", Input.Email);
             RedirectManager.RedirectTo("Account/Lockout");
         }
         else

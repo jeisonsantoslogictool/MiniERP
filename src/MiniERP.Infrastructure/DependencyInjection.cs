@@ -35,6 +35,20 @@ public static partial class DependencyInjection
             {
                 options.SignIn.RequireConfirmedAccount = true;
                 options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+
+                // Bloqueo por intentos fallidos. El login lo activa con lockoutOnFailure: true
+                // (Login.razor); aqui se fija cuanto aguanta y cuanto dura.
+                //
+                // Cinco intentos toleran al cajero que se equivoca de tecla sin regalarle
+                // nada a quien prueba claves: con quince minutos de espera, un atacante
+                // consigue a lo sumo 480 intentos por dia contra una cuenta, que frente a
+                // una clave de seis caracteres con cuatro clases no le alcanza para nada.
+                // Quince y no mas, porque el que se bloquea es casi siempre el propio
+                // empleado con la fila esperando; si no puede esperar, el administrador
+                // lo desbloquea desde /usuarios con "Activar", que borra el LockoutEnd.
+                options.Lockout.AllowedForNewUsers = true;
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
             })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<MiniErpDbContext>()
