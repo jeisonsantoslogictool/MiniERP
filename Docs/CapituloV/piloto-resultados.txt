@@ -1,0 +1,373 @@
+================================================================================
+  PILOTO SIMULADO MINI ERP - COLMADO LA ESPERANZA, MOCA
+  20 dias de operacion - ejecutado sobre el codigo de dominio real
+================================================================================
+
+Fecha de ejecucion: 2026-07-31 00:25 UTC
+Semilla aleatoria: 20260729 (la corrida es reproducible)
+Tiempo total de la simulacion: 0.07 s
+
+--- DATOS MAESTROS ---
+Productos ................ 63 (3 servicios sin inventario)
+Categorias de producto ... 10
+Unidades de medida ....... 7
+Clientes ................. 40 (18 con credito)
+Proveedores .............. 12
+Categorias de egreso ..... 5
+Usuarios ................. 5
+
+--- VOLUMEN DE OPERACIONES ---
+venta_contado           298
+venta_credito            68
+cobro                    52
+egreso                   45
+compra_creada            31
+compra_recibida          31
+pago                     30
+anulacion                18
+ajuste                   16
+merma                     9
+cambio_precio             7
+cambio_limite             5
+interrupcion              1
+TOTAL                   611
+
+--- OPERACIONES POR DIA ---
+Dia    Ventas  Compras  Cobros  Pagos  Egresos  Ajustes  Anulac.  Total
+1          14        6       2      0        3        0        0     33
+2          16        1       2      3        2        0        0     25
+3          15        1       2      0        2        0        2     23
+4          17        2       2      3        2        0        0     29
+5          24        1       2      0        2        0        2     32
+6          26        1       2      3        2        0        0     35
+7          13        2       2      0        2        0        2     25
+8          15        1       2      3        3        0        0     25
+9          16        1       2      0        3        0        2     25
+10         18        2       2      3        3        0        0     32
+11         25        1       6      0        2        0        2     37
+12         27        1       6      3        2        0        0     40
+13         12        2       2      0        2       25        2     48
+14         16        1       2      3        2        0        0     25
+15         15        1       2      0        2        0        2     23
+16         17        2       2      3        2        0        0     31
+17         23        1       2      0        2        0        2     31
+18         25        1       2      3        2        0        0     34
+19         14        2       2      0        2        0        2     26
+20         18        1       6      3        3        0        0     32
+
+--- RESULTADOS DEL PERIODO ---
+Facturas emitidas ............ 366 (18 anuladas)
+  de contado ................. 283
+  a credito .................. 65
+Lineas de factura ............ 1771
+Movimientos de inventario .... 2101
+
+Ingresos (subtotal sin ITBIS)  RD$     436,204.92
+ITBIS facturado .............   RD$      69,123.37
+Venta total con ITBIS .......   RD$     505,328.29
+Costo de lo vendido .........   RD$     320,278.82
+Margen bruto ................   RD$     115,926.10  (26.58 %)
+Egresos operativos ..........   RD$      58,250.00
+UTILIDAD ....................   RD$      57,676.10
+
+Ventas de contado (efectivo)   RD$     429,911.63
+Cobros de fiado .............   RD$      54,200.08
+Entradas de efectivo ........   RD$     484,111.71
+Egresos .....................   RD$      58,250.00
+Pagos a proveedores .........   RD$     643,442.62
+Salidas de efectivo .........   RD$     701,692.62
+EFECTIVO NETO ...............   RD$    -217,580.91
+
+Cuentas por cobrar al cierre    RD$      21,316.58  (13 clientes)
+Cuentas por pagar al cierre .   RD$      36,960.25  (3 proveedores)
+Valor del inventario final ..   RD$     712,329.10
+Productos en alerta de reabastecimiento: 4
+
+--- LOS 5 PRODUCTOS MAS RENTABLES DEL PERIODO ---
+  Ron Brugal 375ml               margen RD$   7,391.95  (27.8 %)
+  Queso geo                      margen RD$   4,450.70  (27.5 %)
+  Shampoo 400ml                  margen RD$   4,097.09  (25.9 %)
+  Helado 1/2 gal                 margen RD$   4,061.85  (27.1 %)
+  Fotocopia                      margen RD$   3,950.00  (100.0 %)
+
+--- RENTABILIDAD POR CATEGORIA ---
+  Viveres                   venta RD$   79,406.06   margen RD$  26,086.46  (32.9 %)
+  Bebidas                   venta RD$   74,520.75   margen RD$  19,286.88  (25.9 %)
+  Carnes y Embutidos        venta RD$   60,259.27   margen RD$  15,637.88  (26.0 %)
+  Lacteos                   venta RD$   60,649.14   margen RD$  15,604.44  (25.7 %)
+  Limpieza                  venta RD$   47,587.26   margen RD$  10,923.95  (23.0 %)
+  Higiene Personal          venta RD$   44,101.00   margen RD$  10,900.33  (24.7 %)
+  Congelados                venta RD$   22,400.02   margen RD$   5,779.82  (25.8 %)
+  Enlatados                 venta RD$   22,730.00   margen RD$   5,691.27  (25.0 %)
+  Panaderia                 venta RD$   14,619.00   margen RD$   3,280.68  (22.4 %)
+  Snacks y Golosinas        venta RD$    9,932.35   margen RD$   2,734.32  (27.5 %)
+
+================================================================================
+  VERIFICACIONES DE INTEGRIDAD
+================================================================================
+[CUADRA] INT-1   La existencia de cada producto es igual a la suma algebraica de sus movimientos
+           60 productos verificados
+[CUADRA] INT-2   La existencia coincide con la resultante del ultimo movimiento
+           sin discrepancias
+[FALLA ] INT-3   En cada movimiento la resultante es la anterior mas o menos la cantidad
+           102 de 2101 movimientos incorrectos; 102 de ellos con ProductoId = 0 (generados por productos que no manejan inventario). Ver diagnostico D-01.
+[CUADRA] INT-4   Ninguna existencia quedo negativa en ningun momento
+           ningun movimiento dejo saldo negativo
+[CUADRA] INT-5   Todo movimiento declara el documento que lo origino
+           todos con tipo de referencia
+[CUADRA] INT-6   No existe ningun NCF repetido en toda la operacion
+           366 comprobantes, todos distintos
+[CUADRA] INT-7   El balance de cada cliente es igual a sus facturas a credito no anuladas menos sus cobros
+           40 clientes cuadrados
+[CUADRA] INT-8   El balance de cada proveedor es igual a sus compras a credito recibidas menos sus pagos
+           12 proveedores cuadrados
+[CUADRA] INT-9   En cada cobro el balance resultante es el anterior menos el monto
+           52 cobros verificados
+[CUADRA] INT-10  En cada pago el balance resultante es el anterior menos el monto
+           30 pagos verificados
+[CUADRA] INT-11  En toda factura el total es subtotal mas ITBIS y el subtotal es la suma de sus lineas
+           366 facturas verificadas
+[CUADRA] INT-12  El costo promedio ponderado calculado por el sistema coincide con el recalculo independiente
+           211 recepciones verificadas
+[FALLA ] INT-13  La anulacion repone exactamente lo descontado, al costo congelado de la linea
+           6 lineas sin par de movimientos, todas de productos que no manejan inventario. Ver diagnostico D-03.
+[CUADRA] INT-14  Toda operacion registrada tiene usuario responsable
+           todas las operaciones tienen responsable
+[CUADRA] INT-15  El estado de resultados coincide con el recalculo independiente
+           sistema 57,676.10 | recalculo 57,676.10 | diferencia 0.00
+[CUADRA] INT-16  El flujo de caja coincide con el recalculo independiente
+           sistema -217,580.91 | recalculo -217,580.91 | diferencia 0.00
+[CUADRA] INT-17  La alerta de reabastecimiento lista exactamente los productos que tocaron su minimo
+           4 productos en alerta
+[CUADRA] INT-18  Las facturas anuladas no entran en el reporte de ingresos
+           366 facturas, 18 anuladas, 348 contabilizadas
+
+Cuadres ejecutados: 18 | correctos: 16 | fallidos: 2
+
+================================================================================
+  CASOS LIMITE Y ERRORES DELIBERADOS
+================================================================================
+[ OK ] INT-01   Apagon a media venta: la venta falla y no deja rastro en inventario
+           esperado: existencia sigue en 31.909
+           obtenido: existencia en 31.909
+[ OK ] INT-02   El NCF reservado en una venta fallida no se pierde si hay transaccion
+           esperado: el contador avanzo y la transaccion lo revertiria
+           obtenido: contador paso de 280 a 281; en produccion el rollback lo devuelve
+[ OK ] MC-F-00001 El margen de una factura antigua no cambia aunque el costo del producto suba despues
+           esperado: 17.31
+           obtenido: 17.31
+[ OK ] MC-F-00002 El margen de una factura antigua no cambia aunque el costo del producto suba despues
+           esperado: 698.73
+           obtenido: 698.73
+[ OK ] MC-F-00003 El margen de una factura antigua no cambia aunque el costo del producto suba despues
+           esperado: 201.79
+           obtenido: 201.79
+[ OK ] MC-F-00004 El margen de una factura antigua no cambia aunque el costo del producto suba despues
+           esperado: 78.20
+           obtenido: 78.20
+[ OK ] MC-F-00005 El margen de una factura antigua no cambia aunque el costo del producto suba despues
+           esperado: 11.93
+           obtenido: 11.93
+[ OK ] LIM-01   Vender mas unidades de las que hay en existencia
+           esperado: operacion rechazada
+           obtenido: rechazada: El movimiento deja el producto 'P001' en existencia negativa: 136
+[ OK ] LIM-02   Tras el rechazo por falta de existencia el saldo queda intacto
+           esperado: 136.671
+           obtenido: 136.671
+[ OK ] LIM-03   Emitir una factura sin lineas
+           esperado: operacion rechazada
+           obtenido: rechazada: La factura no tiene lineas
+[ OK ] LIM-04   Emitir con un producto que no viene en el diccionario
+           esperado: operacion rechazada
+           obtenido: rechazada: Falta el producto de la linea 'Fantasma'
+[ OK ] LIM-05   Cantidad con decimales en una unidad que no los admite
+           esperado: rechazada
+           obtenido: rechazada
+[ OK ] LIM-06   Cantidad con decimales en libra (balanza)
+           esperado: aceptada
+           obtenido: aceptada
+[ OK ] LIM-07   Cantidad con mas precision que la balanza (4 decimales en libra)
+           esperado: rechazada
+           obtenido: rechazada
+[ OK ] LIM-08   Cantidad cero o negativa
+           esperado: rechazada
+           obtenido: rechazada
+[ OK ] LIM-09   Un servicio sin manejo de inventario no mueve existencia
+           esperado: 0
+           obtenido: 0
+[ OK ] LIM-10   Fiar a un cliente sin limite de credito
+           esperado: rechazado
+           obtenido: rechazado
+[ OK ] LIM-11   Fiar a un cliente inactivo
+           esperado: rechazado
+           obtenido: rechazado
+[ OK ] LIM-12   Fiar exactamente el credito disponible (borde)
+           esperado: aceptado
+           obtenido: aceptado
+[ OK ] LIM-13   Fiar un centavo por encima del disponible
+           esperado: rechazado
+           obtenido: rechazado
+[ OK ] LIM-14   Fiar monto cero
+           esperado: rechazado
+           obtenido: rechazado
+[ OK ] LIM-15   Cobrar mas de lo que el cliente debe
+           esperado: operacion rechazada
+           obtenido: rechazada: El cobro de 583
+[ OK ] LIM-16   Cobrar monto cero
+           esperado: operacion rechazada
+           obtenido: rechazada: El monto del cobro debe ser positivo
+[ OK ] LIM-17   Cobrar monto negativo
+           esperado: operacion rechazada
+           obtenido: rechazada: El monto del cobro debe ser positivo
+[ OK ] LIM-18   Pagar al proveedor mas de lo que se le debe
+           esperado: operacion rechazada
+           obtenido: rechazada: El pago de 2972
+[ OK ] LIM-19   Pagar monto negativo
+           esperado: operacion rechazada
+           obtenido: rechazada: El monto del pago debe ser positivo
+[ OK ] LIM-20   Recibir dos veces la misma compra
+           esperado: operacion rechazada
+           obtenido: rechazada: La compra COM-0001 esta recibida y no se puede recibir
+[ OK ] LIM-21   Anular una compra ya recibida
+           esperado: operacion rechazada
+           obtenido: rechazada: La compra COM-0001 ya se recibio y el inventario se movio
+[ OK ] LIM-22   Recibir una compra sin lineas
+           esperado: operacion rechazada
+           obtenido: rechazada: La compra COM-VACIA no tiene lineas
+[ OK ] LIM-23   Una compra recibida deja de ser editable
+           esperado: no editable
+           obtenido: no editable
+[ OK ] LIM-24   Anular dos veces la misma factura
+           esperado: operacion rechazada
+           obtenido: rechazada: La factura B0200000007 ya esta anulada
+[ OK ] LIM-25   Anular sin motivo
+           esperado: operacion rechazada
+           obtenido: rechazada: Anular una factura exige un motivo
+[ OK ] LIM-26   Egreso con monto cero
+           esperado: operacion rechazada
+           obtenido: rechazada: El monto del egreso debe ser mayor que cero
+[ OK ] LIM-27   Egreso con monto negativo
+           esperado: operacion rechazada
+           obtenido: rechazada: El monto del egreso debe ser mayor que cero
+[ OK ] LIM-28   Egreso sin categoria
+           esperado: operacion rechazada
+           obtenido: rechazada: El egreso debe tener una categoría
+[ OK ] LIM-29   Nota en blanco se guarda como nula
+           esperado: null
+           obtenido: null
+[ OK ] LIM-30   Cedula de 10 digitos
+           esperado: rechazada
+           obtenido: rechazada
+[ OK ] LIM-31   Cedula con guiones (11 digitos)
+           esperado: aceptada
+           obtenido: aceptada
+[ OK ] LIM-32   RNC de 8 digitos
+           esperado: rechazado
+           obtenido: rechazado
+[ OK ] LIM-33   Credito fiscal sin RNC no queda sustentado
+           esperado: no sustentado
+           obtenido: no sustentado
+[ OK ] LIM-34   Secuencia vencida no puede emitir
+           esperado: no puede
+           obtenido: no puede
+[ OK ] LIM-35   Motivo legible cuando la secuencia no esta disponible
+           esperado: mensaje explicativo
+           obtenido: La secuencia B15 vencio el 31/05/2026. Solicita un nuevo rango a la DGII.
+[ OK ] LIM-36   Formato del NCF en papel: 8 digitos tras el prefijo
+           esperado: B0200000001
+           obtenido: B0200000001
+[ OK ] LIM-37   Formato electronico: 10 digitos tras el prefijo
+           esperado: E310000000001
+           obtenido: E310000000001
+[ OK ] LIM-38   La secuencia B01, de rango corto, se agota y el sistema lo detecta
+           esperado: agotada
+           obtenido: agotada
+[ OK ] CON-01   200 asignaciones de NCF simultaneas desde dos cajas: ninguna repetida
+           esperado: 0 repetidos de 200
+           obtenido: 0 repetidos de 200
+[ OK ] CON-02   Contraprueba: la misma asignacion sin atomicidad produce duplicados
+           esperado: se esperan duplicados
+           obtenido: 38 numeros repetidos de 200
+[ OK ] CON-03   Venta a credito y cobro simultaneos sobre el mismo cliente: el balance cuadra
+           esperado: balance consistente
+           obtenido: 100.00
+
+Casos ejecutados: 48 | superados: 48 | fallidos: 0
+
+================================================================================
+  RENDIMIENTO
+================================================================================
+Emision de factura .......... n=366  mediana 0.004 ms  p95 0.012 ms  max 2.106 ms
+Recepcion de compra ......... n=31  mediana 0.004 ms  p95 0.016 ms  max 1.822 ms
+Reporte de ingresos ......... 0.26 ms sobre 366 facturas
+Reporte de rentabilidad ..... 1.82 ms sobre 1771 renglones
+200 asignaciones de NCF concurrentes: 16.52 ms
+Simulacion completa de 20 dias: 0.07 s
+
+================================================================================
+  DIAGNOSTICO DE LOS CUADRES FALLIDOS
+================================================================================
+
+--- D-01: venta de un producto que no maneja inventario ---
+Producto vendido ............ Recarga telefonica (ManejaInventario = False)
+Cantidad vendida ............ 3
+Movimientos que Emitir devuelve para persistir: 1
+  Tipo ...................... Salida
+  ProductoId ................ 0   <-- deberia ser 500
+  Cantidad .................. 3
+  ExistenciaAnterior ........ 0
+  ExistenciaResultante ...... 0
+  ReferenciaTipo/Id ......... FACTURA/900
+
+Causa: Producto.AplicarMovimiento hace 'if (!ManejaInventario) return;' ANTES de
+asignar movimiento.ProductoId, por lo que el movimiento sale con ProductoId = 0.
+Factura.Emitir lo agrega igualmente a la lista que devuelve, y VentaService la
+entrega a AgregarMovimientos + GuardarAsync sin filtrarla.
+
+Consecuencia en produccion: MovimientosInventario.ProductoId es NOT NULL con clave
+foranea restringida hacia Productos. Insertar ProductoId = 0 viola la restriccion,
+SaveChanges lanza y la transaccion revierte la venta completa.
+Total de la factura que se perderia: RD$ 354.00
+
+--- D-02: recepcion de una compra que incluye un servicio ---
+Movimientos devueltos ....... 1
+ProductoId del movimiento ... 0   <-- deberia ser 501
+Costo del servicio tras recibir: 2  (CalcularCostoPromedio devuelve el costo recibido)
+
+--- D-03: efecto sobre la anulacion de una factura con servicio ---
+Movimientos de reposicion ... 1
+ProductoId del movimiento ... 0   <-- tampoco se asigna
+La anulacion arrastra el mismo defecto: el asiento de vuelta queda huerfano.
+
+--- D-04: control, el mismo flujo con un producto que si maneja inventario ---
+ProductoId ................. 502
+ExistenciaAnterior ......... 100
+ExistenciaResultante ....... 95
+Existencia del producto .... 95
+El flujo normal es correcto: el defecto se limita a los productos sin inventario.
+
+
+================================================================================
+  BITACORA DIARIA
+================================================================================
+Datos maestros: 63 productos, 40 clientes, 12 proveedores, 10 categorias, 7 unidades, 3 secuencias NCF.
+=== DIA 1: Lunes 1 - apertura y abastecimiento inicial (01/06/2026) ===
+=== DIA 2: Martes 2 (02/06/2026) ===
+=== DIA 3: Miercoles 3 (03/06/2026) ===
+=== DIA 4: Jueves 4 (04/06/2026) ===
+=== DIA 5: Viernes 5 - dia fuerte (05/06/2026) ===
+=== DIA 6: Sabado 6 - dia fuerte (06/06/2026) ===
+=== DIA 7: Lunes 8 (09/06/2026) ===
+=== DIA 8: Martes 9 (10/06/2026) ===
+=== DIA 9: Miercoles 10 - reabastecimiento (11/06/2026) ===
+=== DIA 10: Jueves 11 (12/06/2026) ===
+=== DIA 11: Viernes 12 - quincena, mucho fiado (15/06/2026) ===
+=== DIA 12: Sabado 13 - quincena (16/06/2026) ===
+=== DIA 13: Lunes 15 - inventario fisico, ajustes y mermas (17/06/2026) ===
+=== DIA 14: Martes 16 (18/06/2026) ===
+=== DIA 15: Miercoles 17 - devolucion a proveedor (19/06/2026) ===
+=== DIA 16: Jueves 18 - apagon a media venta (22/06/2026) ===
+=== DIA 17: Viernes 19 (23/06/2026) ===
+=== DIA 18: Sabado 20 (24/06/2026) ===
+=== DIA 19: Lunes 22 (25/06/2026) ===
+=== DIA 20: Martes 23 - cierre de mes (26/06/2026) ===

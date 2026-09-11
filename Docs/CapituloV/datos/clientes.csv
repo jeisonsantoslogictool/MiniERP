@@ -1,0 +1,41 @@
+Codigo;Nombre;TipoDocumento;NumeroDocumento;TipoComprobante;Telefono;Direccion;LimiteCredito;DiasCredito
+CLI-0001;Ramona Altagracia Peralta;1;054-0012345-8;2;809-578-1102;Calle Duarte 45, Moca;3000.00;15
+CLI-0002;Juan Bautista Rodriguez;1;054-0023456-1;2;829-455-8890;Los Cerros, Moca;5000.00;30
+CLI-0003;Maria Del Carmen Tavarez;1;054-0034567-3;2;809-578-2245;Calle 16 de Agosto 12, Moca;2500.00;15
+CLI-0004;Colmado Los Hermanos SRL;2;131234567;1;809-578-4400;Av. Imbert 88, Moca;25000.00;30
+CLI-0005;Pedro Antonio Fernandez;1;054-0045678-5;2;849-220-1177;Barrio Nuevo, Moca;4000.00;30
+CLI-0006;Ana Mercedes Gutierrez;1;054-0056789-7;2;809-578-3312;Calle Cordova 7, Moca;1500.00;15
+CLI-0007;Restaurante El Buen Sabor;2;131987654;1;809-578-9090;Av. Antonio de la Maza 21, Moca;40000.00;30
+CLI-0008;Jose Manuel Nunez;1;054-0067890-9;2;829-301-4456;La Milagrosa, Moca;3500.00;15
+CLI-0009;Carmen Rosa Espinal;1;054-0078901-2;2;809-578-5567;Calle Sanchez 33, Moca;2000.00;15
+CLI-0010;Francisco Alberto Reyes;1;054-0089012-4;2;849-777-2210;Los Guandules, Moca;6000.00;30
+CLI-0011;Cafeteria La Esquina EIRL;2;130456789;1;809-578-6611;Calle Duarte 90, Moca;18000.00;30
+CLI-0012;Yokasta Milagros Bonilla;1;054-0090123-6;2;809-578-7788;Villa Progreso, Moca;2800.00;15
+CLI-0013;Rafael Emilio Ureña;1;054-0101234-8;2;829-664-3399;Calle Colon 5, Moca;4500.00;30
+CLI-0014;Escuela Basica Juan Pablo Duarte;2;401012345;15;809-578-1500;Av. Independencia 3, Moca;15000.00;45
+CLI-0015;Luz Divina Martinez;1;054-0112345-1;2;809-578-8899;Barrio Lindo, Moca;3200.00;15
+CLI-0016;Santiago De Jesus Cruz;1;054-0123456-3;2;849-505-6677;Los Prados, Moca;5500.00;30
+CLI-0017;Panaderia Dona Fela SRL;2;132567890;1;809-578-2200;Calle Mella 14, Moca;22000.00;30
+CLI-0018;Altagracia Del Rosario Polanco;1;054-0134567-5;2;809-578-3344;El Higuerito, Moca;1800.00;15
+CLI-0019;Miguel Angel Vasquez;1;054-0145678-7;2;829-880-1122;Canca La Reina, Moca;0.00;0
+CLI-0020;Josefina Amparo Diaz;1;054-0156789-9;2;809-578-4455;Calle Restauracion 28, Moca;0.00;0
+CLI-0021;Wilson De Los Santos;1;054-0167890-2;2;849-303-7788;Juan Lopez, Moca;0.00;0
+CLI-0022;Mercedes Elena Guzman;1;054-0178901-4;2;809-578-5566;La Ermita, Moca;2200.00;15
+CLI-0023;Domingo Antonio Herrera;1;054-0189012-6;2;829-112-9900;Monte de la Jagua, Moca;0.00;0
+CLI-0024;Rosa Maria Contreras;0;;2;809-578-6677;Moca;0.00;0
+CLI-0025;Julio Cesar Almonte;1;054-0190123-8;2;849-441-2233;Los Ranchos, Moca;3800.00;30
+CLI-0026;Gladys Esperanza Rojas;0;;2;809-578-7799;Moca;0.00;0
+CLI-0027;Hector Bienvenido Castillo;1;054-0201234-1;2;829-556-4411;Cayetano Germosen, Moca;4200.00;30
+CLI-0028;Farmacia San Rafael SRL;2;133678901;1;809-578-8811;Calle Duarte 120, Moca;12000.00;30
+CLI-0029;Elizabeth Del Orbe;0;;2;849-667-3322;Moca;0.00;0
+CLI-0030;Bienvenido Ramon Paulino;1;054-0212345-3;2;809-578-9922;La Cruz de Moca;0.00;0
+CLI-0031;Sonia Margarita Veras;1;054-0223456-5;2;829-778-5533;Villa Trina, Moca;2600.00;15
+CLI-0032;Andres Felipe Lantigua;0;;2;809-578-1133;Moca;0.00;0
+CLI-0033;Nurys Antonia Grullon;1;054-0234567-7;2;849-889-6644;Calle Corazon de Jesus 9, Moca;3000.00;15
+CLI-0034;Ferreteria El Martillo EIRL;2;134789012;1;809-578-2244;Av. Imbert 150, Moca;30000.00;45
+CLI-0035;Ignacio Manuel Batista;0;;2;829-990-7755;Moca;0.00;0
+CLI-0036;Petronila Del Villar;1;054-0245678-9;2;809-578-3355;Jamo, Moca;1600.00;15
+CLI-0037;Cristian David Abreu;0;;2;849-101-8866;Moca;0.00;0
+CLI-0038;Marisol Esther Frias;1;054-0256789-2;2;809-578-4466;Las Lagunas, Moca;2400.00;15
+CLI-0039;Ayuntamiento Municipal de Moca;2;401098765;15;809-578-2000;Parque Central, Moca;50000.00;60
+CLI-0040;Genaro Antonio Pichardo;1;054-0267890-4;2;829-212-9977;El Corozo, Moca;5000.00;30

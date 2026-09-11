@@ -1,0 +1,7 @@
+Orden;TipoComprobante;Prefijo;Desde;Hasta;Disponibles;FechaVencimiento;Accion;Proposito en el piloto
+1;02 Consumo;B02;1;5000;5000;2027-07-17;DESACTIVAR el dia 1;Rango sembrado por el sistema. Se desactiva a proposito para que el piloto consuma el rango corto
+2;02 Consumo;B02;5001;5250;250;2026-12-31;REGISTRAR el dia 1;Rango CORTO deliberado. Con el calendario planificado se agota el dia 14, a mitad de jornada
+3;02 Consumo;B02;5251;6000;750;2026-12-31;REGISTRAR el dia 14;Rango de relevo. Lo registra el administrador cuando el corto se agota, y esa es la prueba
+4;01 Credito Fiscal;B01;1;5000;5000;2027-07-17;DEJAR ACTIVO;Sembrado. Lo usan los 6 clientes con RNC y comprobante 01
+5;15 Gubernamental;B15;1;5000;5000;2027-07-17;DEJAR ACTIVO;Sembrado. Lo usan los 2 clientes gubernamentales
+6;14 Regimen Especial;B14;1;5000;5000;2027-07-17;DESACTIVAR el dia 1;No hay clientes de regimen especial en la cartera; se desactiva para que no confunda
