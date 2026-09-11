@@ -1,0 +1,20 @@
+=== Evidencia de pruebas - vie. 11/09/2026 12:37:17.54 === 
+74391220f3b44d0ffb94513b1146626dd197a236
+v1.0-1-g7439122
+10.0.302
+ 
+Comando: dotnet test --collect:"XPlat Code Coverage" 
+  Determinando los proyectos que se van a restaurar...
+  Todos los proyectos están actualizados para la restauración.
+  MiniERP.Domain -> E:\repos\MiniERP\src\MiniERP.Domain\bin\Debug\net10.0\MiniERP.Domain.dll
+  MiniERP.Application -> E:\repos\MiniERP\src\MiniERP.Application\bin\Debug\net10.0\MiniERP.Application.dll
+  MiniERP.Infrastructure -> E:\repos\MiniERP\src\MiniERP.Infrastructure\bin\Debug\net10.0\MiniERP.Infrastructure.dll
+  MiniERP.Tests -> E:\repos\MiniERP\tests\MiniERP.Tests\bin\Debug\net10.0\MiniERP.Tests.dll
+Serie de pruebas para E:\repos\MiniERP\tests\MiniERP.Tests\bin\Debug\net10.0\MiniERP.Tests.dll (.NETCoreApp,Version=v10.0)
+1 archivos de prueba en total coincidieron con el patrón especificado.
+Archivo de resultados: E:\repos\MiniERP\evidencia\TestResults\resultados.trx
+
+Correctas! - Con error:     0, Superado:   196, Omitido:     0, Total:   196, Duración: 309 ms - MiniERP.Tests.dll (net10.0)
+
+Datos adjuntos:
+  E:\repos\MiniERP\evidencia\TestResults\e2749b56-34cc-49c3-bb55-7436eebdcda3\coverage.cobertura.xml
