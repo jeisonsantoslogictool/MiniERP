@@ -1,0 +1,65 @@
+Codigo;Descripcion;Categoria;Unidad;TasaItbis;Costo;PrecioVenta;ExistenciaInicial;ExistenciaMinima;ManejaInventario
+VIV-001;Arroz Selecto;Viveres;LB;0.00;28.0000;34.0000;450.000;80.000;1
+VIV-002;Habichuela Roja;Viveres;LB;0.00;52.0000;62.0000;180.000;40.000;1
+VIV-003;Habichuela Negra;Viveres;LB;0.00;48.0000;58.0000;120.000;30.000;1
+VIV-004;Azucar Crema;Viveres;LB;0.00;24.0000;30.0000;200.000;50.000;1
+VIV-005;Sal Refinada;Viveres;LB;0.00;12.0000;18.0000;90.000;20.000;1
+VIV-006;Aceite Vegetal 1LT;Viveres;UND;0.00;145.0000;175.0000;60.000;15.000;1
+VIV-007;Espagueti Milani 200g;Viveres;PAQ;0.18;22.0000;30.0000;140.000;30.000;1
+VIV-008;Harina de Trigo;Viveres;LB;0.00;20.0000;26.0000;110.000;25.000;1
+VIV-009;Avena en Hojuelas;Viveres;LB;0.18;42.0000;55.0000;70.000;15.000;1
+VIV-010;Cafe Molido Santo Domingo;Viveres;LB;0.18;210.0000;265.0000;45.000;10.000;1
+VIV-011;Cacao en Polvo;Viveres;LB;0.18;95.0000;125.0000;35.000;8.000;1
+VIV-012;Maiz para Moro;Viveres;LB;0.18;32.0000;42.0000;60.000;15.000;1
+CAR-001;Pollo Entero Fresco;Carnes y Embutidos;LB;0.18;62.0000;78.0000;220.000;50.000;1
+CAR-002;Muslo de Pollo;Carnes y Embutidos;LB;0.18;58.0000;72.0000;160.000;40.000;1
+CAR-003;Carne de Res Molida;Carnes y Embutidos;LB;0.18;145.0000;180.0000;90.000;25.000;1
+CAR-004;Chuleta de Cerdo;Carnes y Embutidos;LB;0.18;125.0000;158.0000;80.000;20.000;1
+CAR-005;Salami Induveca;Carnes y Embutidos;LB;0.18;88.0000;112.0000;65.000;15.000;1
+CAR-006;Jamon de Pierna;Carnes y Embutidos;LB;0.18;135.0000;172.0000;40.000;10.000;1
+CAR-007;Salchichon Especial;Carnes y Embutidos;UND;0.18;95.0000;125.0000;50.000;12.000;1
+CAR-008;Longaniza Criolla;Carnes y Embutidos;LB;0.18;110.0000;142.0000;45.000;12.000;1
+LAC-001;Leche Entera 1LT;Lacteos;UND;0.00;68.0000;82.0000;90.000;24.000;1
+LAC-002;Leche en Polvo 400g;Lacteos;UND;0.18;285.0000;355.0000;40.000;10.000;1
+LAC-003;Queso de Freir;Lacteos;LB;0.18;165.0000;210.0000;55.000;12.000;1
+LAC-004;Queso Geo Amarillo;Lacteos;LB;0.18;190.0000;240.0000;35.000;8.000;1
+LAC-005;Yogurt Bebible 200ml;Lacteos;UND;0.18;32.0000;45.0000;70.000;18.000;1
+LAC-006;Mantequilla 250g;Lacteos;UND;0.18;115.0000;148.0000;30.000;8.000;1
+LAC-007;Huevos de Gallina;Lacteos;UND;0.00;9.0000;13.0000;360.000;60.000;1
+BEB-001;Coca-Cola 2LT;Bebidas;UND;0.18;95.0000;125.0000;120.000;30.000;1
+BEB-002;Country Club 2LT;Bebidas;UND;0.18;88.0000;115.0000;90.000;24.000;1
+BEB-003;Agua Purificada 1GAL;Bebidas;GAL;0.18;42.0000;60.0000;80.000;20.000;1
+BEB-004;Jugo Rica 1LT;Bebidas;UND;0.18;72.0000;95.0000;60.000;15.000;1
+BEB-005;Cerveza Presidente Grande;Bebidas;UND;0.18;135.0000;175.0000;144.000;36.000;1
+BEB-006;Malta Morena;Bebidas;UND;0.18;58.0000;78.0000;96.000;24.000;1
+BEB-007;Ron Brugal Anejo 750ml;Bebidas;UND;0.18;520.0000;650.0000;24.000;6.000;1
+BEB-008;Gatorade 500ml;Bebidas;UND;0.18;62.0000;85.0000;48.000;12.000;1
+ENL-001;Sardina Brunswick;Enlatados;UND;0.18;58.0000;78.0000;90.000;24.000;1
+ENL-002;Atun Calvo en Aceite;Enlatados;UND;0.18;85.0000;110.0000;70.000;18.000;1
+ENL-003;Salsa de Tomate Pasta;Enlatados;UND;0.18;38.0000;52.0000;110.000;30.000;1
+ENL-004;Maiz Dulce Enlatado;Enlatados;UND;0.18;52.0000;70.0000;55.000;15.000;1
+ENL-005;Leche Evaporada;Enlatados;UND;0.18;62.0000;82.0000;80.000;20.000;1
+LIM-001;Detergente Ace 1kg;Limpieza;UND;0.18;175.0000;225.0000;50.000;12.000;1
+LIM-002;Jabon de Cuaba;Limpieza;UND;0.18;28.0000;40.0000;120.000;30.000;1
+LIM-003;Cloro Clorox 1GAL;Limpieza;GAL;0.18;135.0000;175.0000;40.000;10.000;1
+LIM-004;Suavizante Suavitel 1LT;Limpieza;UND;0.18;145.0000;190.0000;35.000;8.000;1
+LIM-005;Papel Higienico 4 rollos;Limpieza;PAQ;0.18;115.0000;150.0000;60.000;15.000;1
+LIM-006;Fundas Plasticas Medianas;Limpieza;PAQ;0.18;45.0000;65.0000;80.000;20.000;1
+HIG-001;Jabon de Bano Protex;Higiene Personal;UND;0.18;62.0000;85.0000;70.000;18.000;1
+HIG-002;Pasta Dental Colgate;Higiene Personal;UND;0.18;98.0000;130.0000;45.000;12.000;1
+HIG-003;Desodorante Rexona;Higiene Personal;UND;0.18;155.0000;200.0000;30.000;8.000;1
+HIG-004;Shampoo Head and Shoulders;Higiene Personal;UND;0.18;265.0000;340.0000;24.000;6.000;1
+HIG-005;Toallas Sanitarias Nosotras;Higiene Personal;PAQ;0.18;95.0000;125.0000;40.000;10.000;1
+PAN-001;Pan de Agua;Panaderia;UND;0.00;6.0000;10.0000;200.000;40.000;1
+PAN-002;Pan Sobao;Panaderia;UND;0.00;8.0000;12.0000;150.000;30.000;1
+PAN-003;Galleta Sandwich;Panaderia;PAQ;0.18;22.0000;32.0000;100.000;25.000;1
+SNK-001;Papitas Fritas Sabritas;Snacks y Golosinas;PAQ;0.18;35.0000;50.0000;90.000;24.000;1
+SNK-002;Chocolate Milky Way;Snacks y Golosinas;UND;0.18;42.0000;60.0000;60.000;15.000;1
+SNK-003;Chicle Trident;Snacks y Golosinas;UND;0.18;18.0000;28.0000;120.000;30.000;1
+CON-001;Helado Bon 1LT;Congelados;UND;0.18;245.0000;315.0000;20.000;5.000;1
+CON-002;Vegetales Congelados;Congelados;LB;0.18;78.0000;100.0000;35.000;8.000;1
+SRV-001;Recarga Claro;Snacks y Golosinas;UND;0.18;0.0000;0.0000;0.000;0.000;0
+SRV-002;Recarga Altice;Snacks y Golosinas;UND;0.18;0.0000;0.0000;0.000;0.000;0
+SRV-003;Recarga Viva;Snacks y Golosinas;UND;0.18;0.0000;0.0000;0.000;0.000;0
+SRV-004;Fotocopia;Snacks y Golosinas;UND;0.18;1.0000;5.0000;0.000;0.000;0
+SRV-005;Comision Envio de Dinero;Snacks y Golosinas;UND;0.18;0.0000;50.0000;0.000;0.000;0

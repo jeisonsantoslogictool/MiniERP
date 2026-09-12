@@ -1,0 +1,6 @@
+Correo;Rol;Permisos;Proposito en el piloto
+admin@laesperanza.do;Administrador;(todos por bypass de rol);Dueno del colmado. Da de alta empleados, administra secuencias NCF y consulta finanzas
+cajero1@laesperanza.do;Cajero;ventas.facturar,ventas.ver,inventario.ver,clientes.ver,clientes.cobrar;Cajero del turno de manana. Factura y cobra fiado
+cajero2@laesperanza.do;Cajero;ventas.facturar,ventas.ver,inventario.ver,clientes.ver;Cajero del turno de tarde. Factura pero NO cobra: sirve para probar el gateo por accion
+almacen@laesperanza.do;Almacen;inventario.ver,inventario.editar,inventario.ajustar,compras.ver,compras.recibir;Encargado de almacen. Recibe mercancia, ajusta y registra mermas. NO factura ni paga
+supervisor@laesperanza.do;Supervisor;ventas.ver,inventario.ver,compras.ver,clientes.ver,finanzas.ver;Consulta sin modificar. NO debe poder registrar egresos: es el caso de prueba del gateo de Finanzas

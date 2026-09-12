@@ -1,0 +1,13 @@
+Codigo;Nombre;TipoDocumento;NumeroDocumento;Contacto;Telefono;Direccion;DiasCredito
+PRV-0001;Distribuidora Nacional SRL;2;101234567;Luis Manuel Grullon;809-241-1100;Zona Industrial, Santiago;30
+PRV-0002;Induveca SA;2;101876543;Carmen Rodriguez;809-582-2200;Av. Circunvalacion, Santiago;30
+PRV-0003;Rica Dominicana SA;2;102345678;Jose Alberto Pena;809-565-3300;Santo Domingo;15
+PRV-0004;Cervecería Nacional Dominicana;2;101112223;Pedro Antonio Mejia;809-544-4400;Santo Domingo Este;30
+PRV-0005;Molinos del Cibao SRL;2;103456789;Ana Luisa Fermin;809-575-5500;Santiago;45
+PRV-0006;Lacteos Del Valle EIRL;2;131555666;Ramon Emilio Cabrera;809-578-6600;Moca;15
+PRV-0007;Agropecuaria Los Pinos;2;132777888;Miguel Angel Torres;829-333-7700;Salcedo;30
+PRV-0008;Distribuidora Espaillat SRL;2;133999000;Yolanda Perez;809-578-8800;Moca;30
+PRV-0009;Juan Ramon Colon;1;054-0301234-5;Juan Ramon Colon;849-444-9900;Moca;15
+PRV-0010;Panaderia La Central;1;054-0312345-7;Felipe Santana;809-578-1010;Moca;7
+PRV-0011;Mayorista El Ahorro;0;;Domingo Alcantara;829-555-2020;Moca;0
+PRV-0012;Frutas y Vegetales Del Campo;0;;Altagracia Nunez;849-666-3030;Moca;0
